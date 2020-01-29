@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>// Place global declarations here.
+clock x, y, z, t;
+</declaration>
+	<template>
+		<name x="5" y="5">M1</name>
+		<declaration>// Place local declarations here.</declaration>
+		<location id="id0" x="195" y="-34">
+			<name x="185" y="-68">l3</name>
+		</location>
+		<location id="id1" x="-51" y="-34">
+			<name x="-61" y="-68">l1</name>
+		</location>
+		<location id="id2" x="76" y="-34">
+			<name x="68" y="-68">l2</name>
+		</location>
+		<location id="id3" x="-204" y="-34">
+			<name x="-214" y="-68">l0</name>
+		</location>
+		<location id="id4" x="314" y="-34">
+			<name x="304" y="-68">l4</name>
+		</location>
+		<location id="id5" x="442" y="-34">
+			<name x="432" y="-68">l5</name>
+		</location>
+		<location id="id6" x="722" y="-34">
+			<name x="712" y="-68">l6</name>
+		</location>
+		<location id="id7" x="76" y="51">
+			<name x="66" y="17">l7</name>
+		</location>
+		<location id="id8" x="263" y="51">
+			<name x="253" y="17">l8</name>
+		</location>
+		<location id="id9" x="442" y="51">
+			<name x="432" y="17">l9</name>
+		</location>
+		<init ref="id3"/>
+		<transition>
+			<source ref="id9"/>
+			<target ref="id5"/>
+			<label kind="assignment" x="450" y="8">x = 0</label>
+		</transition>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id9"/>
+			<label kind="guard" x="297" y="25">x &gt; 20 &amp;&amp; z &gt; 80</label>
+			<label kind="assignment" x="281" y="51">x = 0</label>
+		</transition>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id8"/>
+			<label kind="guard" x="102" y="25">x &gt; 20</label>
+			<label kind="assignment" x="94" y="51">x = 0</label>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id7"/>
+			<label kind="guard" x="-51" y="-8">x &gt; 20</label>
+			<label kind="assignment" x="-42" y="25">x = 0, z = 0</label>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id6"/>
+			<label kind="guard" x="476" y="-59">y &gt; 100 &amp;&amp; x &gt; 50 &amp;&amp; y &lt; 160</label>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id5"/>
+			<label kind="guard" x="348" y="-59">x &gt; 40</label>
+			<label kind="assignment" x="348" y="-25">x = 0</label>
+		</transition>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id4"/>
+			<label kind="guard" x="229" y="-59">x &gt; 40</label>
+			<label kind="assignment" x="221" y="-25">x = 0</label>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id0"/>
+			<label kind="guard" x="102" y="-59">x &gt; 20</label>
+			<label kind="assignment" x="110" y="-25">x = 0</label>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id2"/>
+			<label kind="guard" x="-17" y="-59">x &gt; 20</label>
+			<label kind="assignment" x="8" y="-34">x = 0</label>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id1"/>
+			<label kind="guard" x="-170" y="-59">x &lt; 10</label>
+			<label kind="assignment" x="-170" y="-25">x =0</label>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+Process = M1();
+// List one or more processes to be composed into a system.
+system M1;
+    </system>
+	<queries>
+		<query>
+			<formula></formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>E&lt;&gt; M1.l6</formula>
+			<comment></comment>
+		</query>
+	</queries>
+</nta>
