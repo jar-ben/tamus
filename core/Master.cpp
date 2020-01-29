@@ -6,12 +6,13 @@
 #include <random>
 
 
-Master::Master(string filename, string alg){
+Master::Master(string filename, string alg, string location){
+
         isValidExecutions = 0;
 	algorithm = alg;
 	sat_solver = "default";
 	if(ends_with(filename, "xml")){
-		satSolver = new TAHandle(filename);
+		satSolver = new TAHandle(filename, location);
 		domain = "ta";
 	}
 	else if(ends_with(filename, "cnf")){

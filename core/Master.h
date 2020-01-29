@@ -42,7 +42,7 @@ public:
 	SatSolver* satSolver; 
 	string sat_solver;
 
-	Master(string filename, string alg);
+	Master(string filename, string alg, string location);
 	~Master();
 	bool is_valid(Formula &f, bool core = false, bool grow = false);
 	void block_down(Formula f);

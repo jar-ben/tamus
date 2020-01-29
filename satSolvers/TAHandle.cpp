@@ -26,10 +26,10 @@ std::vector<int> path_lengths(const std::string& str){
 }
 
 
-TAHandle::TAHandle(std::string filename): SatSolver(filename){
+TAHandle::TAHandle(std::string filename, std::string loc): SatSolver(filename){
+	location = loc;
 	model = filename;
-	std::string cmd = "python2 ../main.py " + filename + " init";
-	std::cout << cmd << std::endl;
+	std::string cmd = "python2 ./uppaalHelpers/main.py " + filename + " init " + location;
 	std::string res = exec(cmd.c_str());
 	std::string line;
 	std::istringstream stream{res};
@@ -53,10 +53,11 @@ std::string TAHandle::toString(std::vector<bool> &f){
 // check formula for satisfiability
 // the core and grow variables controls whether to return an unsat core or model extension, respectively
 bool TAHandle::solve(std::vector<bool> &formula, bool core, bool grow){
+	checks++;
 	std::string active = "";
 	for(int i = 0; i < dimension; i++)
 		active += (formula[i])? "1" : "0";
-	std::string cmd = "python2 ./uppaalHelpers/main.py " + model + " check 0 " + active;
+	std::string cmd = "python2 ./uppaalHelpers/main.py " + model + " check " + location + " 0 " + active;
 	std::string res = exec(cmd.c_str());
 	trim(res);
 	return res == "1";

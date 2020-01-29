@@ -5,7 +5,6 @@ using namespace std;
 
 //basic, domain agnostic, implementation of the shrink procedure
 vector<bool> SatSolver::shrink(std::vector<bool> &f, std::vector<bool> crits){
-	cout << "default shrink" << endl;
 	shrinks++;
 	if(crits.empty())
 		crits = std::vector<bool> (dimension, false);

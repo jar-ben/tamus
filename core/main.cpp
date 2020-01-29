@@ -25,7 +25,7 @@ int main(int argc, char *argv[]){
 		TCLAP::ValueArg<string> algorithm("a","algorithm","MUS enumeration algorithm to be used.",false,"remus",&allowedVals);
 		cmd.add(algorithm);
 
-		TCLAP::ValueArg<std::string> output("o","output-file","A file where the identified MUSes will be exported to.",false,"","string");
+		TCLAP::ValueArg<std::string> output("o","output-file","A file where the identified MCSes will be exported to.",false,"","string");
 		cmd.add(output);
 		TCLAP::SwitchArg verbose("v","verbose","Verbose output", cmd, false);
 		vector<string> allowedShrinks {"default", "muser"};
@@ -41,8 +41,10 @@ int main(int argc, char *argv[]){
 
 		TCLAP::SwitchArg criticalsRotation("","criticals-rotation","Available only in the SAT domain and used only if the flag -g is not set. Allows to find additional critical constraints based on the already found ones. Use this flag to turn the feature on.", cmd, false);
 
-		TCLAP::UnlabeledValueArg<string>  input( "input_file", "Input file, either .cnf, .smt2, or .ltl. See the ./examples/.", true, "", "input_file"  );
+		TCLAP::UnlabeledValueArg<string>  input( "model_file", "Model in xml format. See the ./examples/.", true, "", "input_file"  );
 		cmd.add(input);
+		TCLAP::UnlabeledValueArg<string>  location( "target_location", "Target location. See the ./examples/.", true, "", "target_location"  );
+		cmd.add(location);
 		cmd.parse(argc, argv);
 
 		//clear the output file
@@ -52,7 +54,7 @@ int main(int argc, char *argv[]){
 			ofs.close();
 		}
 
-		Master solver(input.getValue(), algorithm.getValue());
+		Master solver(input.getValue(), algorithm.getValue(), location.getValue());
 		solver.output_file = output.getValue();
 		solver.verbose = verbose.getValue();
 		solver.depthMUS = (recursionDepthLimit.getValue() >= 0)? recursionDepthLimit.getValue() : solver.dimension;

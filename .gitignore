@@ -1,0 +1,4 @@
+*.o
+must
+.gitignore.swp
+
