@@ -32,7 +32,6 @@ class TimedAutomata:
             self._register_transition_constraints(t)
 
         #print (self.constraint_registry)
-
     """ def plot(self):
         plt.subplot()
         nx.draw(self.g, with_labels=True, font_weight='bold')
