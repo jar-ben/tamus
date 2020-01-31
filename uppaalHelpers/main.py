@@ -37,7 +37,7 @@ if __name__ == '__main__':
     args = sys.argv[1].split('-')
     model = args[0]
     query_file = args[1]
-    init(model, query_file)
+    #init(model, query_file)
     query = sys.argv[2]
     # last one is not used !!!
     assert query in ["init", "check"]
