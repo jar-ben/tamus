@@ -52,9 +52,9 @@ def verify_reachability(ta_file_path, final_location, print_result=False):
     res = 0
     try:
         a , stdoutdata = pyuppaal.verify(ta_file_path, qfname,getoutput=True)
-        if '-- Property is satisfied' in stdoutdata:
+        if 'is satisfied' in stdoutdata:
             res = 1
-        if '-- Property is NOT satisfied' in stdoutdata:
+        if 'is NOT satisfied' in stdoutdata:
             res = -1
 
     except Exception as e:
