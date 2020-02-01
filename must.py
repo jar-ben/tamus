@@ -67,10 +67,16 @@ class Tamus:
             mcses.append([self.clist[c] for c in m])
         return mcses
 
-t = Tamus("./examples/m1.xml", "./examples/m1.q")
-print "dimension:", t.dimension
-print "is the input satisfiable?", t.is_valid([i for i in range(t.dimension)])
-t.run()    
-mcses = t.get_MCSes()
-print(mcses)
+if __name__ == '__main__':
+    assert len(sys.argv) > 2
+    model = sys.argv[1]
+    query_file = sys.argv[2]
+    
+
+    t = Tamus(model, query_file)
+    print "dimension:", t.dimension
+    print "is the input satisfiable?", t.is_valid([i for i in range(t.dimension)])
+    t.run()    
+    mcses = t.get_MCSes()
+    print(mcses)
     
