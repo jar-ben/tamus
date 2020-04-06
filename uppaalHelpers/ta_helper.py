@@ -1,19 +1,19 @@
 
 import pyuppaal
 
-next_id = 1
 verification_result = {1: 'property is satisfied', 0: 'unknown', -1: 'property is not satisfied'}
 
-def get_template_name(ta_file_path, instance_name):
-    string_catch = instance_name + " = "
+
+def get_template_name(ta_file_path, model_name):
+    string_catch = model_name + " = "
     template_name = "" 
     with open(ta_file_path, 'r') as myfile:
         for line in myfile:
             if line.startswith(string_catch):
                 line_s = line.split(" ")
-		template_name = line_s[-1]
+                template_name = line_s[-1]
                 template_name = template_name[:template_name.index('(')]
-		break
+                break
     return template_name
           
 
@@ -29,18 +29,16 @@ def get_template(ta_file_path, query_file_name):
     ta_file = open(ta_file_path)
     nta = pyuppaal.NTA.from_xml(ta_file)
     for template in nta.templates:
-    	if template.name == template_name:
-            return template, location
+        if template.name == template_name:
+            return nta, template, location
 
 
-def set_template_and_save(ta_file_path, template, ta_file_path_new=None):
-    """Read the network of ta from file, set template as the first one and store the result."""
-    ta_file = open(ta_file_path)
-    nta = pyuppaal.NTA.from_xml(ta_file)
+def set_template_and_save(ta_file_path, nta, template, ta_file_path_new=None):
+    """Set template as the first one and store the result."""
     for index in range(len(nta.templates)):
-	if nta.templates[index].name == template.name:
-	    nta.templates[index] = template
-	    break
+        if nta.templates[index].name == template.name:
+            nta.templates[index] = template
+            break
     xml_string = nta.to_xml()
     if not ta_file_path_new:
         ta_file_path_new = ta_file_path[0:-4] + "_new.xml"

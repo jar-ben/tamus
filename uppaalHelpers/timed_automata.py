@@ -1,8 +1,7 @@
+import copy
 import networkx as nx
 
 #import matplotlib.pyplot as plt
-
-next_id = 0
 
 
 class TimedAutomata:
@@ -14,6 +13,7 @@ class TimedAutomata:
 
         self.constraint_registry = dict()  # constraint_id: constraint, source-target/or location, quard
         self.template = None
+        self.next_id = 0
 
     def initialize_from_template(self, template):
         """Initialize TA from pyuppaal template."""
@@ -39,23 +39,23 @@ class TimedAutomata:
     """
     def _register_transition_constraints(self, t):
         """Register constraints. This will be only called from initialization function."""
-        global next_id
-        c_list = t.guard.value.split('&&')
+        if not t.guard.value:
+            return
+        c_list = t.guard.value.split('&&') # TODO do not register the empty strings -- no constraint.
         for c in c_list:
-            self.constraint_registry['c' + str(next_id)] = \
-                [c, (t.source.name.value, t.target.name.value), t.guard.value]
-            next_id += 1
+            self.constraint_registry['c' + str(self.next_id)] = \
+                [c, (t.source.name.value, t.target.name.value)]
+            self.next_id += 1
 
     def _register_location_constraints(self, l):
         """Register constraints. This will be only called from initialization function."""
-        global next_id
         if not l.invariant.value:
             return
         c_list = l.invariant.value.split('&&')
         for c in c_list:
-            self.constraint_registry['c' + str(next_id)] = \
-                [c, l.name.value, l.invariant.value]
-            next_id += 1
+            self.constraint_registry['c' + str(self.next_id)] = \
+                [c, l.name.value]
+            self.next_id += 1
 
     def constraint_lists_for_all_paths(self, final_location):
         """Generates a list of lists, each list corresponds to the set of constraints encountered in
@@ -82,22 +82,38 @@ class TimedAutomata:
     def generate_relaxed_template(self, relax_set):
         """Removes the constraints from the relaxed set and returns the resulting template."""
 
-        new_template = self.template
+        transition_relax_set = {}
+        location_relax_set = {}
         for cid in relax_set:
-            c, l_t, constraint = self.constraint_registry[cid]
-            constraint_list = constraint.split('&&')
-            constraint_list.remove(c)
-            constraint_relaxed = ' && '.join(constraint_list)
-            if isinstance(l_t, tuple):
-                for t in new_template.transitions:
-                    if t.source.name.value == l_t[0] and t.target.name.value == l_t[1] \
-                            and t.guard.value == constraint:
-                        t.guard.value = constraint_relaxed
-                        break
-            else: # invariant
-                for l in new_template.locations:
-                    if l.name.value == l_t:
-                        l.invariant.value = constraint_relaxed
-                        break
+            constraint, l_t = self.constraint_registry[cid]
+            if isinstance(l_t, tuple): # A constraint along a transition.
+                transition_relax_set.setdefault(l_t, []).append(constraint)  # Insert or append
+            else:
+                location_relax_set.setdefault(l_t, []).append(constraint)
+
+        new_template = copy.deepcopy(self.template) # The relax operation will be performed on the new template.
+        # Go through the transitions, relax them according to transition_relax_set.
+        for t in new_template.transitions:
+            t_relax_set = transition_relax_set.get((t.source.name.value, t.target.name.value),[])
+            if t_relax_set:
+                t.guard.value = self._relax_constraint(t.guard.value, t_relax_set)
+
+        # Go through the locations, relax invariants according to the location_relax_set.
+        for l in new_template.locations:
+            l_relax_set = location_relax_set.get(l.name.value, [])
+            if l_relax_set:
+                l.invariant.value = self._relax_constraint(l.invariant.value, l_relax_set)
 
         return new_template
+
+    def _relax_constraint(self, constraint, relax_set):
+        """Returns a string by removing each constraint from the relax set. """
+        constraint_list = constraint.split('&&')
+        c_dif = [c for c in constraint_list if c not in relax_set] # InlinesSet difference for two lists.
+        return ' && '.join(c_dif)
+
+    def print_registry(self, file_name):
+        f = open(file_name, "w")
+        for k in sorted(self.constraint_registry.keys()):
+            f.write(str(k) + " : " + str(self.constraint_registry[k]) + "\n")
+        f.close()
