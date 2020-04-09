@@ -26,8 +26,9 @@ class Tamus:
         # For now, Tamus performs constraint analysis over a single path. (TODO)
         self.clist = clist[0]
         self.dimension = len(clist[0])
-        self.exp = Explorer(self.dimension)
+        self.explorer = Explorer(self.dimension)
         self.mcses = []
+        self.performed_checks = 0
 
     def complement(self, N):
         return [i for i in range(self.dimension) if i not in N]
@@ -41,29 +42,35 @@ class Tamus:
         return res == 1
 
     def is_valid(self, N):
+        self.performed_checks += 1
         return self.check(N)
-    
+   
+    # takes an unexplored s-seed N and returns an unexplored MSS N' of N such that N' \supseteq N
     def grow(self, N):
         for c in self.complement(N):
+            if not self.explorer.is_available(c, N): continue # c is minable conflicting for N
             copy = N[:] + [c]
             if self.is_valid(copy):
                 N.append(c)
+            else:
+                self.explorer.block_up(copy)
         return N
 
     def markMSS(self, N):
         print "Found MCS: {}".format([self.clist[c] for c in self.complement(N)]) 
-        self.exp.block_down(N)
+        self.explorer.block_down(N)
+        self.explorer.block_up(N)
         self.mcses.append(self.complement(N))
 
     def run(self):
-        seed = self.exp.get_unex()
+        seed = self.explorer.get_unex()
         while seed is not None:
             if self.is_valid(seed):
                 mss = self.grow(seed[:])
                 self.markMSS(mss)
             else:
-                self.exp.block_up(seed)
-            seed = self.exp.get_unex()
+                self.explorer.block_up(seed)
+            seed = self.explorer.get_unex()
 
     def get_MCSes(self):
         mcses = []
@@ -84,5 +91,6 @@ if __name__ == '__main__':
     t.run()    
     mcses = t.get_MCSes()
     print(mcses)
-    print "Elapsed time", (time.clock() - start_time)
+    print "Elapsed time in seconds:", (time.clock() - start_time)
+    print "Performed reachability checks:", t.performed_checks
     # 2- TODO construct partial automaton, i.e., along the PATH

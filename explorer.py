@@ -31,3 +31,12 @@ class Explorer:
                     seed.append(int(str(x)[1:]))
         return seed
 
+    # checks whether is c avaiable for N, i.e., whether is N \cup {c} unexplored
+    # in other words, checks whether c is minable conflicting for N
+    def is_available(self, c, N):
+        return self.is_unexplored(N + [c])
+
+    # checks if N is unexplored
+    def is_unexplored(self, N):
+        assumptions = [self.vars[c] for c in N] + [Not(self.vars[c]) for c in self.complement(N)]
+        return (self.s.check(assumptions) == sat)
