@@ -31,10 +31,35 @@ class Explorer:
                     seed.append(int(str(x)[1:]))
         return seed
 
-    # checks whether is c avaiable for N, i.e., whether is N \cup {c} unexplored
-    # in other words, checks whether c is minable conflicting for N
-    def is_available(self, c, N):
-        return self.is_unexplored(N + [c])
+    # maximize a given unexplored subset (seed)
+    def maximize(self, seed):
+        candidates = self.complement(seed)
+        while len(candidates) > 0:
+            c = candidates[-1]
+            candidates = candidates[:-1]
+            if not self.is_conflicting(c, seed):
+                seed.append(c)
+        return seed
+
+    # minimize a given unexplored subset (seed)
+    def minimize(self, seed):
+        candidates = seed[:]
+        while len(candidates) > 0:
+            c = candidates[-1]
+            candidates = candidates[:-1]
+            if not self.is_critical(c, seed):
+                seed.remove(c)
+        return seed
+    # checks whether c is minable critical for N, i.e., whether N - {c} is unexplored
+    def is_critical(self, c, N):
+        assert c in N
+        Nc = N[:]
+        Nc.remove(c)
+        return not self.is_unexplored(Nc)
+
+    # checks whether c is minable conflicting for N, i.e., whether N \cup {c} is unexplored
+    def is_conflicting(self, c, N):
+        return not self.is_unexplored(N + [c])
 
     # checks if N is unexplored
     def is_unexplored(self, N):

@@ -50,7 +50,7 @@ class Tamus:
     # takes an unexplored s-seed N and returns an unexplored MSS N' of N such that N' \supseteq N
     def grow(self, N):
         for c in self.complement(N):
-            if not self.explorer.is_available(c, N): continue # c is minable conflicting for N
+            if self.explorer.is_conflicting(c, N): continue # c is minable conflicting for N
             copy = N[:] + [c]
             if self.is_valid(copy):
                 N.append(c)
