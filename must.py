@@ -66,18 +66,51 @@ class Tamus:
 
     def run(self):
         if self.algorithm == "tome":
-            pass
+            self.enumerate_tome()
         elif self.algorithm == "grow-shrink":
             pass
         else:
             self.enumerate_marco()
 
-    def enumerate_tome(self):
-        pass
+    # builds an unexplored chain between bot and top and finds the local MUS and the local MSS of the chain
+    def tome_local_search(self, bot, top):
+        diff = list(set(top) - set(bot))
+        low = 0
+        high = len(diff) - 1
+        while high - low > 1:
+            mid = (low + high) // 2
+            seed = bot + [diff[i] for i in range(mid)]
+            if self.is_valid(seed):
+                low = mid
+            else:
+                high = mid
+        assert high - low == 1
+        localMSS = bot + [diff[i] for i in range(low)]
+        localMUS = bot + [diff[i] for i in range(high)]
+        return localMUS, localMSS
 
+    # the main function of the TOME MCS enumeration algorithm
+    def enumerate_tome(self):
+        seed = self.explorer.get_unex()
+        while seed is not None:
+            top = self.explorer.maximize(seed[:])
+            bot = self.explorer.minimize(seed[:])
+            if self.is_valid(top):
+                self.markMSS(top)
+            elif not self.is_valid(bot):
+                self.explorer.block_up(seed)
+            else:
+                localMUS, localMSS = self.tome_local_search(bot, top)
+                mss = self.grow(localMSS)
+                self.markMSS(mss)
+                self.explorer.block_up(localMUS)
+            seed = self.explorer.get_unex()
+
+    # the main function of the GROW-SHRINK MCS enumeration algorithm
     def enumerate_grow_shrink(self):
         pass
 
+    # the main function of the MARCO MCS enumeration algorithm
     def enumerate_marco(self):
         seed = self.explorer.get_unex()
         while seed is not None:
@@ -97,13 +130,14 @@ class Tamus:
 if __name__ == '__main__':
     assert len(sys.argv) > 2
     model = sys.argv[1]
-    query_file = sys.argv[2]
+    query_file = sys.argv[2] 
 
     start_time = time.clock()
     t = Tamus(model, query_file)
     print "Model: ", model, ", query: ", query_file
     print "dimension:", t.dimension
     print "is the input satisfiable?", t.is_valid([i for i in range(t.dimension)])
+    t.algorithm = sys.argv[3]
     t.run()    
     mcses = t.get_MCSes()
     print(mcses)
