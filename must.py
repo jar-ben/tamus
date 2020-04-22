@@ -29,6 +29,8 @@ class Tamus:
         self.explorer = Explorer(self.dimension)
         self.mcses = []
         self.performed_checks = 0
+        #algorithm for the MCS enumeration
+        self.algorithm = "marco"
 
     def complement(self, N):
         return [i for i in range(self.dimension) if i not in N]
@@ -63,6 +65,20 @@ class Tamus:
         self.mcses.append(self.complement(N))
 
     def run(self):
+        if self.algorithm == "tome":
+            pass
+        elif self.algorithm == "grow-shrink":
+            pass
+        else:
+            self.enumerate_marco()
+
+    def enumerate_tome(self):
+        pass
+
+    def enumerate_grow_shrink(self):
+        pass
+
+    def enumerate_marco(self):
         seed = self.explorer.get_unex()
         while seed is not None:
             if self.is_valid(seed):
