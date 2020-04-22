@@ -134,10 +134,11 @@ if __name__ == '__main__':
 
     start_time = time.clock()
     t = Tamus(model, query_file)
+    t.algorithm = sys.argv[3] if len(sys.argv) > 3 else "marco"
     print "Model: ", model, ", query: ", query_file
     print "dimension:", t.dimension
     print "is the input satisfiable?", t.is_valid([i for i in range(t.dimension)])
-    t.algorithm = sys.argv[3]
+    print "running the MCS enumeration algorithm " + t.algorithm
     t.run()    
     mcses = t.get_MCSes()
     print(mcses)
