@@ -28,9 +28,18 @@ class Tamus:
         self.dimension = len(clist[0])
         self.explorer = Explorer(self.dimension)
         self.mcses = []
-        self.performed_checks = 0
         #algorithm for the MCS enumeration
         self.algorithm = "marco"
+
+        #statistics related data-structures and functionality
+        self.stats = {}
+        self.stats["checks"] = 0
+        self.stats["checks_sat"] = 0
+        self.stats["checks_unsat"] = 0
+        self.stats["checks_sat_time"] = 0
+        self.stats["checks_unsat_time"] = 0
+        self.stats["grows"] = 0
+        self.stats["grows_time"] = 0
 
     def complement(self, N):
         return [i for i in range(self.dimension) if i not in N]
@@ -43,19 +52,31 @@ class Tamus:
         res = ta_helper.verify_reachability(new_model, self.query_file)
         return res == 1
 
-    def is_valid(self, N):
-        self.performed_checks += 1
-        return self.check(N)
+    def is_sat(self, N):        
+        start_time = time.clock()
+        self.stats["checks"] += 1
+        sat = self.check(N)
+        if sat: 
+            self.stats["checks_sat"] += 1
+            self.stats["checks_sat_time"] += time.clock() - start_time
+        else: 
+            self.stats["checks_unsat"] += 1
+            self.stats["checks_unsat_time"] += time.clock() - start_time
+        
+        return sat
    
     # takes an unexplored s-seed N and returns an unexplored MSS N' of N such that N' \supseteq N
     def grow(self, N):
+        start_time = time.clock()
         for c in self.complement(N):
             if self.explorer.is_conflicting(c, N): continue # c is minable conflicting for N
             copy = N[:] + [c]
-            if self.is_valid(copy):
+            if self.is_sat(copy):
                 N.append(c)
             else:
                 self.explorer.block_up(copy)
+        self.stats["grows"] += 1
+        self.stats["grows_time"] += time.clock() - start_time
         return N
 
     def markMSS(self, N):
@@ -80,7 +101,7 @@ class Tamus:
         while high - low > 1:
             mid = (low + high) // 2
             seed = bot + [diff[i] for i in range(mid)]
-            if self.is_valid(seed):
+            if self.is_sat(seed):
                 low = mid
             else:
                 high = mid
@@ -95,9 +116,9 @@ class Tamus:
         while seed is not None:
             top = self.explorer.maximize(seed[:])
             bot = self.explorer.minimize(seed[:])
-            if self.is_valid(top):
+            if self.is_sat(top):
                 self.markMSS(top)
-            elif not self.is_valid(bot):
+            elif not self.is_sat(bot):
                 self.explorer.block_up(seed)
             else:
                 localMUS, localMSS = self.tome_local_search(bot, top)
@@ -114,7 +135,7 @@ class Tamus:
     def enumerate_marco(self):
         seed = self.explorer.get_unex()
         while seed is not None:
-            if self.is_valid(seed):
+            if self.is_sat(seed):
                 mss = self.grow(seed[:])
                 self.markMSS(mss)
             else:
@@ -127,6 +148,20 @@ class Tamus:
             mcses.append([self.clist[c] for c in m])
         return mcses
 
+    def print_statistics(self):
+        print ""
+        print "=== detailed statistics ===" 
+        print "Performed reachability checks:", self.stats["checks"]
+        print "Checks with result 'reachable':", self.stats["checks_sat"] 
+        print "Checks with result 'unreachable':", self.stats["checks_unsat"] 
+        print "Total time spent by reachability checks:", self.stats["checks_sat_time"] + self.stats["checks_unsat_time"]
+        print "Average time of 'reachable' check:", self.stats["checks_sat_time"]/ self.stats["checks_sat"]
+        print "Average time of 'unreachable' check:", self.stats["checks_unsat_time"]/ self.stats["checks_unsat"]
+        print "Grows:", self.stats["grows"]  
+        print "Total time spent by grows:", self.stats["grows_time"]  
+        print "==========================="
+        print ""
+
 if __name__ == '__main__':
     assert len(sys.argv) > 2
     model = sys.argv[1]
@@ -137,11 +172,12 @@ if __name__ == '__main__':
     t.algorithm = sys.argv[3] if len(sys.argv) > 3 else "marco"
     print "Model: ", model, ", query: ", query_file
     print "dimension:", t.dimension
-    print "is the input satisfiable?", t.is_valid([i for i in range(t.dimension)])
+    print "is the input satisfiable?", t.is_sat([i for i in range(t.dimension)])
     print "running the MCS enumeration algorithm " + t.algorithm
     t.run()    
     mcses = t.get_MCSes()
     print(mcses)
     print "Elapsed time in seconds:", (time.clock() - start_time)
-    print "Performed reachability checks:", t.performed_checks
+    t.print_statistics()
+
     # 2- TODO construct partial automaton, i.e., along the PATH
