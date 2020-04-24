@@ -1,5 +1,6 @@
 import sys
 import time
+import argparse
 
 from explorer import Explorer
 from uppaalHelpers import ta_helper
@@ -28,8 +29,10 @@ class Tamus:
         self.dimension = len(clist[0])
         self.explorer = Explorer(self.dimension)
         self.mcses = []
+        self.verbosity = 0
         #algorithm for the MCS enumeration
         self.algorithm = "marco"
+
 
         #statistics related data-structures and functionality
         self.stats = {}
@@ -163,21 +166,36 @@ class Tamus:
         print ""
 
 if __name__ == '__main__':
-    assert len(sys.argv) > 2
-    model = sys.argv[1]
-    query_file = sys.argv[2] 
-
     start_time = time.clock()
+    
+    #define command line arguments
+    parser = argparse.ArgumentParser("TAMUS - a tool for relaxing reachability properties in Time Automatas with a help of Minimal Unsatisfiable Subsets")
+    parser.add_argument("model_file", help = "A path to a model file")
+    parser.add_argument("query_file", help = "A path to a query file")
+    parser.add_argument("--algorithm", "-a", help = "A MCS enumeration algorithm to be used", choices = ["marco", "tome", "grow-shrink"], default = "marco")
+    parser.add_argument("--verbose", "-v", action="count", help = "Use the flag to increase the verbosity of the outputs. The flag can be used repeatedly.")    
+    #parse the command line arguments
+    args = parser.parse_args()
+
+    #run the computation
+    model = args.model_file
+    query_file = args.query_file    
     t = Tamus(model, query_file)
-    t.algorithm = sys.argv[3] if len(sys.argv) > 3 else "marco"
+    t.algorithm = args.algorithm
+    t.verbosity = args.verbose if args.verbose != None else 0
     print "Model: ", model, ", query: ", query_file
     print "dimension:", t.dimension
-    print "is the input satisfiable?", t.is_sat([i for i in range(t.dimension)])
+    print "is the target location reachable?", t.is_sat([i for i in range(t.dimension)])
     print "running the MCS enumeration algorithm " + t.algorithm
+    print ""
     t.run()    
+
+    #print statistics
+    print "all MCSes were identified"
     mcses = t.get_MCSes()
-    print(mcses)
+    print "identified MCSes:", mcses
     print "Elapsed time in seconds:", (time.clock() - start_time)
-    t.print_statistics()
+    if t.verbosity > 0:
+        t.print_statistics()
 
     # 2- TODO construct partial automaton, i.e., along the PATH
