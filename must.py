@@ -206,5 +206,3 @@ if __name__ == '__main__':
     print "Elapsed time in seconds:", (time.clock() - start_time)
     if t.verbosity > 0:
         t.print_statistics()
-
-    # 2- TODO construct partial automaton, i.e., along the PATH
