@@ -37,6 +37,23 @@ class TimedAutomata:
         nx.draw(self.g, with_labels=True, font_weight='bold')
         plt.show()
     """
+
+    def initialize_path_TA_from_template(self, template, clist):
+        """Initialize TA from pyuppaal template."""
+        self.template = template
+        # Prune the template so that it only contains transitions and locations from clist.
+        # First find the indices of locations from clist:
+        index_set = [i for i in range(len(self.template.locations))
+                     if self.template.locations[i].name.value in clist]
+        self.template.locations = [self.template.locations[i] for i in index_set]
+
+        index_set = [i for i in range(len(self.template.transitions))
+                     if self.template.transitions[i].source.name.value in clist and
+                        self.template.transitions[i].target.name.value in clist]
+        self.template.transitions = [self.template.transitions[i] for i in index_set]
+        self.initialize_from_template(self.template)
+
+
     def _register_transition_constraints(self, t):
         """Register constraints. This will be only called from initialization function."""
         if not t.guard.value:
@@ -62,14 +79,19 @@ class TimedAutomata:
         a path from initial location to the given final location."""
         paths = nx.all_simple_paths(self.g, self.initial_location, final_location)
         constraints = []
+        paths_processed = []
+        # Get the path as the list of locations
         for path in map(nx.utils.pairwise, paths):
             constraints.append([])
+            paths_processed.append([self.initial_location])
             for l_pair in path:
                 # Invariant
                 constraints[-1] = constraints[-1] + self._get_constraints_on_transition(l_pair[0])
                 # Guard
                 constraints[-1] = constraints[-1] + self._get_constraints_on_transition(l_pair)
-        return constraints
+                # Location to path
+                paths_processed[-1].append(l_pair[1])
+        return constraints, paths_processed
 
     def _get_constraints_on_transition(self, pair):
         ids = []
