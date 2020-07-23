@@ -74,6 +74,11 @@ class TimedAutomata:
                 [c, l.name.value]
             self.next_id += 1
 
+    def constraint_keys_for_ta(self):
+        """Generates the list of simple constraints of TA"""
+        return self.constraint_registry.keys()
+
+
     def constraint_lists_for_all_paths(self, final_location):
         """Generates a list of lists, each list corresponds to the set of constraints encountered in
         a path from initial location to the given final location."""

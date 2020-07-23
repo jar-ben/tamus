@@ -20,18 +20,16 @@ class Tamus:
 
         self.TA = timed_automata.TimedAutomata()
         self.TA.initialize_from_template(template)
-        # self.TA.print_registry(model_file + "_registry")
-        # clist is a list of lists. Each entry (thus list) represents the list of constraints along a path.
-        # paths is the list of corresponding paths.
-        clist, paths = self.TA.constraint_lists_for_all_paths(self.location)
-        assert len(clist) > 0
-        # Construct a path TA, it is for efficiency purposes. It consists of a single path.
-        self.pathTA = timed_automata.TimedAutomata()
-        self.pathTA.initialize_path_TA_from_template(template, paths[0])
-        clist, paths = self.pathTA.constraint_lists_for_all_paths(self.location)
-        # For now, Tamus performs constraint analysis over a single path. (TODO)
-        self.clist = clist[0]
-        self.dimension = len(clist[0])
+
+        # Constraint lists for all simple paths.
+        # clist, paths = self.TA.constraint_lists_for_all_paths(self.location)
+
+        # Identifiers for constraints over the whole TA/
+        self.clist = self.TA.constraint_keys_for_ta()
+
+        assert len(self.clist) > 0
+
+        self.dimension = len(self.clist)
         self.explorer = Explorer(self.dimension)
         self.mcses = []
         self.verbosity = 0
@@ -54,8 +52,7 @@ class Tamus:
 
     def check(self, N):
         relax_set = [self.clist[c] for c in self.complement(N)]
-        # new_template = self.TA.generate_relaxed_template(relax_set)
-        new_template = self.pathTA.generate_relaxed_template(relax_set)
+        new_template = self.TA.generate_relaxed_template(relax_set)
         # Set the TA to template in self.model, store it to file named new_model
         new_model = ta_helper.set_template_and_save(self.model_file, self.model, new_template)
         res = ta_helper.verify_reachability(new_model, self.query_file)
@@ -156,7 +153,7 @@ class Tamus:
         constraints = []
         for m in self.mcses:
             mcses.append([self.clist[c] for c in m])
-            constraints.append([self.pathTA.constraint_registry[c] for c in mcses[-1]])
+            constraints.append([self.TA.constraint_registry[c] for c in mcses[-1]])
         return mcses, constraints
 
     def print_statistics(self):
