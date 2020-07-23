@@ -198,8 +198,17 @@ if __name__ == '__main__':
     #print statistics
     print "all MCSes were identified"
     mcses, constraints = t.get_MCSes()
+    print "Elapsed time in seconds:", (time.clock() - start_time)
     print "identified MCSes:", mcses
     print "corresponding constraints:", constraints
-    print "Elapsed time in seconds:", (time.clock() - start_time)
+
+    # Minimal mcses:
+    mcses_size = [len(m) for m in mcses]
+    min_size = min(mcses_size)
+    min_mcses_indexes = [i for i in range(len(mcses_size)) if mcses_size[i] == min_size]
+    print "Minimal MCSes:"
+    for i in min_mcses_indexes:
+        print constraints[i]
+
     if t.verbosity > 0:
         t.print_statistics()
