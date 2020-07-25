@@ -12,6 +12,8 @@ class TimedAutomata:
         self.initial_location = None
 
         self.constraint_registry = dict()  # constraint_id: constraint, source-target/or location, quard
+        self.parsed_invariants = dict()  # location : parsed invariant ( a list)
+        self.parsed_guards = dict()  # source-target : parsed guard (a list)
         self.template = None
         self.next_id = 0
 
@@ -31,7 +33,11 @@ class TimedAutomata:
             # Add the guards to the registry.
             self._register_transition_constraints(t)
 
-        #print (self.constraint_registry)
+        # For debugging
+        # print (self.constraint_registry)
+        # print(self.parsed_invariants)
+        # print(self.parsed_guards)
+
     """ def plot(self):
         plt.subplot()
         nx.draw(self.g, with_labels=True, font_weight='bold')
@@ -63,6 +69,8 @@ class TimedAutomata:
             self.constraint_registry['c' + str(self.next_id)] = \
                 [c, (t.source.name.value, t.target.name.value)]
             self.next_id += 1
+        self.parsed_guards[(t.source.name.value, t.target.name.value)] = [
+            self.parse_inequality(c) for c in c_list]
 
     def _register_location_constraints(self, l):
         """Register constraints. This will be only called from initialization function."""
@@ -73,6 +81,8 @@ class TimedAutomata:
             self.constraint_registry['c' + str(self.next_id)] = \
                 [c, l.name.value]
             self.next_id += 1
+        # Parse each constraint from c_list:
+        self.parsed_invariants[l.name.value] = self.parse_invariant(c_list)  # lower and upper bounds
 
     def constraint_keys_for_ta(self):
         """Generates the list of simple constraints of TA"""
@@ -144,3 +154,41 @@ class TimedAutomata:
         for k in sorted(self.constraint_registry.keys()):
             f.write(str(k) + " : " + str(self.constraint_registry[k]) + "\n")
         f.close()
+
+    def parse_inequality(self, inequality):
+        # Given inequality x - y > a , generate y - x < -a
+        # Given inequality y > b , generate 0 - y < - b
+        # Always upper bound.
+        # Handle the parameter.
+        comparison_elements = ["<", "<=", ">", ">="]
+        place_of_com = -1
+        element = -1
+        for i in range(4):
+            if inequality.find(comparison_elements[i]) != -1:
+                place_of_com = inequality.find(comparison_elements[i])
+                element = i
+        atomics = self.parse_difference(inequality[:place_of_com])
+        if element == 1 or element == 3:
+            place_of_com += 1  # increment by 1 for =
+        if element > 1:
+            return [atomics[1], atomics[0], -int(inequality[place_of_com + 1:]), element - 2]
+        else:
+            return [atomics[0], atomics[1], int(inequality[place_of_com + 1:]), element]
+
+    def parse_difference(self, inequality):
+        if inequality.find("-") == -1:
+            return [inequality, "0"]
+        else:
+            return [inequality[0:inequality.find("-")], inequality[inequality.find("-") + 1:]]
+
+    def parse_invariant(self, invariant):
+        """Returns the lower and upper bounds."""
+        lower_bounds = []
+        upper_bounds = []
+        for i in range(len(invariant)):
+            difference = self.parse_inequality(invariant[i])
+            if difference[0] == "0":
+                lower_bounds.append(difference)
+            else:
+                upper_bounds.append(difference)
+        return lower_bounds, upper_bounds
