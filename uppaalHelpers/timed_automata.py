@@ -14,6 +14,8 @@ class TimedAutomata:
         self.constraint_registry = dict()  # constraint_id: constraint, source-target/or location, quard
         self.parsed_invariants = dict()  # location : parsed invariant ( a list)
         self.parsed_guards = dict()  # source-target : parsed guard (a list)
+        self.resets = dict() # source-target : list of clocks to be reset
+        self.clocks = []
         self.template = None
         self.next_id = 0
 
@@ -32,6 +34,9 @@ class TimedAutomata:
             self.g.add_edge(t.source.name.value, t.target.name.value, key=t.guard.value)
             # Add the guards to the registry.
             self._register_transition_constraints(t)
+            self._parse_reset(t)
+
+        self.clocks = sorted(self.clocks)
 
         # For debugging
         # print (self.constraint_registry)
@@ -63,31 +68,34 @@ class TimedAutomata:
     def _register_transition_constraints(self, t):
         """Register constraints. This will be only called from initialization function."""
         if not t.guard.value:
+            self.parsed_guards[(t.source.name.value, t.target.name.value)] = []
             return
         c_list = t.guard.value.split('&&') # TODO do not register the empty strings -- no constraint.
         for c in c_list:
             self.constraint_registry['c' + str(self.next_id)] = \
                 [c, (t.source.name.value, t.target.name.value)]
             self.next_id += 1
+            self.parse_add_clock(c)
         self.parsed_guards[(t.source.name.value, t.target.name.value)] = [
-            self.parse_inequality(c) for c in c_list]
+            self.parse_inequality_simple(c) for c in c_list]
 
     def _register_location_constraints(self, l):
         """Register constraints. This will be only called from initialization function."""
         if not l.invariant.value:
+            self.parsed_invariants[l.name.value] = []
             return
         c_list = l.invariant.value.split('&&')
         for c in c_list:
             self.constraint_registry['c' + str(self.next_id)] = \
                 [c, l.name.value]
             self.next_id += 1
+            self.parse_add_clock(c)
         # Parse each constraint from c_list:
-        self.parsed_invariants[l.name.value] = self.parse_invariant(c_list)  # lower and upper bounds
+        self.parsed_invariants[l.name.value] = [self.parse_inequality_simple(c) for c in c_list]
 
     def constraint_keys_for_ta(self):
         """Generates the list of simple constraints of TA"""
         return self.constraint_registry.keys()
-
 
     def constraint_lists_for_all_paths(self, final_location):
         """Generates a list of lists, each list corresponds to the set of constraints encountered in
@@ -155,40 +163,39 @@ class TimedAutomata:
             f.write(str(k) + " : " + str(self.constraint_registry[k]) + "\n")
         f.close()
 
-    def parse_inequality(self, inequality):
-        # Given inequality x - y > a , generate y - x < -a
-        # Given inequality y > b , generate 0 - y < - b
-        # Always upper bound.
-        # Handle the parameter.
-        comparison_elements = ["<", "<=", ">", ">="]
-        place_of_com = -1
-        element = -1
-        for i in range(4):
-            if inequality.find(comparison_elements[i]) != -1:
-                place_of_com = inequality.find(comparison_elements[i])
-                element = i
-        atomics = self.parse_difference(inequality[:place_of_com])
-        if element == 1 or element == 3:
-            place_of_com += 1  # increment by 1 for =
-        if element > 1:
-            return [atomics[1], atomics[0], -int(inequality[place_of_com + 1:]), element - 2]
-        else:
-            return [atomics[0], atomics[1], int(inequality[place_of_com + 1:]), element]
+    def parse_inequality_simple(self, inequality):
+        ind = 0
+        for i in range(len(inequality)):
+            if inequality[i] in ['<', '>']:
+                ind = i
+                break
+        clock_name = inequality[0:ind].strip()
+        operator = inequality[ind]
+        equality = False
+        if inequality[ind+1] == '=':
+            ind += 1
+            equality = True
+        rest = inequality[ind+1:].strip()
+        threshold = int(rest)
 
-    def parse_difference(self, inequality):
-        if inequality.find("-") == -1:
-            return [inequality, "0"]
-        else:
-            return [inequality[0:inequality.find("-")], inequality[inequality.find("-") + 1:]]
+        return clock_name, operator, threshold, equality
 
-    def parse_invariant(self, invariant):
-        """Returns the lower and upper bounds."""
-        lower_bounds = []
-        upper_bounds = []
-        for i in range(len(invariant)):
-            difference = self.parse_inequality(invariant[i])
-            if difference[0] == "0":
-                lower_bounds.append(difference)
-            else:
-                upper_bounds.append(difference)
-        return lower_bounds, upper_bounds
+    def _parse_reset(self, t):
+        r_list = t.assignment.value.split(',')
+        self.resets[(t.source.name.value, t.target.name.value)] = []
+        for r in r_list:
+            if len(r) != 0:
+                clock_name = self.parse_add_clock(r)
+                self.resets[(t.source.name.value, t.target.name.value)].append(clock_name)
+
+    def parse_add_clock(self, inequality):
+        """Input is an inequality x < 10 or x >= p1, add x to the set of clocks."""
+        ind = 0
+        for i in range(len(inequality)):
+            if inequality[i] in ['>', '<', '=']:
+                ind = i
+                break
+        clock_name = inequality[0:ind].strip()
+        if clock_name not in self.clocks:
+            self.clocks.append(clock_name)
+        return clock_name
