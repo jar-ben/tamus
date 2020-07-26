@@ -195,7 +195,7 @@ class TimedAutomata:
             if inequality[i] in ['>', '<', '=']:
                 ind = i
                 break
-        clock_name = inequality[0:ind-1].strip()
+        clock_name = inequality[0:ind].strip()
         if clock_name not in self.clocks:
             self.clocks.append(clock_name)
         return clock_name
