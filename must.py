@@ -31,65 +31,74 @@ class Tamus:
 
         self.dimension = len(self.clist)
         self.explorer = Explorer(self.dimension)
-        self.mcses = []
+        self.msres = []
         self.verbosity = 0
-        #algorithm for the MCS enumeration
+        #algorithm for the MSR enumeration
         self.algorithm = "marco"
 
+        self.shrinkingQueue = [] #for the algorithm Grow-Shrink
 
         #statistics related data-structures and functionality
         self.stats = {}
         self.stats["checks"] = 0
-        self.stats["checks_sat"] = 0
-        self.stats["checks_unsat"] = 0
-        self.stats["checks_sat_time"] = 0
-        self.stats["checks_unsat_time"] = 0
-        self.stats["grows"] = 0
-        self.stats["grows_time"] = 0
+        self.stats["checks_insufficient"] = 0
+        self.stats["checks_sufficient"] = 0
+        self.stats["checks_insufficient_time"] = 0
+        self.stats["checks_sufficient_time"] = 0
+        self.stats["shrinks"] = 0
+        self.stats["shrinks_time"] = 0
 
     def complement(self, N):
         return [i for i in range(self.dimension) if i not in N]
 
+    # returs true iff N is a sufficient reduction
     def check(self, N):
-        relax_set = [self.clist[c] for c in self.complement(N)]
+        relax_set = [self.clist[c] for c in N]
         new_template = self.TA.generate_relaxed_template(relax_set)
         # Set the TA to template in self.model, store it to file named new_model
         new_model = ta_helper.set_template_and_save(self.model_file, self.model, new_template)
         res = ta_helper.verify_reachability(new_model, self.query_file)
         return res == 1
 
-    def is_sat(self, N):        
+    # a wrapper for the method check(self, N)
+    # returs true iff N is a sufficient reduction
+    def is_sufficient(self, N):        
         start_time = time.clock()
         self.stats["checks"] += 1
-        sat = self.check(N)
-        if sat: 
-            self.stats["checks_sat"] += 1
-            self.stats["checks_sat_time"] += time.clock() - start_time
+        sufficient = self.check(N)
+        if sufficient: 
+            self.stats["checks_sufficient"] += 1
+            self.stats["checks_sufficient_time"] += time.clock() - start_time
         else: 
-            self.stats["checks_unsat"] += 1
-            self.stats["checks_unsat_time"] += time.clock() - start_time
+            self.stats["checks_insufficient"] += 1
+            self.stats["checks_insufficient_time"] += time.clock() - start_time
         
-        return sat
+        return sufficient
    
-    # takes an unexplored s-seed N and returns an unexplored MSS N' of N such that N' \supseteq N
-    def grow(self, N):
+    # takes an unexplored u-seed N and returns an unexplored MSR N' of N such that N' \subseteq N
+    def shrink(self, N):
         start_time = time.clock()
-        for c in self.complement(N):
-            if self.explorer.is_conflicting(c, N): continue # c is minable conflicting for N
-            copy = N[:] + [c]
-            if self.is_sat(copy):
-                N.append(c)
+        toCheck = N[:]
+        for c in toCheck:
+            if self.explorer.is_critical(c, N): continue # c is minable conflicting for N
+            copy = N[:]
+            copy.remove(c)
+            if self.is_sufficient(copy):
+                N.remove(c)
             else:
-                self.explorer.block_up(copy)
-        self.stats["grows"] += 1
-        self.stats["grows_time"] += time.clock() - start_time
+                self.explorer.block_down(copy)
+        self.stats["shrinks"] += 1
+        self.stats["shrinks_time"] += time.clock() - start_time
         return N
 
-    def markMSS(self, N):
-        print "Found MCS: {}".format([self.clist[c] for c in self.complement(N)]) 
-        self.explorer.block_down(N)
+    def GSShrink(self, N):
+        M = []
+
+    def markMSR(self, N):
+        print "Found MSR: {}".format([self.clist[c] for c in N]) 
         self.explorer.block_up(N)
-        self.mcses.append(self.complement(N))
+        self.explorer.block_down(N)
+        self.msres.append(N)
 
     def run(self):
         if self.algorithm == "tome":
@@ -99,7 +108,7 @@ class Tamus:
         else:
             self.enumerate_marco()
 
-    # builds an unexplored chain between bot and top and finds the local MUS and the local MSS of the chain
+    # builds an unexplored chain between bot and top and finds the local MSR and the local MSS of the chain
     def tome_local_search(self, bot, top):
         diff = list(set(top) - set(bot))
         low = 0
@@ -107,66 +116,67 @@ class Tamus:
         while high - low > 1:
             mid = (low + high) // 2
             seed = bot + [diff[i] for i in range(mid)]
-            if self.is_sat(seed):
+            if not self.is_sufficient(seed):
                 low = mid
             else:
                 high = mid
         assert high - low == 1
         localMSS = bot + [diff[i] for i in range(low)]
-        localMUS = bot + [diff[i] for i in range(high)]
-        return localMUS, localMSS
+        localMSR = bot + [diff[i] for i in range(high)]
+        return localMSR, localMSS
 
-    # the main function of the TOME MCS enumeration algorithm
+    # the main function of the TOME MSR enumeration algorithm
     def enumerate_tome(self):
         seed = self.explorer.get_unex()
         while seed is not None:
             top = self.explorer.maximize(seed[:])
             bot = self.explorer.minimize(seed[:])
-            if self.is_sat(top):
-                self.markMSS(top)
-            elif not self.is_sat(bot):
-                self.explorer.block_up(seed)
+            if self.is_sufficient(bot):
+                self.markMSR(bot)
+            elif not self.is_sufficient(top):
+                self.explorer.block_down(top)
             else:
-                localMUS, localMSS = self.tome_local_search(bot, top)
-                mss = self.grow(localMSS)
-                self.markMSS(mss)
-                self.explorer.block_up(localMUS)
+                localMSR, localMSS = self.tome_local_search(bot, top)
+                msr = self.shrink(localMSR)
+                self.markMSR(msr)
+                self.explorer.block_down(localMSS)
             seed = self.explorer.get_unex()
 
-    # the main function of the GROW-SHRINK MCS enumeration algorithm
+    # the main function of the GROW-SHRINK MSR enumeration algorithm
     def enumerate_grow_shrink(self):
         pass
 
-    # the main function of the MARCO MCS enumeration algorithm
+    # the main function of the MARCO MSR enumeration algorithm
     def enumerate_marco(self):
         seed = self.explorer.get_unex()
         while seed is not None:
-            if self.is_sat(seed):
-                mss = self.grow(seed[:])
-                self.markMSS(mss)
+            seed = self.explorer.maximize(seed[:])
+            if self.is_sufficient(seed):
+                msr = self.shrink(seed[:])
+                self.markMSR(msr)
             else:
-                self.explorer.block_up(seed)
+                self.explorer.block_down(seed)
             seed = self.explorer.get_unex()
 
-    def get_MCSes(self):
-        mcses = []
+    def get_MSRes(self):
+        msres = []
         constraints = []
-        for m in self.mcses:
-            mcses.append([self.clist[c] for c in m])
-            constraints.append([self.TA.constraint_registry[c] for c in mcses[-1]])
-        return mcses, constraints
+        for m in self.msres:
+            msres.append([self.clist[c] for c in m])
+            constraints.append([self.TA.constraint_registry[c] for c in msres[-1]])
+        return msres, constraints
 
     def print_statistics(self):
         print ""
         print "=== detailed statistics ===" 
         print "Performed reachability checks:", self.stats["checks"]
-        print "Checks with result 'reachable':", self.stats["checks_sat"] 
-        print "Checks with result 'unreachable':", self.stats["checks_unsat"] 
-        print "Total time spent by reachability checks:", self.stats["checks_sat_time"] + self.stats["checks_unsat_time"]
-        print "Average time of 'reachable' check:", self.stats["checks_sat_time"]/ self.stats["checks_sat"]
-        print "Average time of 'unreachable' check:", self.stats["checks_unsat_time"]/ self.stats["checks_unsat"]
-        print "Grows:", self.stats["grows"]  
-        print "Total time spent by grows:", self.stats["grows_time"]  
+        print "Checks with result 'reachable':", self.stats["checks_sufficient"] 
+        print "Checks with result 'unreachable':", self.stats["checks_insufficient"] 
+        print "Total time spent by reachability checks:", self.stats["checks_insufficient_time"] + self.stats["checks_sufficient_time"]
+        print "Average time of 'reachable' check:", self.stats["checks_sufficient_time"]/ self.stats["checks_sufficient"]
+        print "Average time of 'unreachable' check:", self.stats["checks_insufficient_time"]/ self.stats["checks_insufficient"]
+        print "Shrinks:", self.stats["shrinks"]  
+        print "Total time spent by shrinks:", self.stats["shrinks_time"]  
         print "==========================="
         print ""
 
@@ -174,10 +184,10 @@ if __name__ == '__main__':
     start_time = time.clock()
     
     #define command line arguments
-    parser = argparse.ArgumentParser("TAMUS - a tool for relaxing reachability properties in Time Automatas with a help of Minimal Unsatisfiable Subsets")
+    parser = argparse.ArgumentParser("TAMUS - a tool for relaxing reachability properties in Time Automatas with a help of Minimal Uninsufficientisfiable Subsets")
     parser.add_argument("model_file", help = "A path to a model file")
     parser.add_argument("query_file", help = "A path to a query file")
-    parser.add_argument("--algorithm", "-a", help = "A MCS enumeration algorithm to be used", choices = ["marco", "tome", "grow-shrink"], default = "marco")
+    parser.add_argument("--algorithm", "-a", help = "A MSR enumeration algorithm to be used", choices = ["marco", "tome", "grow-shrink"], default = "marco")
     parser.add_argument("--verbose", "-v", action="count", help = "Use the flag to increase the verbosity of the outputs. The flag can be used repeatedly.")    
     #parse the command line arguments
     args = parser.parse_args()
@@ -190,24 +200,24 @@ if __name__ == '__main__':
     t.verbosity = args.verbose if args.verbose != None else 0
     print "Model: ", model, ", query: ", query_file
     print "dimension:", t.dimension
-    print "is the target location reachable?", t.is_sat([i for i in range(t.dimension)])
-    print "running the MCS enumeration algorithm " + t.algorithm
+    print "is the target location reachable?", t.is_sufficient([i for i in range(t.dimension)])
+    print "running the MSR enumeration algorithm " + t.algorithm
     print ""
     t.run()    
 
     #print statistics
-    print "all MCSes were identified"
-    mcses, constraints = t.get_MCSes()
+    print "all MSRes were identified"
+    msres, constraints = t.get_MSRes()
     print "Elapsed time in seconds:", (time.clock() - start_time)
-    print "identified MCSes:", mcses
+    print "identified MSRes:", msres
     print "corresponding constraints:", constraints
 
-    # Minimal mcses:
-    mcses_size = [len(m) for m in mcses]
-    min_size = min(mcses_size)
-    min_mcses_indexes = [i for i in range(len(mcses_size)) if mcses_size[i] == min_size]
-    print "Minimal MCSes:"
-    for i in min_mcses_indexes:
+    # Minimal msres:
+    msres_size = [len(m) for m in msres]
+    min_size = min(msres_size)
+    min_msres_indexes = [i for i in range(len(msres_size)) if msres_size[i] == min_size]
+    print "Minimal MSRes:"
+    for i in min_msres_indexes:
         print constraints[i]
 
     if t.verbosity > 0:

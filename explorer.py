@@ -50,6 +50,7 @@ class Explorer:
             if not self.is_critical(c, seed):
                 seed.remove(c)
         return seed
+
     # checks whether c is minable critical for N, i.e., whether N - {c} is unexplored
     def is_critical(self, c, N):
         assert c in N
