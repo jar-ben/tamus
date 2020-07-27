@@ -33,6 +33,7 @@ class Tamus:
         self.explorer = Explorer(self.dimension)
         self.msres = []
         self.verbosity = 0
+        self.use_unsat_cores = True
         #algorithm for the MSR enumeration
         self.algorithm = "marco"
 
@@ -59,14 +60,21 @@ class Tamus:
         new_model = ta_helper.set_template_and_save(self.model_file, self.model, new_template)
         # Now finds constraints from relaxation set that are needed for the trace
         res, used_constraints = ta_helper.verify_reachability(new_model, self.query_file, self.TA, relax_set)
-        return res == 1
+        core = []
+        if res == 1 and self.use_unsat_cores:
+            for c in used_constraints:
+                assert c in self.clist
+                core.append(self.clist.index(c))
+            N = core
+        else: core = N
+        return res == 1, core
 
     # a wrapper for the method check(self, N)
     # returs true iff N is a sufficient reduction
     def is_sufficient(self, N):        
         start_time = time.clock()
         self.stats["checks"] += 1
-        sufficient = self.check(N)
+        sufficient, core = self.check(N)
         if sufficient: 
             self.stats["checks_sufficient"] += 1
             self.stats["checks_sufficient_time"] += time.clock() - start_time
@@ -74,18 +82,19 @@ class Tamus:
             self.stats["checks_insufficient"] += 1
             self.stats["checks_insufficient_time"] += time.clock() - start_time
         
-        return sufficient
+        return sufficient, core
    
     # takes an unexplored u-seed N and returns an unexplored MSR N' of N such that N' \subseteq N
     def shrink(self, N):
         start_time = time.clock()
         toCheck = N[:]
         for c in toCheck:
-            if self.explorer.is_critical(c, N): continue # c is minable conflicting for N
+            if (c not in N) or self.explorer.is_critical(c, N): continue # c is minable conflicting for N
             copy = N[:]
             copy.remove(c)
-            if self.is_sufficient(copy):
-                N.remove(c)
+            sufficient, core = self.is_sufficient(copy)
+            if sufficient:
+                N = core
             else:
                 self.explorer.block_down(copy)
         self.stats["shrinks"] += 1
@@ -117,7 +126,7 @@ class Tamus:
         while high - low > 1:
             mid = (low + high) // 2
             seed = bot + [diff[i] for i in range(mid)]
-            if not self.is_sufficient(seed):
+            if not self.is_sufficient(seed)[0]:
                 low = mid
             else:
                 high = mid
@@ -132,9 +141,9 @@ class Tamus:
         while seed is not None:
             top = self.explorer.maximize(seed[:])
             bot = self.explorer.minimize(seed[:])
-            if self.is_sufficient(bot):
+            if self.is_sufficient(bot)[0]:
                 self.markMSR(bot)
-            elif not self.is_sufficient(top):
+            elif not self.is_sufficient(top)[0]:
                 self.explorer.block_down(top)
             else:
                 localMSR, localMSS = self.tome_local_search(bot, top)
@@ -152,8 +161,9 @@ class Tamus:
         seed = self.explorer.get_unex()
         while seed is not None:
             seed = self.explorer.maximize(seed[:])
-            if self.is_sufficient(seed):
-                msr = self.shrink(seed[:])
+            sufficient, core = self.is_sufficient(seed)
+            if sufficient:
+                msr = self.shrink(core)
                 self.markMSR(msr)
             else:
                 self.explorer.block_down(seed)
@@ -190,6 +200,7 @@ if __name__ == '__main__':
     parser.add_argument("query_file", help = "A path to a query file")
     parser.add_argument("--algorithm", "-a", help = "A MSR enumeration algorithm to be used", choices = ["marco", "tome", "grow-shrink"], default = "marco")
     parser.add_argument("--verbose", "-v", action="count", help = "Use the flag to increase the verbosity of the outputs. The flag can be used repeatedly.")    
+    parser.add_argument("--no-unsat-cores", "-n", action="count", help = "Use the flag to disable usage of unsat cores.")    
     #parse the command line arguments
     args = parser.parse_args()
 
@@ -199,9 +210,10 @@ if __name__ == '__main__':
     t = Tamus(model, query_file)
     t.algorithm = args.algorithm
     t.verbosity = args.verbose if args.verbose != None else 0
+    t.use_unsat_cores = args.no_unsat_cores == None
     print "Model: ", model, ", query: ", query_file
     print "dimension:", t.dimension
-    print "is the target location reachable?", t.is_sufficient([i for i in range(t.dimension)])
+    print "is the target location reachable?", t.is_sufficient([i for i in range(t.dimension)])[0]
     print "running the MSR enumeration algorithm " + t.algorithm
     print ""
     t.run()    
