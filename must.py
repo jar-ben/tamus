@@ -57,7 +57,8 @@ class Tamus:
         new_template = self.TA.generate_relaxed_template(relax_set)
         # Set the TA to template in self.model, store it to file named new_model
         new_model = ta_helper.set_template_and_save(self.model_file, self.model, new_template)
-        res = ta_helper.verify_reachability(new_model, self.query_file)
+        # Now finds constraints from relaxation set that are needed for the trace
+        res, used_constraints = ta_helper.verify_reachability(new_model, self.query_file, self.TA, relax_set)
         return res == 1
 
     # a wrapper for the method check(self, N)
