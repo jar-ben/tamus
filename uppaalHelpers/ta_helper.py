@@ -79,8 +79,8 @@ def verify_reachability(ta_file_path, query_file_path, print_result=False):
     return res
 
 
-def verifyWithTrace(modelfilename, queryfilename, verifyta='./bin-Windows/verifyta.exe'):
-    #  modified version of verify from pyuppaal
+def verifyWithTrace(modelfilename, queryfilename, verifyta='verifyta'):
+    #  modified version of verify from pyuppaal, verifyta should be the path to where it is located
     cmdline = verifyta + ' -t1 ' + ' -o0' + ' -S1' + ' -q ' + modelfilename + ' ' + queryfilename
 
     # print 'Executing', cmdline
@@ -125,4 +125,5 @@ def find_used_constraints(path, constraint_registry):
     for constraint in constraint_registry:
         if path_dictionary.get(constraint_registry[constraint][1]) is not None:
             used_constraints[constraint] = constraint_registry[constraint]
+    
     return used_constraints
