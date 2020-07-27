@@ -1,4 +1,4 @@
-
+import subprocess
 import pyuppaal
 
 verification_result = {1: 'property is satisfied', 0: 'unknown', -1: 'property is not satisfied'}
@@ -79,7 +79,50 @@ def verify_reachability(ta_file_path, query_file_path, print_result=False):
     return res
 
 
+def verifyWithTrace(modelfilename, queryfilename, verifyta='./bin-Windows/verifyta.exe'):
+    #  modified version of verify from pyuppaal
+    cmdline = verifyta + ' -t1 ' + ' -o0' + ' -S1' + ' -q ' + modelfilename + ' ' + queryfilename
+
+    # print 'Executing', cmdline
+    proc = subprocess.Popen(
+        cmdline,
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+
+    (stdoutdata, stderrdata) = proc.communicate()
+    errlines = stderrdata.split('\n')
+    # Look for tell-tale signs that something went wrong
+    for line in errlines:
+        if "Internet connection is required for activation." in line:
+            raise Exception("UPPAAL verifyta error: " + line)
+
+    # Construct the trace
+    trace = []
+    for i in range(len(errlines)):
+        line = errlines[i]
+        if line.find('Transition') != -1:
+            next_line = errlines[i + 1]
+            start_of_state_1 = 1 + next_line.find('.')
+            end_of_state_1 = next_line.find('-')
+            state_1 = next_line[start_of_state_1:end_of_state_1]
+            start_of_state_2 = 1 + next_line.find('.', start_of_state_1)
+            end_of_state_2 = next_line.find('{') - 1
+            state_2 = next_line[start_of_state_2:end_of_state_2]
+            if len(trace) == 0:
+                trace += [state_1]
+            trace += [state_2]
+
+    return stdoutdata, trace
 
 
+def find_used_constraints(path, constraint_registry):
+    path_dictionary = dict()
+    for i in range(len(path)-1):
+        path_dictionary[(path[i], path[i+1])] = []
+    for i in range(len(path)):
+        path_dictionary[path[i]] = []
 
-
+    used_constraints = dict()
+    for constraint in constraint_registry:
+        if path_dictionary.get(constraint_registry[constraint][1]) is not None:
+            used_constraints[constraint] = constraint_registry[constraint]
+    return used_constraints
