@@ -199,3 +199,11 @@ class TimedAutomata:
         if clock_name not in self.clocks:
             self.clocks.append(clock_name)
         return clock_name
+
+    def parametrize_msr(self, msr):
+        constraint_to_parameter = dict()
+        for i in range(len(msr)):
+            c = self.constraint_registry[msr[i]]
+            parsed_inequality = self.parse_inequality_simple(c[0])
+            constraint_to_parameter[(c[1], parsed_inequality)] = i
+        return constraint_to_parameter
