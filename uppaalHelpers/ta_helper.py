@@ -49,39 +49,47 @@ def set_template_and_save(ta_file_path, nta, template, ta_file_path_new=None):
     return ta_file_path_new
 
 
-def verify_reachability(ta_file_path, query_file_path, print_result=False):
+def verify_reachability(ta_file_path, query_file_path, TA, relaxation_set, print_result=False):
     """
     It generates the query E<> model_name.final_location, and verifies TA against it.
 
     :param ta_file_path: string for the xml file containing the ta model
     :param query_file_path: string, the q file containing the query
     :param print_result: Boolean
-    :return: 1,0,-1, see verification_result.
+    :param TA: TimedAutomata, we need the constraint registry
+    :param relaxation_set: list containing constraints to be relaxed
+    :return res: 1,0,-1, see verification_result.
+    :return used_constraints: dictionary containing constraints from relaxation set that are needed for the trace
     """
 
     global verification_result
+    constraint_registry=TA.constraint_registry
 
     res = 0
+    used_constraints = {}
     try:
-        a , stdoutdata = pyuppaal.verify(ta_file_path, query_file_path,getoutput=True)
+        stdoutdata, trace = verifyWithTrace(ta_file_path, query_file_path)
         if 'is satisfied' in stdoutdata:
             res = 1
+            used_constraints = find_used_constraints(trace, constraint_registry, relaxation_set)
         if 'is NOT satisfied' in stdoutdata:
             res = -1
 
     except Exception as e:
         print (e)
         pass
-    #qf.deleteTempFile(qfh)
+    #  qf.deleteTempFile(qfh)
     if print_result:
         print ("Checking " + ta_file_path + " against query " + query_file_path)
         print ("\t" + verification_result[res])
-    return res
+    return res, used_constraints
 
 
 def verifyWithTrace(modelfilename, queryfilename, verifyta='verifyta'):
-    #  modified version of verify from pyuppaal, verifyta should be the path to where it is located
-    cmdline = verifyta + ' -t1 ' + ' -o0' + ' -S1' + ' -q ' + modelfilename + ' ' + queryfilename
+    #  modified version of verify from pyuppaal, change parameter verifyta to where verifyta is
+    cmdline = ''
+
+    cmdline += verifyta + ' -t1 ' + ' -o0' + ' -S1' + ' -q ' + modelfilename + ' ' + queryfilename
 
     # print 'Executing', cmdline
     proc = subprocess.Popen(
@@ -114,7 +122,7 @@ def verifyWithTrace(modelfilename, queryfilename, verifyta='verifyta'):
     return stdoutdata, trace
 
 
-def find_used_constraints(path, constraint_registry):
+def find_used_constraints(path, constraint_registry, relaxation_set):
     path_dictionary = dict()
     for i in range(len(path)-1):
         path_dictionary[(path[i], path[i+1])] = []
@@ -122,8 +130,7 @@ def find_used_constraints(path, constraint_registry):
         path_dictionary[path[i]] = []
 
     used_constraints = dict()
-    for constraint in constraint_registry:
+    for constraint in relaxation_set:
         if path_dictionary.get(constraint_registry[constraint][1]) is not None:
             used_constraints[constraint] = constraint_registry[constraint]
-    
     return used_constraints
