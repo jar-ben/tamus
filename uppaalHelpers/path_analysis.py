@@ -1,5 +1,6 @@
 """Methods for checking if a path is realizable, and relaxing constraints."""
 from scipy.optimize import linprog
+from ortools.linear_solver import pywraplp
 
 
 def is_realizable(ta, path):
