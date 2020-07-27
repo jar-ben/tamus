@@ -29,7 +29,7 @@ def check(model, query_file, pid, active):
             relax_set.append(path[i])
     new_template = TA.generate_relaxed_template(relax_set)
     new_model = ta_helper.set_template_and_save(model, new_template)
-    res = ta_helper.verify_reachability(new_model, query_file)
+    res, used_constraints = ta_helper.verify_reachability(new_model, query_file, TA, relax_set)
     print str(res),    
 
 if __name__ == '__main__':
