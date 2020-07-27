@@ -201,6 +201,7 @@ if __name__ == '__main__':
     parser.add_argument("--algorithm", "-a", help = "A MSR enumeration algorithm to be used", choices = ["marco", "tome", "grow-shrink"], default = "marco")
     parser.add_argument("--verbose", "-v", action="count", help = "Use the flag to increase the verbosity of the outputs. The flag can be used repeatedly.")    
     parser.add_argument("--no-unsat-cores", "-n", action="count", help = "Use the flag to disable usage of unsat cores.")    
+    parser.add_argument("--only-minimum", "-m", action="count", help = "Use the flag to guide the search to the minimum MRS (identifies only some MRS, including the minimum one).")    
     #parse the command line arguments
     args = parser.parse_args()
 
@@ -211,6 +212,7 @@ if __name__ == '__main__':
     t.algorithm = args.algorithm
     t.verbosity = args.verbose if args.verbose != None else 0
     t.use_unsat_cores = args.no_unsat_cores == None
+    t.explorer.only_minimum = args.only_minimum != None
     print "Model: ", model, ", query: ", query_file
     print "dimension:", t.dimension
     print "is the target location reachable?", t.is_sufficient([i for i in range(t.dimension)])[0]
