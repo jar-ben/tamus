@@ -180,6 +180,8 @@ class Tamus:
     def print_statistics(self):
         print ""
         print "=== detailed statistics ===" 
+        print "Identified MSRs:", len(self.msres)
+        print "Minimal MSRs:", len([m for m in self.msres if len(m) == min([len(n) for n in self.msres])]) 
         print "Performed reachability checks:", self.stats["checks"]
         print "Checks with result 'reachable':", self.stats["checks_sufficient"] 
         print "Checks with result 'unreachable':", self.stats["checks_insufficient"] 
@@ -231,7 +233,7 @@ if __name__ == '__main__':
     msres_size = [len(m) for m in msres]
     min_size = min(msres_size)
     min_msres_indexes = [i for i in range(len(msres_size)) if msres_size[i] == min_size]
-    print "Minimal MSRes:"
+    print "Minimum MSRes:"
     for i in min_msres_indexes:
         print constraints[i]
 
