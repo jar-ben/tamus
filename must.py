@@ -5,6 +5,7 @@ import argparse
 from explorer import Explorer
 from uppaalHelpers import ta_helper
 from uppaalHelpers import timed_automata
+from uppaalHelpers import path_analysis
 
 
 class Tamus:
@@ -32,6 +33,7 @@ class Tamus:
         self.dimension = len(self.clist)
         self.explorer = Explorer(self.dimension)
         self.msres = []
+        self.traces = []
         self.verbosity = 0
         self.use_unsat_cores = True
         #algorithm for the MSR enumeration
@@ -59,7 +61,7 @@ class Tamus:
         # Set the TA to template in self.model, store it to file named new_model
         new_model = ta_helper.set_template_and_save(self.model_file, self.model, new_template)
         # Now finds constraints from relaxation set that are needed for the trace
-        res, used_constraints = ta_helper.verify_reachability(new_model, self.query_file, self.TA, relax_set)
+        res, used_constraints, trace = ta_helper.verify_reachability(new_model, self.query_file, self.TA, relax_set)
         core = []
         if res == 1 and self.use_unsat_cores:
             for c in used_constraints:
@@ -67,14 +69,14 @@ class Tamus:
                 core.append(self.clist.index(c))
             N = core
         else: core = N
-        return res == 1, core
+        return res == 1, core, trace
 
     # a wrapper for the method check(self, N)
     # returs true iff N is a sufficient reduction
     def is_sufficient(self, N):        
         start_time = time.clock()
         self.stats["checks"] += 1
-        sufficient, core = self.check(N)
+        sufficient, core, trace = self.check(N)
         if sufficient: 
             self.stats["checks_sufficient"] += 1
             self.stats["checks_sufficient_time"] += time.clock() - start_time
@@ -82,33 +84,36 @@ class Tamus:
             self.stats["checks_insufficient"] += 1
             self.stats["checks_insufficient_time"] += time.clock() - start_time
         
-        return sufficient, core
+        return sufficient, core, trace
    
     # takes an unexplored u-seed N and returns an unexplored MSR N' of N such that N' \subseteq N
     def shrink(self, N):
         start_time = time.clock()
         toCheck = N[:]
+        trace_for_N = None
         for c in toCheck:
             if (c not in N) or self.explorer.is_critical(c, N): continue # c is minable conflicting for N
             copy = N[:]
             copy.remove(c)
-            sufficient, core = self.is_sufficient(copy)
+            sufficient, core, trace = self.is_sufficient(copy)
             if sufficient:
                 N = core
+                trace_for_N = trace
             else:
                 self.explorer.block_down(copy)
         self.stats["shrinks"] += 1
         self.stats["shrinks_time"] += time.clock() - start_time
-        return N
+        return N, trace_for_N
 
     def GSShrink(self, N):
         M = []
 
-    def markMSR(self, N):
-        print "Found MSR: {}".format([self.clist[c] for c in N]) 
+    def markMSR(self, N, trace):
+        print "Found MSR: {}".format([self.clist[c] for c in N])
         self.explorer.block_up(N)
         self.explorer.block_down(N)
         self.msres.append(N)
+        self.traces.append(trace)
 
     def run(self):
         if self.algorithm == "tome":
@@ -141,14 +146,15 @@ class Tamus:
         while seed is not None:
             top = self.explorer.maximize(seed[:])
             bot = self.explorer.minimize(seed[:])
-            if self.is_sufficient(bot)[0]:
-                self.markMSR(bot)
+            sufficient, _, trace = self.is_sufficient(bot)
+            if sufficient:
+                self.markMSR(bot, trace)
             elif not self.is_sufficient(top)[0]:
                 self.explorer.block_down(top)
             else:
                 localMSR, localMSS = self.tome_local_search(bot, top)
-                msr = self.shrink(localMSR)
-                self.markMSR(msr)
+                msr, trace = self.shrink(localMSR)
+                self.markMSR(msr, trace)
                 self.explorer.block_down(localMSS)
             seed = self.explorer.get_unex()
 
@@ -161,10 +167,10 @@ class Tamus:
         seed = self.explorer.get_unex()
         while seed is not None:
             seed = self.explorer.maximize(seed[:])
-            sufficient, core = self.is_sufficient(seed)
+            sufficient, core, _ = self.is_sufficient(seed)
             if sufficient:
-                msr = self.shrink(core)
-                self.markMSR(msr)
+                msr, trace = self.shrink(core)
+                self.markMSR(msr, trace)
             else:
                 self.explorer.block_down(seed)
             seed = self.explorer.get_unex()
@@ -175,7 +181,7 @@ class Tamus:
         for m in self.msres:
             msres.append([self.clist[c] for c in m])
             constraints.append([self.TA.constraint_registry[c] for c in msres[-1]])
-        return msres, constraints
+        return msres, constraints, self.traces
 
     def print_statistics(self):
         print ""
@@ -224,10 +230,11 @@ if __name__ == '__main__':
 
     #print statistics
     print "all MSRes were identified"
-    msres, constraints = t.get_MSRes()
+    msres, constraints, traces = t.get_MSRes()
     print "Elapsed time in seconds:", (time.clock() - start_time)
     print "identified MSRes:", msres
     print "corresponding constraints:", constraints
+
 
     # Minimal msres:
     msres_size = [len(m) for m in msres]
@@ -235,7 +242,9 @@ if __name__ == '__main__':
     min_msres_indexes = [i for i in range(len(msres_size)) if msres_size[i] == min_size]
     print "Minimum MSRes:"
     for i in min_msres_indexes:
-        print constraints[i]
+        delays, parameters = path_analysis.find_parameters(t.TA,traces[i],msres[i])
+        print "{} delays:{} parameters{}".format(constraints[i], delays, parameters)
+    print "Elapsed time in seconds after LP:", (time.clock() - start_time)
 
     if t.verbosity > 0:
         t.print_statistics()
