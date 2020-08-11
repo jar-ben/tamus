@@ -87,10 +87,9 @@ class Tamus:
         return sufficient, core, trace
    
     # takes an unexplored u-seed N and returns an unexplored MSR N' of N such that N' \subseteq N
-    def shrink(self, N):
+    def shrink(self, N, trace_for_N):
         start_time = time.clock()
         toCheck = N[:]
-        trace_for_N = None
         for c in toCheck:
             if (c not in N) or self.explorer.is_critical(c, N): continue # c is minable conflicting for N
             copy = N[:]
@@ -153,7 +152,8 @@ class Tamus:
                 self.explorer.block_down(top)
             else:
                 localMSR, localMSS = self.tome_local_search(bot, top)
-                msr, trace = self.shrink(localMSR)
+                _, _, trace = self.is_sufficient(localMSR)
+                msr, trace = self.shrink(localMSR, trace)
                 self.markMSR(msr, trace)
                 self.explorer.block_down(localMSS)
             seed = self.explorer.get_unex()
@@ -167,9 +167,9 @@ class Tamus:
         seed = self.explorer.get_unex()
         while seed is not None:
             seed = self.explorer.maximize(seed[:])
-            sufficient, core, _ = self.is_sufficient(seed)
+            sufficient, core, trace = self.is_sufficient(seed)
             if sufficient:
-                msr, trace = self.shrink(core)
+                msr, trace = self.shrink(core, trace)
                 self.markMSR(msr, trace)
             else:
                 self.explorer.block_down(seed)
