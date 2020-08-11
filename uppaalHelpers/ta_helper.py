@@ -82,7 +82,7 @@ def verify_reachability(ta_file_path, query_file_path, TA, relaxation_set, print
     if print_result:
         print ("Checking " + ta_file_path + " against query " + query_file_path)
         print ("\t" + verification_result[res])
-    return res, used_constraints
+    return res, used_constraints, trace
 
 
 def verifyWithTrace(modelfilename, queryfilename, verifyta='verifyta'):
