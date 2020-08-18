@@ -223,7 +223,7 @@ if __name__ == '__main__':
     t.explorer.only_minimum = args.only_minimum != None
     print "Model: ", model, ", query: ", query_file
     print "dimension:", t.dimension
-    print "is the target location reachable?", t.is_sufficient([i for i in range(t.dimension)])[0]
+    print "is the target location reachable?", t.is_sufficient([])[0]
     print "running the MSR enumeration algorithm " + t.algorithm
     print ""
     t.run()    
