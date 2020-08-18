@@ -72,6 +72,8 @@ class TimedAutomata:
             return
         c_list = t.guard.value.split('&&') # TODO do not register the empty strings -- no constraint.
         for c in c_list:
+            if ('==' in c) or ('true' in c):
+                continue
             self.constraint_registry['c' + str(self.next_id)] = \
                 [c, (t.source.name.value, t.target.name.value)]
             self.next_id += 1
@@ -86,6 +88,8 @@ class TimedAutomata:
             return
         c_list = l.invariant.value.split('&&')
         for c in c_list:
+            if ('==' in c) or ('true' in c):
+                continue
             self.constraint_registry['c' + str(self.next_id)] = \
                 [c, l.name.value]
             self.next_id += 1
@@ -166,7 +170,7 @@ class TimedAutomata:
     def parse_inequality_simple(self, inequality):
         ind = 0
         for i in range(len(inequality)):
-            if inequality[i] in ['<', '>']:
+            if inequality[i] in ['<', '>', '=']:
                 ind = i
                 break
         clock_name = inequality[0:ind].strip()
