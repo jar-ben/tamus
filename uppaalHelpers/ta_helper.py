@@ -63,8 +63,9 @@ def verify_reachability(ta_file_path, query_file_path, TA, relaxation_set, print
     """
 
     global verification_result
-    constraint_registry=TA.constraint_registry
-
+    constraint_registry = TA.constraint_registry
+    
+    trace = []
     res = 0
     used_constraints = {}
     try:
@@ -118,7 +119,7 @@ def verifyWithTrace(modelfilename, queryfilename, verifyta='./bin-Linux/verifyta
             flag = 1
             i += 1
             transition_line = errlines[i]
-            while (transition_line.find('State') == -1):
+            while transition_line.find('State') == -1:
                 if transition_line[2:transition_line.find('.')] == template_instance_name:
                     flag = 0
                     break
