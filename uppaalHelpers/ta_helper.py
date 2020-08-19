@@ -86,7 +86,7 @@ def verify_reachability(ta_file_path, query_file_path, TA, relaxation_set, print
     return res, used_constraints, trace
 
 
-def verifyWithTrace(modelfilename, queryfilename, verifyta='./bin-Linux/verifyta'):
+def verifyWithTrace(modelfilename, queryfilename, verifyta='verifyta'):
     #  modified version of verify from pyuppaal, change parameter verifyta to where verifyta is
     cmdline = ''
 
