@@ -85,7 +85,7 @@ def verify_reachability(ta_file_path, query_file_path, TA, relaxation_set, print
     return res, used_constraints, trace
 
 
-def verifyWithTrace(modelfilename, queryfilename, verifyta='verifyta'):
+def verifyWithTrace(modelfilename, queryfilename, verifyta='./bin-Linux/verifyta'):
     #  modified version of verify from pyuppaal, change parameter verifyta to where verifyta is
     cmdline = ''
 
@@ -103,22 +103,41 @@ def verifyWithTrace(modelfilename, queryfilename, verifyta='verifyta'):
         if "Internet connection is required for activation." in line:
             raise Exception("UPPAAL verifyta error: " + line)
 
+    query_file = open(queryfilename)
+    query_string = query_file.read()
+    qs_list = query_string.split(" ")
+    qs_list = qs_list[1].split(".")
+    template_instance_name = qs_list[0]
+
     # Construct the trace
     trace = []
-    for i in range(len(errlines)):
+    i = 0
+    while i < len(errlines):
         line = errlines[i]
         if line.find('Transition') != -1:
-            next_line = errlines[i + 1]
-            start_of_state_1 = 1 + next_line.find('.')
-            end_of_state_1 = next_line.find('-')
-            state_1 = next_line[start_of_state_1:end_of_state_1]
-            start_of_state_2 = 1 + next_line.find('.', start_of_state_1)
-            end_of_state_2 = next_line.find('{') - 1
-            state_2 = next_line[start_of_state_2:end_of_state_2]
+            flag = 1
+            i += 1
+            transition_line = errlines[i]
+            while (transition_line.find('State') == -1):
+                if transition_line[2:transition_line.find('.')] == template_instance_name:
+                    flag = 0
+                    break
+                i += 1
+                transition_line = errlines[i]
+            if flag:
+                continue
+
+            start_of_state_1 = transition_line.find(template_instance_name)
+            start_of_state_1 += len(template_instance_name) + 1
+            end_of_state_1 = transition_line.find('-')
+            state_1 = transition_line[start_of_state_1:end_of_state_1]
+            start_of_state_2 = 1 + transition_line.find('.', end_of_state_1)
+            end_of_state_2 = transition_line.find(' ', end_of_state_1)
+            state_2 = transition_line[start_of_state_2:end_of_state_2]
             if len(trace) == 0:
                 trace += [state_1]
             trace += [state_2]
-
+        i += 1
     return stdoutdata, trace
 
 
