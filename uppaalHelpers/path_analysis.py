@@ -33,7 +33,7 @@ def compute_clocks(path, ta, clocks):
             compute_clocks_helper(c, clocks)
         for c in ta.parsed_guards[(path[i-1], path[i])]:
             compute_clocks_helper(c, clocks)
-        for x in ta.resets[(path[i-1],path[i])]:
+        for x in ta.resets[(path[i-1], path[i])]:
             if x not in clocks:
                 clocks.append(x)
 
@@ -65,8 +65,9 @@ def construct_path_lp(path, clocks, ta, msr):
                                           constraint_to_parameter[(path[i], c)]+len(path)-1)
             else:
                 a, b = compute_constraint(clock_to_delay, c, number_of_variables, -1)
-            A.append(a)
-            B.append(b)
+            for k in range(len(a)):
+                A.append(a[k])
+                B.append(b[k])
 
         # Add constraints for the guards.
         for c in ta.parsed_guards[(path[i], path[i+1])]:
@@ -75,8 +76,9 @@ def construct_path_lp(path, clocks, ta, msr):
                                           constraint_to_parameter[((path[i], path[i+1]), c)]+len(path)-1)
             else:
                 a, b = compute_constraint(clock_to_delay, c, number_of_variables, -1)
-            A.append(a)
-            B.append(b)
+            for k in range(len(a)):
+                A.append(a[k])
+                B.append(b[k])
 
         # Apply reset:
         for x in ta.resets[(path[i], path[i+1])]:
@@ -90,8 +92,9 @@ def construct_path_lp(path, clocks, ta, msr):
                                           constraint_to_parameter[(path[i+1], c)]+len(path)-1)
             else:
                 a, b = compute_constraint(clock_to_delay, c, number_of_variables, -1)
-            A.append(a)
-            B.append(b)
+            for k in range(len(a)):
+                A.append(a[k])
+                B.append(b[k])
 
         # Add delay variable to all clocks
         for x in clocks:
@@ -133,16 +136,20 @@ def construct_path_lp(path, clocks, ta, msr):
 
 def compute_constraint(clock_to_delay, c, number_of_variables, parameter):
     # c : clock_name, operator, threshold, equality
-    A_row = [0 for _ in range(number_of_variables)]  # initialize the row
+    A_row = [[0 for _ in range(number_of_variables)]]  # initialize the row
     for di in clock_to_delay[c[0]]:  # Clock to delay mapping for A
-        A_row[di] = 1
+        A_row[0][di] = 1
 
-    B_row = c[2]
+    B_row = [c[2]]
     if c[1] == '>':  # multiply by -1
-        A_row = [x*-1 for x in A_row]
-        B_row = -1*B_row
-    
+        A_row[0] = [x * -1 for x in A_row[0]]
+        B_row[0] = -1 * B_row[0]
+
     if parameter != -1:
-        A_row[parameter] = -1
+        A_row[0][parameter] = -1
+
+    if c[1] == '=':  # >= && <= is equal to ==
+        A_row.append([x * -1 for x in A_row[0]])
+        B_row.append(-1 * B_row[0])
 
     return A_row, B_row
