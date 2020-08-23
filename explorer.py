@@ -7,14 +7,14 @@ class Explorer:
         for i in range(dimension):
             self.vars.append(Bool('x' + str(i)))
         self.s = Solver()
-        self.only_minimum = False
+        self.all_msrs = False
 
     def complement(self, N):
         return [i for i in range(self.dimension) if i not in N]
 
     def block_up(self, N):
         block = [Not(self.vars[n]) for n in N ]
-        if self.only_minimum:
+        if not self.all_msrs:
             self.s.add(PbLe([(x,1) for x in self.vars], len(N) - 1) )
         else:
             self.s.add(Or(block))
