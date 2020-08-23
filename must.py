@@ -1,12 +1,12 @@
 import sys
 import time
 import argparse
+import signal
 
 from explorer import Explorer
 from uppaalHelpers import ta_helper
 from uppaalHelpers import timed_automata
 from uppaalHelpers import path_analysis
-
 
 class Tamus:
     def __init__(self, model_file, query_file):
@@ -46,6 +46,8 @@ class Tamus:
         self.stats["checks_sufficient_time"] = 0
         self.stats["shrinks"] = 0
         self.stats["shrinks_time"] = 0
+
+	self.timelimit = 1000000 #time limit for the MSR enumeration
 
     def complement(self, N):
         return [i for i in range(self.dimension) if i not in N]
@@ -107,10 +109,12 @@ class Tamus:
         self.msres.append(N)
         self.traces.append(trace)
 
+
     def run(self):
-    	self.enumerate()
+        self.enumerate()
 
     def enumerate(self):
+        start_time = time.clock()
         seed = self.explorer.get_unex()
         while seed is not None:
             seed = self.explorer.maximize(seed[:])
@@ -121,6 +125,9 @@ class Tamus:
             else:
                 self.explorer.block_down(seed)
             seed = self.explorer.get_unex()
+	    if time.clock() - start_time > self.timelimit:
+		print("User-defined timelimit of {} seconds exceeded. Aborting MSR enumeration.".format(self.timelimit))
+		break
 
     def get_MSRes(self):
         msres = []
@@ -156,6 +163,7 @@ if __name__ == '__main__':
     parser.add_argument("--verbose", "-v", action="count", help = "Use the flag to increase the verbosity of the outputs. The flag can be used repeatedly.")    
     parser.add_argument("--no-unsat-cores", "-n", action="count", help = "Use the flag to disable usage of unsat cores.")    
     parser.add_argument("--all-msrs", "-a", action="count", help = "Use the flag to ensure that all MSRs are identified.")    
+    parser.add_argument("--msr-timelimit", type=int, help = "Sets up timelimit for MSR enumeration. Note that the computation is not terminated exactly after the timelimit, but once the last identified MSR exceeds the timelimit. We recommend you to use UNIX timeout when using our tool, if you want to timeout the whole computation. ")
     #parse the command line arguments
     args = parser.parse_args()
 
@@ -163,6 +171,7 @@ if __name__ == '__main__':
     model = args.model_file
     query_file = args.query_file    
     t = Tamus(model, query_file)
+    t.timelimit = args.msr_timelimit if args.msr_timelimit != None else 1000000 
     t.verbosity = args.verbose if args.verbose != None else 0
     t.use_unsat_cores = args.no_unsat_cores == None
     t.explorer.all_msrs = args.all_msrs != None
@@ -173,7 +182,7 @@ if __name__ == '__main__':
     t.run()    
 
     #print statistics
-    print "all MSRes were identified"
+    print "MSR enumeration terminated"
     msres, constraints, traces = t.get_MSRes()
     print "Elapsed time in seconds:", (time.clock() - start_time)
     print "identified MSRes:", msres
