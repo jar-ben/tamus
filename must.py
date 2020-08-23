@@ -155,7 +155,7 @@ if __name__ == '__main__':
     parser.add_argument("query_file", help = "A path to a query file")
     parser.add_argument("--verbose", "-v", action="count", help = "Use the flag to increase the verbosity of the outputs. The flag can be used repeatedly.")    
     parser.add_argument("--no-unsat-cores", "-n", action="count", help = "Use the flag to disable usage of unsat cores.")    
-    parser.add_argument("--only-minimum", "-m", action="count", help = "Use the flag to guide the search to the minimum MRS (identifies only some MRS, including the minimum one).")    
+    parser.add_argument("--all-msrs", "-a", action="count", help = "Use the flag to ensure that all MSRs are identified.")    
     #parse the command line arguments
     args = parser.parse_args()
 
@@ -165,7 +165,7 @@ if __name__ == '__main__':
     t = Tamus(model, query_file)
     t.verbosity = args.verbose if args.verbose != None else 0
     t.use_unsat_cores = args.no_unsat_cores == None
-    t.explorer.only_minimum = args.only_minimum != None
+    t.explorer.all_msrs = args.all_msrs != None
     print "Model: ", model, ", query: ", query_file
     print "dimension:", t.dimension
     print "is the target location reachable?", t.is_sufficient([])[0]
