@@ -36,10 +36,6 @@ class Tamus:
         self.traces = []
         self.verbosity = 0
         self.use_unsat_cores = True
-        #algorithm for the MSR enumeration
-        self.algorithm = "marco"
-
-        self.shrinkingQueue = [] #for the algorithm Grow-Shrink
 
         #statistics related data-structures and functionality
         self.stats = {}
@@ -104,9 +100,6 @@ class Tamus:
         self.stats["shrinks_time"] += time.clock() - start_time
         return N, trace_for_N
 
-    def GSShrink(self, N):
-        M = []
-
     def markMSR(self, N, trace):
         print "Found MSR: {}".format([self.clist[c] for c in N])
         self.explorer.block_up(N)
@@ -115,55 +108,9 @@ class Tamus:
         self.traces.append(trace)
 
     def run(self):
-        if self.algorithm == "tome":
-            self.enumerate_tome()
-        elif self.algorithm == "grow-shrink":
-            pass
-        else:
-            self.enumerate_marco()
+    	self.enumerate()
 
-    # builds an unexplored chain between bot and top and finds the local MSR and the local MSS of the chain
-    def tome_local_search(self, bot, top):
-        diff = list(set(top) - set(bot))
-        low = 0
-        high = len(diff) - 1
-        while high - low > 1:
-            mid = (low + high) // 2
-            seed = bot + [diff[i] for i in range(mid)]
-            if not self.is_sufficient(seed)[0]:
-                low = mid
-            else:
-                high = mid
-        assert high - low == 1
-        localMSS = bot + [diff[i] for i in range(low)]
-        localMSR = bot + [diff[i] for i in range(high)]
-        return localMSR, localMSS
-
-    # the main function of the TOME MSR enumeration algorithm
-    def enumerate_tome(self):
-        seed = self.explorer.get_unex()
-        while seed is not None:
-            top = self.explorer.maximize(seed[:])
-            bot = self.explorer.minimize(seed[:])
-            sufficient, _, trace = self.is_sufficient(bot)
-            if sufficient:
-                self.markMSR(bot, trace)
-            elif not self.is_sufficient(top)[0]:
-                self.explorer.block_down(top)
-            else:
-                localMSR, localMSS = self.tome_local_search(bot, top)
-                _, _, trace = self.is_sufficient(localMSR)
-                msr, trace = self.shrink(localMSR, trace)
-                self.markMSR(msr, trace)
-                self.explorer.block_down(localMSS)
-            seed = self.explorer.get_unex()
-
-    # the main function of the GROW-SHRINK MSR enumeration algorithm
-    def enumerate_grow_shrink(self):
-        pass
-
-    # the main function of the MARCO MSR enumeration algorithm
-    def enumerate_marco(self):
+    def enumerate(self):
         seed = self.explorer.get_unex()
         while seed is not None:
             seed = self.explorer.maximize(seed[:])
@@ -206,7 +153,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser("TAMUS - a tool for relaxing reachability properties in Time Automatas with a help of Minimal Uninsufficientisfiable Subsets")
     parser.add_argument("model_file", help = "A path to a model file")
     parser.add_argument("query_file", help = "A path to a query file")
-    parser.add_argument("--algorithm", "-a", help = "A MSR enumeration algorithm to be used", choices = ["marco", "tome", "grow-shrink"], default = "marco")
     parser.add_argument("--verbose", "-v", action="count", help = "Use the flag to increase the verbosity of the outputs. The flag can be used repeatedly.")    
     parser.add_argument("--no-unsat-cores", "-n", action="count", help = "Use the flag to disable usage of unsat cores.")    
     parser.add_argument("--only-minimum", "-m", action="count", help = "Use the flag to guide the search to the minimum MRS (identifies only some MRS, including the minimum one).")    
@@ -217,14 +163,12 @@ if __name__ == '__main__':
     model = args.model_file
     query_file = args.query_file    
     t = Tamus(model, query_file)
-    t.algorithm = args.algorithm
     t.verbosity = args.verbose if args.verbose != None else 0
     t.use_unsat_cores = args.no_unsat_cores == None
     t.explorer.only_minimum = args.only_minimum != None
     print "Model: ", model, ", query: ", query_file
     print "dimension:", t.dimension
     print "is the target location reachable?", t.is_sufficient([])[0]
-    print "running the MSR enumeration algorithm " + t.algorithm
     print ""
     t.run()    
 
