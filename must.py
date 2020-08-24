@@ -46,6 +46,7 @@ class Tamus:
         self.stats["checks_sufficient_time"] = 0
         self.stats["shrinks"] = 0
         self.stats["shrinks_time"] = 0
+        self.stats["timeout"] = False
 
 	self.timelimit = 1000000 #time limit for the MSR enumeration
 
@@ -125,9 +126,10 @@ class Tamus:
             else:
                 self.explorer.block_down(seed)
             seed = self.explorer.get_unex()
-	    if time.clock() - start_time > self.timelimit:
-		print("User-defined timelimit of {} seconds exceeded. Aborting MSR enumeration.".format(self.timelimit))
-		break
+            if time.clock() - start_time > self.timelimit:
+                self.stats["timeout"] = True
+                print("User-defined timelimit of {} seconds exceeded. Aborting MSR enumeration.".format(self.timelimit))
+                break
 
     def get_MSRes(self):
         msres = []

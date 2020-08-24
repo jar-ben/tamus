@@ -9,9 +9,17 @@ def add_path(template, path_source, path_target, n, li, clocks, lower_bounds, up
                 clocks[ind] is reset and checked in every p-th transition with threshold b (upper or lower)
     """
     source=template.get_location_by_name(path_source)
-    clock_count=len(clocks)
-    for i in range(0, n+1):
-        id=i+li
+    # Transition leaving l_0
+    target_name = 'l'+str(li)
+    target = pyuppaal.Location(name=target_name)
+    template.locations += [target]
+    # Reset each clock except the last one on transitions leaving l_0
+    reset_str = ' , '.join([clocks[i] + " = 0 " for i in range(len(clocks))])
+    template.transitions += [pyuppaal.Transition(source=source, target=target,
+                                                 guard='', assignment=reset_str)]
+    source=template.get_location_by_name(target_name)
+    for i in range(1, n+1):
+        id = i+li
         target_name = 'l'+str(id)
         if i == n: # the target is path_target, no need to add
             target_name=path_target
@@ -21,11 +29,12 @@ def add_path(template, path_source, path_target, n, li, clocks, lower_bounds, up
             template.locations += [target]
         clock_ind_lower = [] # the indices of clocks that will be checked and reset on source to target
         clock_ind_upper = []
+
         for j in range(len(lower_bounds)):
-            if (i+1) % lower_bounds[j][1] == 0:
+            if i % lower_bounds[j][1] == 0:
                 clock_ind_lower += [j]
         for j in range(len(upper_bounds)):
-            if (i+1) % upper_bounds[j][1] == 0:
+            if i % upper_bounds[j][1] == 0:
                 clock_ind_upper += [j]
 
         guard_str_lower = ' && '.join([clocks[lower_bounds[j][0]] + " >= " + str(lower_bounds[j][2]) for j in clock_ind_lower])
@@ -82,128 +91,62 @@ def generator(clocks, lower_bounds, upper_bounds, final_guard, path_length, fold
         query_file.write("E<> ta.l1")
 
 
-def generate_benchmarks():
-    # Paper benchmarks:
-    folder = '../examples/generator/'
+def benchmark_generation_helper(ci, cc, t, lp, kl, ku):
+    """ci lowest clock index, cc is clock count, t is used to determine thresholds,
+    lp is the lowest period, the other periods are computed w.r.to lp,
+    kl and ku are used in threshold computation."""
 
-    # BENCHMARK 1: 3 clocks, 1 path, path length 6
+    cch = cc / 2 # half of it is used for lower bounds, half of it is used for upper bounds.
+    lower_bounds = []
+    upper_bounds = []
+
+    for i in range(cch):
+        # Set the lower bound
+        lbp = (i+1)*lp
+        ubp = lbp+1
+        lower_bounds.append((i+ci, lbp, (i+1)*t + kl))
+        upper_bounds.append((i+ci+cch, ubp, ubp*(t/lp) - ku))
+
+    return lower_bounds, upper_bounds
+
+
+def generate_benchmarks(folder):
+    t = 10
+    lp = 2
+    kl = 1
     clocks = ['x0', 'x1', 'x2']
-    # clock index , period , bound
-    lower_bounds = [[(0, 1, 10)]]
-    upper_bounds = [[(1, 2, 18)]]
-    path_length = 6
-    # number of clocks + length of each path + number of paths
-    ex_name = 'test' + str(len(clocks)) + '_' + str(path_length) + '_' + str(len(lower_bounds))
-    generator(clocks, lower_bounds, upper_bounds, 'x2 <= 60', path_length, folder, ex_name)
+    ci = 3 # the index of the clock to be added next, always odd.
+    cc = 2
 
-    # BENCHMARK 2: 3 clocks, 2 path, path length 6
-    clocks = ['x0', 'x1', 'x2']
-    # clock index , period , bound
-    lower_bounds.append([(0, 1, 12)])
-    upper_bounds.append([(1, 2, 20)])
-    path_length = 6
-    # number of clocks + length of each path + number of paths
-    ex_name = 'test' + str(len(clocks)) + '_' + str(path_length) + '_' + str(len(lower_bounds))
-    generator(clocks, lower_bounds, upper_bounds, 'x2 <= 60', path_length, folder, ex_name)
+    file_names = []
+    # BENCHMARKS
+    while ci < 8:
+        for path_length in [6, 9, 12, 15, 18, 21]:
+            lower_bounds = []
+            upper_bounds = []
 
-    # BENCHMARK 3: 3 clocks, 1 path, path length 10
-    # clocks, periods, bounds, final_guard, path_lengths, folder_path, ex_name
-    clocks = ['x0', 'x1', 'x2']
-    # clock index , period , bound
-    lower_bounds = [[(0, 1, 10)]]
-    upper_bounds = [[(1, 2, 18)]]
+            final_constraint = 'x' + str(cc) + " <= " + str(t * (path_length + 1))
+            # First path
+            lb, ub = benchmark_generation_helper(0, cc, t, lp, kl, 0)
+            lower_bounds.append(lb)
+            upper_bounds.append(ub)
+            ex_name = 'test' + str(len(clocks)) + '_' + str(path_length) + '_' + str(len(lower_bounds))
+            print ex_name, lower_bounds, upper_bounds
+            generator(clocks, lower_bounds, upper_bounds, final_constraint, path_length, folder, ex_name)
+            file_names.append(ex_name)
+            # Second path
+            lb, ub = benchmark_generation_helper(0, cc, 16, lp+2, kl, 0)
+            lower_bounds.append(lb)
+            upper_bounds.append(ub)
+            ex_name = 'test' + str(len(clocks)) + '_' + str(path_length) + '_' + str(len(lower_bounds))
+            print ex_name, lower_bounds, upper_bounds
+            final_constraint = 'x' + str(cc) + " <= " + str(4 * (path_length-2) - 2)
+            generator(clocks, lower_bounds, upper_bounds, final_constraint, path_length, folder, ex_name)
+            file_names.append(ex_name)
+        # Add two more clocks:
+        clocks.append('x' + str(ci))
+        clocks.append('x' + str(ci+1))
+        ci += 2
+        cc += 2
+    return file_names
 
-    path_length = 10
-    # number of clocks + length of each path + number of paths
-    ex_name = 'test' + str(len(clocks)) + '_' + str(path_length) + '_' + str(len(lower_bounds))
-    generator(clocks, lower_bounds, upper_bounds, 'x2 <= 100', path_length, folder, ex_name)
-
-    # BENCHMARK 4: 3 clocks, 2 path, path length 10
-    # clocks, periods, bounds, final_guard, path_lengths, folder_path, ex_name
-    clocks = ['x0', 'x1', 'x2']
-    # clock index , period , bound
-    lower_bounds.append([(0, 1, 12)])
-    upper_bounds.append([(1, 2, 20)])
-
-    path_length = 10
-    # number of clocks + length of each path + number of paths
-    ex_name = 'test' + str(len(clocks)) + '_' + str(path_length) + '_' + str(len(lower_bounds))
-    generator(clocks, lower_bounds, upper_bounds, 'x2 <= 100', path_length, folder, ex_name)
-
-    # BENCHMARK 5: 4 clocks, 1 path, path length 10
-    # clocks, periods, bounds, final_guard, path_lengths, folder_path, ex_name
-    clocks = ['x0', 'x1', 'x2', 'x3']
-    # clock index , period , bound
-    lower_bounds = [[(0, 1, 10), (1, 2, 18)]]
-    upper_bounds = [[(2, 3, 25)]]
-
-    path_length = 10
-    # number of clocks + length of each path + number of paths
-    ex_name = 'test' + str(len(clocks)) + '_' + str(path_length) + '_' + str(len(lower_bounds))
-    generator(clocks, lower_bounds, upper_bounds, 'x3 <= 100', path_length, folder, ex_name)
-
-    # BENCHMARK 6: 4 clocks, 1 path, path length 10
-    # clocks, periods, bounds, final_guard, path_lengths, folder_path, ex_name
-    clocks = ['x0', 'x1', 'x2', 'x3']
-    # clock index , period , bound
-    lower_bounds.append([(0, 1, 8), (1, 2, 16)])
-
-    upper_bounds.append([(2, 3, 20)])
-
-    path_length = 10
-    # number of clocks + length of each path + number of paths
-    ex_name = 'test' + str(len(clocks)) + '_' + str(path_length) + '_' + str(len(lower_bounds))
-    generator(clocks, lower_bounds, upper_bounds, 'x3 <= 100', path_length, folder, ex_name)
-
-    # BENCHMARK 7: 4 clocks, 1 path, path length 20
-    # clocks, periods, bounds, final_guard, path_lengths, folder_path, ex_name
-    clocks = ['x0', 'x1', 'x2', 'x3']
-    # clock index , period , bound
-    lower_bounds = [[(0, 1, 10), (1, 2, 18)]]
-    upper_bounds = [[(2, 3, 25)]]
-
-    path_length = 20
-    # number of clocks + length of each path + number of paths
-    ex_name = 'test' + str(len(clocks)) + '_' + str(path_length) + '_' + str(len(lower_bounds))
-    generator(clocks, lower_bounds, upper_bounds, 'x3 <= 200', path_length, folder, ex_name)
-
-    # BENCHMARK 8: 4 clocks, 2 path, path length 20
-    # clocks, periods, bounds, final_guard, path_lengths, folder_path, ex_name
-    clocks = ['x0', 'x1', 'x2', 'x3']
-    # clock index , period , bound
-    lower_bounds.append([(0, 1, 8), (1, 2, 16)])
-
-    upper_bounds.append([(2, 3, 20)])
-
-    path_length = 20
-    # number of clocks + length of each path + number of paths
-    ex_name = 'test' + str(len(clocks)) + '_' + str(path_length) + '_' + str(len(lower_bounds))
-    generator(clocks, lower_bounds, upper_bounds, 'x3 <= 200', path_length, folder, ex_name)
-
-    # BENCHMARK 9: 5 clocks, 1 path, path length 20
-    # clocks, periods, bounds, final_guard, path_lengths, folder_path, ex_name
-    clocks = ['x0', 'x1', 'x2', 'x3', 'x4']
-    # clock index , period , bound
-    lower_bounds = [[(0, 1, 10), (1, 2, 18), (2, 3, 32)]]
-    upper_bounds = [[(3, 3, 35)]]
-
-    path_length = 20
-    # number of clocks + length of each path + number of paths
-    ex_name = 'test' + str(len(clocks)) + '_' + str(path_length) + '_' + str(len(lower_bounds))
-    generator(clocks, lower_bounds, upper_bounds, 'x4 <= 200', path_length, folder, ex_name)
-
-    # BENCHMARK 10: 5 clocks, 2 path, path length 20
-    # clocks, periods, bounds, final_guard, path_lengths, folder_path, ex_name
-    clocks = ['x0', 'x1', 'x2', 'x3', 'x4']
-    # clock index , period , bound
-    lower_bounds.append([(0, 1, 8), (1, 2, 16), (2, 3, 25)])
-    upper_bounds.append([(3, 3, 30)])
-
-    path_length = 20
-    # number of clocks + length of each path + number of paths
-    ex_name = 'test' + str(len(clocks)) + '_' + str(path_length) + '_' + str(len(lower_bounds))
-    generator(clocks, lower_bounds, upper_bounds, 'x4 <= 200', path_length, folder, ex_name)
-
-if __name__ == '__main__':
-
-    generate_benchmarks()
