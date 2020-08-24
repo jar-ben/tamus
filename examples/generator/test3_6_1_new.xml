@@ -7,32 +7,16 @@
     
     <declaration></declaration>
     
-    <location id="id0" x="-40" y="-1380">
-      <name x="-40" y="-1365">l0</name>
+    <location id="id6" x="-40" y="-405">
+      <name x="-40" y="-390">l6</name>
       
       
       
       
     </location>
 
-    <location id="id1" x="-40" y="-27">
-      <name x="-40" y="-12">l1</name>
-      
-      
-      
-      
-    </location>
-
-    <location id="id2" x="-40" y="-1179">
-      <name x="-40" y="-1164">l2</name>
-      
-      
-      
-      
-    </location>
-
-    <location id="id3" x="-40" y="-999">
-      <name x="-40" y="-984">l3</name>
+    <location id="id7" x="-40" y="-225">
+      <name x="-40" y="-210">l7</name>
       
       
       
@@ -55,16 +39,32 @@
       
     </location>
 
-    <location id="id6" x="-40" y="-405">
-      <name x="-40" y="-390">l6</name>
+    <location id="id2" x="-40" y="-1179">
+      <name x="-40" y="-1164">l2</name>
       
       
       
       
     </location>
 
-    <location id="id7" x="-40" y="-225">
-      <name x="-40" y="-210">l7</name>
+    <location id="id3" x="-40" y="-999">
+      <name x="-40" y="-984">l3</name>
+      
+      
+      
+      
+    </location>
+
+    <location id="id0" x="-40" y="-1380">
+      <name x="-40" y="-1365">l0</name>
+      
+      
+      
+      
+    </location>
+
+    <location id="id1" x="-40" y="-27">
+      <name x="-40" y="-12">l1</name>
       
       
       
