@@ -1,8 +1,9 @@
 from uppaalHelpers import ta_helper
 import random
+import math
 
 
-def disturb_automata(file_path, query_path, amount_of_parameters_to_change=1, mean_of_changes=10):
+def disturb_automata(file_path, query_path, amount_of_parameters_to_change=1, rate_of_changes=0.2):
     query_file = open(query_path)
     query_string = query_file.read()
     qs_list = query_string.split(" ")
@@ -20,7 +21,7 @@ def disturb_automata(file_path, query_path, amount_of_parameters_to_change=1, me
         if reading_template:
             template.append(line)
             if '</template>' in line:
-                write_template(template, w_file, template_name, amount_of_parameters_to_change, mean_of_changes)
+                write_template(template, w_file, template_name, amount_of_parameters_to_change, rate_of_changes)
                 template = []
                 reading_template = 0
 
@@ -32,7 +33,7 @@ def disturb_automata(file_path, query_path, amount_of_parameters_to_change=1, me
                 w_file.write(line)
 
 
-def write_template(template, w_file, target_template_name, amount_of_parameters_to_change, mean_of_changes):
+def write_template(template, w_file, target_template_name, amount_of_parameters_to_change, rate_of_changes):
 
     template_name_line = template[1]
     template_name_start = template_name_line.find('>') + 1
@@ -80,7 +81,7 @@ def write_template(template, w_file, target_template_name, amount_of_parameters_
                     threshold = c[t_start:].strip()
 
                     c = c[:t_start]
-                    c += ' ' + str(int(threshold)+mean_of_changes) + ' '
+                    c += ' ' + str(int(threshold)+int(math.ceil(rate_of_changes * int(threshold)))) + ' '
                     result.append(c)
                     change_choice = change_choice[1:]
 
@@ -98,7 +99,7 @@ def write_template(template, w_file, target_template_name, amount_of_parameters_
                     threshold = c[t_start:].strip()
 
                     c = c[:t_start]
-                    threshold = int(threshold)-mean_of_changes
+                    threshold = int(math.ceil(rate_of_changes * int(threshold)))
                     threshold *= (threshold > 0)
                     c += ' ' + str(threshold) + ' '
                     result.append(c)

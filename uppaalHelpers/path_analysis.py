@@ -87,7 +87,7 @@ def construct_path_lp(path, clocks, ta, msr):
         # Add constraints for the invariant.
         # Entering path[i+1]:
         for c in ta.parsed_invariants[path[i+1]]:
-            if constraint_to_parameter.get((path[i], c)) is not None:
+            if constraint_to_parameter.get((path[i+1], c)) is not None:
                 a, b = compute_constraint(clock_to_delay, c, number_of_variables,
                                           constraint_to_parameter[(path[i+1], c)]+len(path)-1)
             else:
@@ -99,6 +99,7 @@ def construct_path_lp(path, clocks, ta, msr):
         # Add delay variable to all clocks
         for x in clocks:
             clock_to_delay[x].append(i+1)
+
 
     # Set the cost:
     c = [0 for _ in range(len(path)-1)] + [1 for _ in range(len(msr))]
@@ -120,7 +121,6 @@ def construct_path_lp(path, clocks, ta, msr):
             constraint.SetCoefficient(x[j], A[i][j])
 
     status = solver.Solve()
-
 
     delays = []
     parameters = []
