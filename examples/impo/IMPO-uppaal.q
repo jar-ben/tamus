@@ -1,1 +1,0 @@
-E<> andgate.And111
