@@ -12,7 +12,7 @@ def disturb_automata(file_path, query_path, amount_of_parameters_to_change=1, ra
     template_name = ta_helper.get_template_name(file_path, template_instance_name)
 
     r_file = open(file_path, 'r')
-    w_file = open(file_path[0:-4] + '_disturbed.xml', 'w')
+    w_file = open(file_path[0:-4] + '_disturbed_1.xml', 'w')
 
     template = []
     reading_template = 0
@@ -81,7 +81,7 @@ def write_template(template, w_file, target_template_name, amount_of_parameters_
                     threshold = c[t_start:].strip()
 
                     c = c[:t_start]
-                    c += ' ' + str(int(threshold)+int(math.ceil((1-rate_of_changes) * int(threshold)))) + ' '
+                    c += ' ' + str(int(threshold)+int(math.ceil(rate_of_changes * int(threshold)))) + ' '
                     result.append(c)
                     change_choice = change_choice[1:]
 
@@ -99,7 +99,7 @@ def write_template(template, w_file, target_template_name, amount_of_parameters_
                     threshold = c[t_start:].strip()
 
                     c = c[:t_start]
-                    threshold = int(math.ceil(rate_of_changes * int(threshold)))
+                    threshold = int(math.ceil((1-rate_of_changes) * int(threshold)))
                     threshold *= (threshold > 0)
                     c += ' ' + str(threshold) + ' '
                     result.append(c)
