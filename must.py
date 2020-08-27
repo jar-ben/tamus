@@ -36,6 +36,7 @@ class Tamus:
         self.traces = []
         self.verbosity = 0
         self.use_unsat_cores = True
+        self.grow_extension = False
 
         #statistics related data-structures and functionality
         self.stats = {}
@@ -46,6 +47,8 @@ class Tamus:
         self.stats["checks_sufficient_time"] = 0
         self.stats["shrinks"] = 0
         self.stats["shrinks_time"] = 0
+        self.stats["grows"] = 0
+        self.stats["grows_time"] = 0
         self.stats["timeout"] = False
 
 	self.timelimit = 1000000 #time limit for the MSR enumeration
@@ -103,6 +106,21 @@ class Tamus:
         self.stats["shrinks_time"] += time.clock() - start_time
         return N, trace_for_N
 
+    # takes an insufficient reduction N and returns a maximal insufficient reduction N' \supseteq N
+    def grow(self, N):
+        start_time = time.clock()
+        toCheck = self.complement(N)
+        for c in toCheck:
+            #if self.explorer.is_conflicting(c, N): continue # c is minable conflicting for N
+            copy = N[:]
+            copy.append(c)
+            sufficient, core, trace = self.is_sufficient(copy)
+            if not sufficient:
+                N = copy
+        self.stats["grows"] += 1
+        self.stats["grows_time"] += time.clock() - start_time
+        return N
+
     def markMSR(self, N, trace):
         print "Found MSR: {}".format([self.clist[c] for c in N])
         self.explorer.block_up(N)
@@ -124,6 +142,8 @@ class Tamus:
                 msr, trace = self.shrink(core, trace)
                 self.markMSR(msr, trace)
             else:
+                if self.grow_extension:
+                    seed = self.grow(seed)
                 self.explorer.block_down(seed)
             seed = self.explorer.get_unex()
             if time.clock() - start_time > self.timelimit:
@@ -152,6 +172,10 @@ class Tamus:
         print "Average time of 'unreachable' check:", self.stats["checks_insufficient_time"]/ self.stats["checks_insufficient"]
         print "Shrinks:", self.stats["shrinks"]  
         print "Total time spent by shrinks:", self.stats["shrinks_time"]  
+        if self.grow_extension:
+            print "Grows:", self.stats["grows"]
+            print "Total time spent by grows:", self.stats["grows_time"]
+
         print "==========================="
         print ""
 
@@ -165,6 +189,7 @@ if __name__ == '__main__':
     parser.add_argument("--verbose", "-v", action="count", help = "Use the flag to increase the verbosity of the outputs. The flag can be used repeatedly.")    
     parser.add_argument("--no-unsat-cores", "-n", action="count", help = "Use the flag to disable usage of unsat cores.")    
     parser.add_argument("--all-msrs", "-a", action="count", help = "Use the flag to ensure that all MSRs are identified.")    
+    parser.add_argument("--grow-extension", "-g", action="count", help = "Use grow extension during the process of finding a seed to prune the search-space.")    
     parser.add_argument("--msr-timelimit", type=int, help = "Sets up timelimit for MSR enumeration. Note that the computation is not terminated exactly after the timelimit, but once the last identified MSR exceeds the timelimit. We recommend you to use UNIX timeout when using our tool, if you want to timeout the whole computation. ")
     #parse the command line arguments
     args = parser.parse_args()
@@ -177,6 +202,8 @@ if __name__ == '__main__':
     t.verbosity = args.verbose if args.verbose != None else 0
     t.use_unsat_cores = args.no_unsat_cores == None
     t.explorer.all_msrs = args.all_msrs != None
+    t.grow_extension = args.grow_extension != None
+    print "grow extension?", t.grow_extension
     print "Model: ", model, ", query: ", query_file
     print "dimension:", t.dimension
     print "is the target location reachable?", t.is_sufficient([])[0]
