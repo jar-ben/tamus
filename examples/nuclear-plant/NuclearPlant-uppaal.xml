@@ -36,84 +36,84 @@ broadcast chan restart;
 		<declaration>// No local declaration for automaton 'plant'
 </declaration>
 		<location id="id0" x="0" y="0">
-			<name x="0" y="-40">normal</name>
+			<name x="-25" y="-25">normal</name>
 		</location>
 		<location id="id1" x="200" y="0">
-			<name x="200" y="-40">heating</name>
-			<label kind="invariant" x="200" y="40">x1 &lt;= 10 &amp;&amp; x2 &lt;=2</label>
+			<name x="178" y="17">heating</name>
+			<label kind="invariant" x="127" y="34">x1 &lt;= 10 &amp;&amp; x2 &lt;=2</label>
 		</location>
-		<location id="id2" x="400" y="0">
-			<name x="400" y="-40">ringing</name>
-			<label kind="invariant" x="400" y="40">x1 &lt;= 10 &amp;&amp; x2 &lt;= 3</label>
+		<location id="id2" x="408" y="0">
+			<name x="391" y="17">ringing</name>
+			<label kind="invariant" x="323" y="34">x1 &lt;= 10 &amp;&amp; x2 &lt;= 3</label>
 		</location>
 		<location id="id3" x="600" y="0">
-			<name x="600" y="-40">watering</name>
-			<label kind="invariant" x="600" y="40">x1 &lt;= 10 &amp;&amp; x2 &lt;= 4</label>
+			<name x="569" y="17">watering</name>
+			<label kind="invariant" x="527" y="34">x1 &lt;= 10 &amp;&amp; x2 &lt;= 4</label>
 		</location>
-		<location id="id4" x="800" y="0">
-			<name x="800" y="-40">stopped</name>
+		<location id="id4" x="799" y="0">
+			<name x="816" y="-8">stopped</name>
 		</location>
-		<location id="id5" x="1000" y="0">
-			<name x="1000" y="-40">boom</name>
+		<location id="id5" x="960" y="-238">
+			<name x="960" y="-278">boom</name>
 		</location>
 		<init ref="id0"/>
 		<transition>
 			<source ref="id0"/>
 			<target ref="id1"/>
-			<label kind="synchronisation" x="83" y="80">startHeating!</label>
-			<label kind="assignment" x="83" y="-40">x1 = 0, x2 = 0</label>
+			<label kind="synchronisation" x="59" y="-34">startHeating!</label>
+			<label kind="assignment" x="51" y="-17">x1 = 0, x2 = 0</label>
 			<nail x="170" y="0"/>
 		</transition>
 		<transition>
 			<source ref="id1"/>
 			<target ref="id5"/>
-			<label kind="guard" x="600" y="40">x1 &gt;= 10</label>
-			<label kind="synchronisation" x="600" y="80">tooHot!</label>
-			<nail x="603" y="-263"/>
+			<label kind="guard" x="204" y="-212">x1 &gt;= 10</label>
+			<label kind="synchronisation" x="204" y="-229">tooHot!</label>
+			<nail x="195" y="-246"/>
 		</transition>
 		<transition>
 			<source ref="id1"/>
 			<target ref="id2"/>
-			<label kind="guard" x="300" y="40">x2 == 2</label>
-			<label kind="synchronisation" x="300" y="80">triggerAlarm!</label>
-			<label kind="assignment" x="300" y="-40">x2 = 0</label>
-			<nail x="365" y="0"/>
+			<label kind="guard" x="280" y="-34">x2 == 2</label>
+			<label kind="synchronisation" x="272" y="-51">triggerAlarm!</label>
+			<label kind="assignment" x="289" y="-17">x2 = 0</label>
+			<nail x="357" y="0"/>
 		</transition>
 		<transition>
 			<source ref="id2"/>
 			<target ref="id5"/>
-			<label kind="guard" x="700" y="40">x1 &gt;= 10</label>
-			<label kind="synchronisation" x="700" y="80">tooHot!</label>
-			<nail x="663" y="-170"/>
+			<label kind="guard" x="425" y="-136">x1 &gt;= 10</label>
+			<label kind="synchronisation" x="425" y="-153">tooHot!</label>
+			<nail x="416" y="-161"/>
 		</transition>
 		<transition>
 			<source ref="id2"/>
 			<target ref="id3"/>
-			<label kind="guard" x="500" y="40">x2 == 3</label>
-			<label kind="synchronisation" x="500" y="80">startWatering!</label>
-			<label kind="assignment" x="500" y="-40">x2 = 0</label>
+			<label kind="guard" x="476" y="-34">x2 == 3</label>
+			<label kind="synchronisation" x="459" y="-51">startWatering!</label>
+			<label kind="assignment" x="484" y="-17">x2 = 0</label>
 			<nail x="586" y="0"/>
 		</transition>
 		<transition>
 			<source ref="id3"/>
 			<target ref="id5"/>
-			<label kind="guard" x="800" y="40">x1 &gt;= 10</label>
-			<label kind="synchronisation" x="800" y="80">tooHot!</label>
-			<nail x="697" y="-102"/>
+			<label kind="guard" x="773" y="-153">x1 &gt;= 10</label>
+			<label kind="synchronisation" x="782" y="-170">tooHot!</label>
+			<nail x="595" y="-102"/>
 		</transition>
 		<transition>
 			<source ref="id3"/>
 			<target ref="id4"/>
-			<label kind="guard" x="700" y="40">x2 &lt;= 4</label>
-			<label kind="synchronisation" x="700" y="80">endWatering!</label>
-			<label kind="assignment" x="700" y="-40">x1 = 0, x2 = 0</label>
+			<label kind="guard" x="671" y="-34">x2 &lt;= 4</label>
+			<label kind="synchronisation" x="654" y="-51">endWatering!</label>
+			<label kind="assignment" x="654" y="-17">x1 = 0, x2 = 0</label>
 			<nail x="782" y="0"/>
 		</transition>
 		<transition>
 			<source ref="id4"/>
 			<target ref="id0"/>
-			<label kind="synchronisation" x="400" y="80">restart!</label>
-			<label kind="assignment" x="400" y="-40">x1 = 0, x2 = 0</label>
+			<label kind="synchronisation" x="280" y="170">restart!</label>
+			<label kind="assignment" x="255" y="187">x1 = 0, x2 = 0</label>
 			<nail x="297" y="238"/>
 		</transition>
 	</template>

@@ -3,7 +3,7 @@ import random
 import math
 
 
-def disturb_automata(file_path, query_path, amount_of_parameters_to_change=1, rate_of_changes=0.2):
+def mutate_automata(file_path, query_path, amount_of_parameters_to_change=1, rate_of_changes=0.2):
     query_file = open(query_path)
     query_string = query_file.read()
     qs_list = query_string.split(" ")
@@ -12,7 +12,7 @@ def disturb_automata(file_path, query_path, amount_of_parameters_to_change=1, ra
     template_name = ta_helper.get_template_name(file_path, template_instance_name)
 
     r_file = open(file_path, 'r')
-    w_file = open(file_path[0:-4] + '_disturbed_1.xml', 'w')
+    w_file = open(file_path[0:-4] + '_mutated.xml', 'w')
 
     template = []
     reading_template = 0
