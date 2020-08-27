@@ -36,64 +36,64 @@ broadcast chan pass;
 			<name x="0" y="-40">Far</name>
 		</location>
 		<location id="id1" x="200" y="0">
-			<name x="200" y="-40">Approaching</name>
-			<label kind="invariant" x="200" y="40">x &lt;= 5 &amp;&amp; x &lt;= 2</label>
+			<name x="161" y="17">Approaching</name>
+			<label kind="invariant" x="144" y="34">x &lt;= 5 &amp;&amp; x &lt;= 2</label>
 		</location>
 		<location id="id2" x="400" y="0">
-			<name x="400" y="-40">Crash</name>
+			<name x="382" y="-34">Crash</name>
 		</location>
-		<location id="id3" x="600" y="0">
-			<name x="600" y="-40">Lowering</name>
-			<label kind="invariant" x="600" y="40">x &lt;= 5 &amp;&amp; y &lt;= 2</label>
+		<location id="id3" x="603" y="0">
+			<name x="569" y="17">Lowering</name>
+			<label kind="invariant" x="535" y="34">x &lt;= 5 &amp;&amp; y &lt;= 2</label>
 		</location>
 		<location id="id4" x="800" y="0">
-			<name x="800" y="-40">Safe</name>
-			<label kind="invariant" x="800" y="40">x &lt;= 5</label>
+			<name x="816" y="-17">Safe</name>
+			<label kind="invariant" x="816" y="0">x &lt;= 5</label>
 		</location>
 		<init ref="id0"/>
 		<transition>
 			<source ref="id0"/>
 			<target ref="id1"/>
-			<label kind="synchronisation" x="100" y="80">approach!</label>
-			<label kind="assignment" x="100" y="-40">x = 0</label>
+			<label kind="synchronisation" x="68" y="-34">approach!</label>
+			<label kind="assignment" x="76" y="-17">x = 0</label>
 			<nail x="85" y="0"/>
 		</transition>
 		<transition>
 			<source ref="id1"/>
 			<target ref="id3"/>
-			<label kind="guard" x="400" y="40">x == 2</label>
-			<label kind="synchronisation" x="400" y="80">startDown!</label>
-			<label kind="assignment" x="400" y="-40">y = 0</label>
+			<label kind="guard" x="365" y="-178">x == 2</label>
+			<label kind="synchronisation" x="357" y="-195">startDown!</label>
+			<label kind="assignment" x="374" y="-161">y = 0</label>
 			<nail x="391" y="-144"/>
 		</transition>
 		<transition>
 			<source ref="id1"/>
 			<target ref="id2"/>
-			<label kind="guard" x="300" y="40">x == 5</label>
-			<label kind="synchronisation" x="300" y="80">pass!</label>
+			<label kind="guard" x="272" y="-17">x == 5</label>
+			<label kind="synchronisation" x="280" y="-34">pass!</label>
 			<nail x="297" y="0"/>
 		</transition>
 		<transition>
 			<source ref="id3"/>
 			<target ref="id2"/>
-			<label kind="guard" x="500" y="40">x == 5</label>
-			<label kind="synchronisation" x="500" y="80">pass!</label>
+			<label kind="guard" x="467" y="-17">x == 5</label>
+			<label kind="synchronisation" x="476" y="-34">pass!</label>
 			<nail x="501" y="0"/>
 		</transition>
 		<transition>
 			<source ref="id3"/>
 			<target ref="id4"/>
-			<label kind="guard" x="700" y="40">y == 2</label>
-			<label kind="synchronisation" x="700" y="80">endDown!</label>
+			<label kind="guard" x="663" y="-17">y == 2</label>
+			<label kind="synchronisation" x="646" y="-34">endDown!</label>
 		</transition>
 		<transition>
 			<source ref="id4"/>
 			<target ref="id0"/>
-			<label kind="guard" x="400" y="40">x == 5</label>
-			<label kind="synchronisation" x="400" y="80">pass!</label>
-			<label kind="assignment" x="400" y="-40">x = 0, y = 0</label>
-			<nail x="391" y="-238"/>
-			<nail x="17" y="0"/>
+			<label kind="guard" x="365" y="-280">x == 5</label>
+			<label kind="synchronisation" x="373" y="-304">pass!</label>
+			<label kind="assignment" x="374" y="-263">x = 0, y = 0</label>
+			<nail x="390" y="-253"/>
+			<nail x="16" y="-15"/>
 		</transition>
 	</template>
 	<system>

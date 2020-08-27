@@ -32,16 +32,16 @@ broadcast chan miam;
 		<declaration>// No local declaration for automaton 'system'
 </declaration>
 		<location id="id0" x="0" y="0">
-			<name x="0" y="-40">heating</name>
-			<label kind="invariant" x="0" y="40">xPot &lt;= 24 </label>
+			<name x="-85" y="-17">heating</name>
+			<label kind="invariant" x="-102" y="0">xPot &lt;= 30</label>
 		</location>
 		<location id="id1" x="200" y="0">
-			<name x="200" y="-40">ticking</name>
-			<label kind="invariant" x="200" y="40">xPot &lt;= 30 &amp;&amp; xTimer &lt;= 12 </label>
+			<name x="178" y="-51">ticking</name>
+			<label kind="invariant" x="102" y="-34">xPot &lt;= 6 &amp;&amp; xTimer &lt;= 15</label>
 		</location>
 		<location id="id2" x="400" y="0">
-			<name x="400" y="-40">cooked</name>
-			<label kind="invariant" x="400" y="40">xPot &lt;= 30</label>
+			<name x="374" y="-51">cooked</name>
+			<label kind="invariant" x="357" y="-34">xPot &lt;= 30</label>
 		</location>
 		<location id="id3" x="600" y="0">
 			<name x="600" y="-40">eating</name>
@@ -53,36 +53,36 @@ broadcast chan miam;
 		<transition>
 			<source ref="id0"/>
 			<target ref="id1"/>
-			<label kind="synchronisation" x="100" y="80">startTimer!</label>
-			<label kind="assignment" x="100" y="-40">xTimer = 0</label>
+			<label kind="synchronisation" x="59" y="17">startTimer!</label>
+			<label kind="assignment" x="59" y="0">xTimer = 0</label>
 			<nail x="102" y="0"/>
 		</transition>
 		<transition>
 			<source ref="id0"/>
 			<target ref="id4"/>
-			<label kind="guard" x="400" y="40">xPot &lt;= 24 &amp;&amp; xPot &gt;= 30</label>
-			<label kind="synchronisation" x="400" y="80">boilover!</label>
+			<label kind="guard" x="306" y="-178">xPot &lt;= 6 &amp;&amp; xPot &gt;= 30</label>
+			<label kind="synchronisation" x="382" y="-221">boilover!</label>
 			<nail x="408" y="-238"/>
 		</transition>
 		<transition>
 			<source ref="id1"/>
 			<target ref="id2"/>
-			<label kind="guard" x="300" y="40">xTimer &lt;= 15  &amp;&amp; xTimer &gt;= 15</label>
-			<label kind="synchronisation" x="300" y="80">ring!</label>
+			<label kind="guard" x="161" y="17">xTimer &lt;= 3 &amp;&amp; xTimer &gt;= 15</label>
+			<label kind="synchronisation" x="289" y="0">ring!</label>
 			<nail x="306" y="0"/>
 		</transition>
 		<transition>
 			<source ref="id1"/>
 			<target ref="id4"/>
-			<label kind="guard" x="500" y="40">xPot &lt;= 24 &amp;&amp; xPot &gt;= 36 </label>
-			<label kind="synchronisation" x="500" y="80">boilover!</label>
+			<label kind="guard" x="467" y="221">xPot &lt;= 6 &amp;&amp; xPot &gt;= 54 </label>
+			<label kind="synchronisation" x="569" y="204">boilover!</label>
 			<nail x="544" y="212"/>
 		</transition>
 		<transition>
 			<source ref="id2"/>
 			<target ref="id3"/>
-			<label kind="guard" x="500" y="40">xPot &lt;= 24 &amp;&amp; xPot &gt;= 30</label>
-			<label kind="synchronisation" x="500" y="80">miam!</label>
+			<label kind="guard" x="408" y="17">xPot &lt;= 30 &amp;&amp; xPot &gt;= 54 </label>
+			<label kind="synchronisation" x="476" y="0">miam!</label>
 			<nail x="510" y="0"/>
 		</transition>
 	</template>
