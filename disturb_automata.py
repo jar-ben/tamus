@@ -81,7 +81,7 @@ def write_template(template, w_file, target_template_name, amount_of_parameters_
                     threshold = c[t_start:].strip()
 
                     c = c[:t_start]
-                    c += ' ' + str(int(threshold)+int(math.ceil(rate_of_changes * int(threshold)))) + ' '
+                    c += ' ' + str(int(threshold)+int(math.ceil((1-rate_of_changes) * int(threshold)))) + ' '
                     result.append(c)
                     change_choice = change_choice[1:]
 
