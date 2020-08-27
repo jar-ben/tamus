@@ -36,7 +36,6 @@ class Tamus:
         self.traces = []
         self.verbosity = 0
         self.use_unsat_cores = True
-        self.grow_extension = False
 
         #statistics related data-structures and functionality
         self.stats = {}
@@ -111,7 +110,7 @@ class Tamus:
         start_time = time.clock()
         toCheck = self.complement(N)
         for c in toCheck:
-            #if self.explorer.is_conflicting(c, N): continue # c is minable conflicting for N
+            if self.explorer.is_conflicting(c, N): continue # c is minable conflicting for N
             copy = N[:]
             copy.append(c)
             sufficient, core, trace = self.is_sufficient(copy)
@@ -142,8 +141,7 @@ class Tamus:
                 msr, trace = self.shrink(core, trace)
                 self.markMSR(msr, trace)
             else:
-                if self.grow_extension:
-                    seed = self.grow(seed)
+                seed = self.grow(seed)
                 self.explorer.block_down(seed)
             seed = self.explorer.get_unex()
             if time.clock() - start_time > self.timelimit:
@@ -172,9 +170,8 @@ class Tamus:
         print "Average time of 'unreachable' check:", self.stats["checks_insufficient_time"]/ self.stats["checks_insufficient"]
         print "Shrinks:", self.stats["shrinks"]  
         print "Total time spent by shrinks:", self.stats["shrinks_time"]  
-        if self.grow_extension:
-            print "Grows:", self.stats["grows"]
-            print "Total time spent by grows:", self.stats["grows_time"]
+        print "Grows:", self.stats["grows"]
+        print "Total time spent by grows:", self.stats["grows_time"]
 
         print "==========================="
         print ""
@@ -183,13 +180,12 @@ if __name__ == '__main__':
     start_time = time.clock()
     
     #define command line arguments
-    parser = argparse.ArgumentParser("TAMUS - a tool for relaxing reachability properties in Time Automatas with a help of Minimal Uninsufficientisfiable Subsets")
+    parser = argparse.ArgumentParser("TAMUS - a tool for relaxing reachability properties in Time Automatas based on Minimal Sufficinet Reductions (MRS) and linear programming.")
     parser.add_argument("model_file", help = "A path to a model file")
     parser.add_argument("query_file", help = "A path to a query file")
     parser.add_argument("--verbose", "-v", action="count", help = "Use the flag to increase the verbosity of the outputs. The flag can be used repeatedly.")    
     parser.add_argument("--no-unsat-cores", "-n", action="count", help = "Use the flag to disable usage of unsat cores.")    
     parser.add_argument("--all-msrs", "-a", action="count", help = "Use the flag to ensure that all MSRs are identified.")    
-    parser.add_argument("--grow-extension", "-g", action="count", help = "Use grow extension during the process of finding a seed to prune the search-space.")    
     parser.add_argument("--msr-timelimit", type=int, help = "Sets up timelimit for MSR enumeration. Note that the computation is not terminated exactly after the timelimit, but once the last identified MSR exceeds the timelimit. We recommend you to use UNIX timeout when using our tool, if you want to timeout the whole computation. ")
     #parse the command line arguments
     args = parser.parse_args()
@@ -202,8 +198,6 @@ if __name__ == '__main__':
     t.verbosity = args.verbose if args.verbose != None else 0
     t.use_unsat_cores = args.no_unsat_cores == None
     t.explorer.all_msrs = args.all_msrs != None
-    t.grow_extension = args.grow_extension != None
-    print "grow extension?", t.grow_extension
     print "Model: ", model, ", query: ", query_file
     print "dimension:", t.dimension
     print "is the target location reachable?", t.is_sufficient([])[0]

@@ -8,11 +8,14 @@ class Explorer:
             self.vars.append(Bool('x' + str(i)))
         self.s = Solver()
         self.all_msrs = False
+        self.blockUps = []
+        self.blockDowns = []
 
     def complement(self, N):
         return [i for i in range(self.dimension) if i not in N]
 
     def block_up(self, N):
+        self.blockUps.append(N[:])
         block = [Not(self.vars[n]) for n in N ]
         if not self.all_msrs:
             self.s.add(PbLe([(x,1) for x in self.vars], len(N) - 1) )
@@ -20,6 +23,7 @@ class Explorer:
             self.s.add(Or(block))
 
     def block_down(self, N):
+        self.blockDowns.append(N[:])
         block = [self.vars[n] for n in self.complement(N) ]
         self.s.add(Or(block))
 
@@ -37,11 +41,8 @@ class Explorer:
 
     # maximize a given unexplored subset (seed)
     def maximize(self, seed):
-        candidates = self.complement(seed)
-        while len(candidates) > 0:
-            c = candidates[-1]
-            candidates = candidates[:-1]
-            if not self.is_conflicting(c, seed):
+        for c in self.complement(seed):
+            if self.is_unexplored(seed + [c]):
                 seed.append(c)
         return seed
 
@@ -64,7 +65,12 @@ class Explorer:
 
     # checks whether c is minable conflicting for N, i.e., whether N \cup {c} is unexplored
     def is_conflicting(self, c, N):
-        return not self.is_unexplored(N + [c])
+        assert c not in N
+        Nc = N + [c]
+        for b in self.blockUps:
+            if set(b).issubset(Nc):
+                return True
+        return False
 
     # checks if N is unexplored
     def is_unexplored(self, N):
