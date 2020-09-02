@@ -78,48 +78,59 @@ def find_atomics(left_hand_side, right_hand_side, clocks, parameters, n):
 
     if len(left_hand_side) == 1 and left_hand_side[0] in clocks:
         clock = left_hand_side[0]
-        threshold = right_hand_side[0]
+        threshold = right_hand_side
         coefficient = 1
 
     elif len(left_hand_side) == 2 and left_hand_side[0] in clocks:
         clock = left_hand_side[0]
-        threshold = right_hand_side[0]
+        threshold = right_hand_side
         coefficient = int(left_hand_side[1])
 
     elif len(left_hand_side) == 2 and left_hand_side[1] in clocks:
         clock = left_hand_side[1]
-        threshold = right_hand_side[0]
+        threshold = right_hand_side
         coefficient = int(left_hand_side[0])
 
     elif len(right_hand_side) == 1 and right_hand_side[0] in clocks:
         clock = right_hand_side[0]
-        threshold = left_hand_side[0]
+        threshold = left_hand_side
         coefficient = 1
 
     elif len(right_hand_side) == 2 and right_hand_side[0] in clocks:
         clock = right_hand_side[0]
-        threshold = left_hand_side[0]
+        threshold = left_hand_side
         coefficient = int(right_hand_side[1])
 
     elif len(right_hand_side) == 2 and right_hand_side[1] in clocks:
         clock = right_hand_side[1]
-        threshold = left_hand_side[0]
+        threshold = left_hand_side
         coefficient = int(right_hand_side[0])
 
     else:
-        if left_hand_side[0] in parameters:
-            clock = right_hand_side[0]
-            threshold = left_hand_side[0]
-            coefficient = 1
-
-        else:
+        if len(left_hand_side) == 1 and left_hand_side[0] not in parameters:
             clock = left_hand_side[0]
-            threshold = right_hand_side[0]
+            threshold = right_hand_side
             coefficient = 1
+        else:
+            clock = right_hand_side[0]
+            threshold = left_hand_side
+            coefficient = 1
+    print threshold
+    coefficient_p = 1
 
-    if threshold in parameters:
-        threshold = parameters[threshold]
+    if len(threshold) == 1:
+        if threshold[0] in parameters:
+            threshold = parameters[threshold[0]]
+        else:
+            threshold = threshold[0]
+    else:
+        if threshold[0] in parameters:
+            threshold = parameters[threshold[0]]
+            coefficient_p = int(threshold[1])
+        else:
+            threshold = parameters[threshold[1]]
+            coefficient_p = int(threshold[0])
 
-    threshold = int(threshold) * float(n) / coefficient
+    threshold = int(threshold) * float(n) * coefficient_p / coefficient
 
     return clock, str(int(threshold))
