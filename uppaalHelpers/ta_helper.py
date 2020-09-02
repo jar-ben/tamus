@@ -47,7 +47,7 @@ def set_template_and_save(ta_file_path, nta, template, ta_file_path_new=None):
     return ta_file_path_new
 
 
-def verify_reachability(ta_file_path, query_file_path, TA, relaxation_set, print_result=False):
+def verify_reachability(ta_file_path, query_file_path, TA, relaxation_set, template_name, print_result=False):
     """
     It generates the query E<> model_name.final_location, and verifies TA against it.
 
@@ -67,10 +67,12 @@ def verify_reachability(ta_file_path, query_file_path, TA, relaxation_set, print
     res = 0
     used_constraints = {}
     try:
-        stdoutdata, trace = verifyWithTrace(ta_file_path, query_file_path)
+        stdoutdata, traces = verifyWithTrace(ta_file_path, query_file_path, template_name)
         if 'is satisfied' in stdoutdata:
             res = 1
-            used_constraints = find_used_constraints(trace, constraint_registry, relaxation_set)
+            used_constraints = {}
+            for trace in traces:
+                used_constraints = find_used_constraints(trace, constraint_registry, relaxation_set, used_constraints)
             if used_constraints == {}:
                 used_constraints = relaxation_set
         if 'is NOT satisfied' in stdoutdata:
@@ -86,7 +88,7 @@ def verify_reachability(ta_file_path, query_file_path, TA, relaxation_set, print
     return res, used_constraints, trace
 
 
-def verifyWithTrace(modelfilename, queryfilename, verifyta='verifyta'):
+def verifyWithTrace(modelfilename, queryfilename, template_name, verifyta='verifyta'):
     #  modified version of verify from pyuppaal, change parameter verifyta to where verifyta is
     cmdline = ''
 
@@ -99,57 +101,48 @@ def verifyWithTrace(modelfilename, queryfilename, verifyta='verifyta'):
 
     (stdoutdata, stderrdata) = proc.communicate()
     errlines = stderrdata.split('\n')
-    # Look for tell-tale signs that something went wrong
-    for line in errlines:
-        if "Internet connection is required for activation." in line:
-            raise Exception("UPPAAL verifyta error: " + line)
-
-    query_file = open(queryfilename)
-    query_string = query_file.read()
-    qs_list = query_string.split(" ")
-    qs_list = qs_list[1].split(".")
-    template_instance_name = qs_list[0]
 
     # Construct the trace
-    trace = []
+    trace = {}
     i = 0
     while i < len(errlines):
         line = errlines[i]
         if line.find('Transition') != -1:
-            flag = 1
             i += 1
             transition_line = errlines[i]
             while transition_line.find('State') == -1:
-                if transition_line[2:transition_line.find('.')] == template_instance_name:
-                    flag = 0
-                    break
+                start_of_state_1 = transition_line.find('.')+1
+                t_instance_name = transition_line[:start_of_state_1 - 1].strip()
+                end_of_state_1 = transition_line.find('-')
+                state_1 = transition_line[start_of_state_1:end_of_state_1]
+                start_of_state_2 = 1 + transition_line.find('.', end_of_state_1)
+                end_of_state_2 = transition_line.find(' ', end_of_state_1)
+                state_2 = transition_line[start_of_state_2:end_of_state_2]
+                if t_instance_name == '':
+                    pass
+                elif t_instance_name in trace:
+                    trace[t_instance_name].append(state_2)
+                else:
+                    trace[t_instance_name] = [state_1, state_2]
                 i += 1
                 transition_line = errlines[i]
-            if flag:
-                continue
-
-            start_of_state_1 = transition_line.find(template_instance_name)
-            start_of_state_1 += len(template_instance_name) + 1
-            end_of_state_1 = transition_line.find('-')
-            state_1 = transition_line[start_of_state_1:end_of_state_1]
-            start_of_state_2 = 1 + transition_line.find('.', end_of_state_1)
-            end_of_state_2 = transition_line.find(' ', end_of_state_1)
-            state_2 = transition_line[start_of_state_2:end_of_state_2]
-            if len(trace) == 0:
-                trace += [state_1]
-            trace += [state_2]
         i += 1
-    return stdoutdata, trace
+
+    template_trace = []
+    for key in trace:
+        instance_template_name = get_template_name(modelfilename, key)
+        if instance_template_name == template_name:
+            template_trace.append(trace[key])
+    return stdoutdata, template_trace
 
 
-def find_used_constraints(path, constraint_registry, relaxation_set):
+def find_used_constraints(path, constraint_registry, relaxation_set, used_constraints):
     path_dictionary = dict()
     for i in range(len(path)-1):
         path_dictionary[(path[i], path[i+1])] = []
     for i in range(len(path)):
         path_dictionary[path[i]] = []
 
-    used_constraints = dict()
     for constraint in relaxation_set:
         if path_dictionary.get(constraint_registry[constraint][1]) is not None:
             used_constraints[constraint] = constraint_registry[constraint]

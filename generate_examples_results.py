@@ -19,7 +19,7 @@ def generate_analyze(path):
         print(variables)
 
         start_time = time.clock()
-        t = must.Tamus(path + filename + ".xml", path + filename + ".q")
+        t = must.Tamus(path + filename + ".xml", path + filename + ".q", "TA")
         t.verbosity = 0
         t.timelimit = 2000
         t.use_unsat_cores = True

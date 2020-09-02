@@ -12,6 +12,7 @@ class Tamus:
     def __init__(self, model_file, query_file, template_name):
         self.model_file = model_file # file name
         self.query_file = query_file # file name
+        self.template_name = template_name
         # self.model stores the network of ta from model_file
         # template is the TA of interest for which the constraint analysis is performed.
         # template in self.model is modified during the computation. A modified TA is set for each
@@ -62,7 +63,8 @@ class Tamus:
         # Set the TA to template in self.model, store it to file named new_model
         new_model = ta_helper.set_template_and_save(self.model_file, self.model, new_template)
         # Now finds constraints from relaxation set that are needed for the trace
-        res, used_constraints, trace = ta_helper.verify_reachability(new_model, self.query_file, self.TA, relax_set)
+        res, used_constraints, trace = ta_helper.verify_reachability(new_model, self.query_file, self.TA,
+                                                                     relax_set, self.template_name)
         core = []
         if res == 1 and self.use_unsat_cores:
             for c in used_constraints:
