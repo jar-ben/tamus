@@ -9,7 +9,7 @@ from uppaalHelpers import timed_automata
 from uppaalHelpers import path_analysis
 
 class Tamus:
-    def __init__(self, model_file, query_file):
+    def __init__(self, model_file, query_file, template_name):
         self.model_file = model_file # file name
         self.query_file = query_file # file name
         # self.model stores the network of ta from model_file
@@ -17,7 +17,7 @@ class Tamus:
         # template in self.model is modified during the computation. A modified TA is set for each
         # verification step (verifyta is called).
         # self.location is the target location
-        self.model, template, self.location = ta_helper.get_template(self.model_file,self.query_file)
+        self.model, template, self.location = ta_helper.get_template(self.model_file,self.query_file, template_name)
 
         self.TA = timed_automata.TimedAutomata()
         self.TA.initialize_from_template(template)
@@ -183,6 +183,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser("TAMUS - a tool for relaxing reachability properties in Time Automatas based on Minimal Sufficinet Reductions (MRS) and linear programming.")
     parser.add_argument("model_file", help = "A path to a model file")
     parser.add_argument("query_file", help = "A path to a query file")
+    parser.add_argument("template_name", help="Name of template")
     parser.add_argument("--verbose", "-v", action="count", help = "Use the flag to increase the verbosity of the outputs. The flag can be used repeatedly.")    
     parser.add_argument("--no-unsat-cores", "-n", action="count", help = "Use the flag to disable usage of unsat cores.")    
     parser.add_argument("--all-msrs", "-a", action="count", help = "Use the flag to ensure that all MSRs are identified.")    
@@ -192,8 +193,9 @@ if __name__ == '__main__':
 
     #run the computation
     model = args.model_file
-    query_file = args.query_file    
-    t = Tamus(model, query_file)
+    query_file = args.query_file
+    template_name = args.template_name
+    t = Tamus(model, query_file, template_name)
     t.timelimit = args.msr_timelimit if args.msr_timelimit != None else 1000000 
     t.verbosity = args.verbose if args.verbose != None else 0
     t.use_unsat_cores = args.no_unsat_cores == None
@@ -202,7 +204,7 @@ if __name__ == '__main__':
     print "dimension:", t.dimension
     print "is the target location reachable?", t.is_sufficient([])[0]
     print ""
-    t.run()    
+    t.run()
 
     #print statistics
     print "MSR enumeration terminated"

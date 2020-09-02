@@ -17,15 +17,13 @@ def get_template_name(ta_file_path, model_name):
     return template_name
           
 
-def get_template(ta_file_path, query_file_name):
+def get_template(ta_file_path, query_file_name, template_name):
     """Reads the ta file and returns template(s)."""
     query_file = open(query_file_name)
     query_string = query_file.read()
     qs_list = query_string.split(" ")
     qs_list = qs_list[1].split(".")
-    template_instance_name = qs_list[0]
     location = qs_list[1].strip()
-    template_name = get_template_name(ta_file_path, template_instance_name)
     ta_file = open(ta_file_path)
     nta = pyuppaal.NTA.from_xml(ta_file)
     for template in nta.templates:
@@ -73,6 +71,8 @@ def verify_reachability(ta_file_path, query_file_path, TA, relaxation_set, print
         if 'is satisfied' in stdoutdata:
             res = 1
             used_constraints = find_used_constraints(trace, constraint_registry, relaxation_set)
+            if used_constraints == {}:
+                used_constraints = relaxation_set
         if 'is NOT satisfied' in stdoutdata:
             res = -1
 
