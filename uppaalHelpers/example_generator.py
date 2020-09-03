@@ -121,7 +121,7 @@ def generate_benchmarks(folder):
     file_names = []
     # BENCHMARKS
     while ci < 8:
-        for path_length in [6, 9, 12, 15, 18, 21]:
+        for path_length in [6, 12, 18, 24, 30]:
             lower_bounds = []
             upper_bounds = []
 

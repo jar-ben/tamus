@@ -21,7 +21,8 @@ def generate_analyze(path):
         start_time = time.clock()
         t = must.Tamus(path + filename + ".xml", path + filename + ".q", "TA")
         t.verbosity = 0
-        t.timelimit = 2000
+        t.timelimit = 600
+        t.grow_extension = True
         t.use_unsat_cores = True
         result['constraint_count'] = len(t.TA.constraint_registry)
         print("Constraint count: " + str(result['constraint_count']))
@@ -52,13 +53,32 @@ def generate_analyze(path):
     f = open(path + "results.pkl", "wb")
     pickle.dump(results, f)
     f.close()
+    return results
 
 
 if __name__ == '__main__':
-    path = 'examples/generator2/'
+    path = 'examples/generator-g/'
     if not os.path.exists(path):
         os.makedirs(path)
-    generate_analyze(path)
+    results = generate_analyze(path)
+    # results = pickle.load(open("examples/generator/results.pkl", "rb"))
+
+    for M in [6, 12, 18, 24, 30]:
+        for p in [1,2]:
+            row = ""
+            for c in [3, 5, 7]:
+                r = results[(c,M,p)]
+                tableTA = "$\TA_{("+str(c)+","+str(p)+","+str(M)+")}$ & "
+                data = str(r['constraint_count']) + " & " \
+                       + str(r['min_msr_size']) + " & " \
+                       + str(r['stats']['checks']) + " & " \
+                       + "{:.2f}".format(r['msr_time']) + " & " \
+                       + str(int(r['optimal_cost'])) +  " & "
+                row += tableTA + data
+            row = row[:-2] +  "\\\\"
+            print(row)
+        print("\hline")
+
 
 
 
