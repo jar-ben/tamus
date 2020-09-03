@@ -1,15 +1,8 @@
-from uppaalHelpers import ta_helper
 import random
 import math
 
 
-def mutate_automata(file_path, query_path, amount_of_parameters_to_change=1, rate_of_changes=0.2):
-    query_file = open(query_path)
-    query_string = query_file.read()
-    qs_list = query_string.split(" ")
-    qs_list = qs_list[1].split(".")
-    template_instance_name = qs_list[0]
-    template_name = ta_helper.get_template_name(file_path, template_instance_name)
+def mutate_automata(file_path, template_name, amount_of_parameters_to_change=1, rate_of_changes=0.2):
 
     r_file = open(file_path, 'r')
     w_file = open(file_path[0:-4] + '_mutated.xml', 'w')

@@ -1,5 +1,5 @@
 
-def fix_automata(file_path, clocks, parameters, n=1):
+def fix_automata(file_path, clocks, parameters, discrete_variables, n=1):
 
     r_file = open(file_path, 'r')
     w_file = open(file_path[0:-4] + '_fixed.xml', 'w')
@@ -13,7 +13,7 @@ def fix_automata(file_path, clocks, parameters, n=1):
             constraints = constraints.split('&amp;&amp;')
 
             w_file.write(line[:constraints_start])
-            print(line)
+
             result = []
             for c in constraints:
                 if '&gt;' in c:
@@ -25,7 +25,10 @@ def fix_automata(file_path, clocks, parameters, n=1):
                         atomic = c.split('&gt;')
                         relation = '&gt;'
 
-                    clock, threshold = find_atomics(atomic[0], atomic[1], clocks, parameters, n)
+                    clock, threshold, change_order = find_atomics(atomic[0], atomic[1], clocks + discrete_variables,
+                                                                  parameters, n)
+                    if change_order:
+                        relation = '&l' + relation[2:]
                     c = clock + ' ' + relation + ' ' + threshold
                     result.append(c)
 
@@ -38,7 +41,10 @@ def fix_automata(file_path, clocks, parameters, n=1):
                         atomic = c.split('&lt;')
                         relation = '&lt;'
 
-                    clock, threshold = find_atomics(atomic[0], atomic[1], clocks, parameters, n)
+                    clock, threshold, change_order = find_atomics(atomic[0], atomic[1], clocks + discrete_variables,
+                                                                  parameters, n)
+                    if change_order:
+                        relation = '&l' + relation[2:]
                     c = clock + ' ' + relation + ' ' + threshold
                     result.append(c)
 
@@ -49,14 +55,13 @@ def fix_automata(file_path, clocks, parameters, n=1):
                     else:
                         atomic = c.split('=')
 
-                    clock, threshold = find_atomics(atomic[0], atomic[1], clocks, parameters, n)
+                    clock, threshold, _ = find_atomics(atomic[0], atomic[1], clocks + discrete_variables, parameters, n)
 
                     c1 = clock + ' ' + '&lt;=' + ' ' + threshold
                     c2 = clock + ' ' + '&gt;=' + ' ' + threshold
 
                     result.append(c1)
                     result.append(c2)
-            print(result)
 
             w_file.write('&amp;&amp;'.join(result))
             w_file.write(line[constraints_end:])
@@ -69,6 +74,8 @@ def find_atomics(left_hand_side, right_hand_side, clocks, parameters, n):
 
     left_hand_side = left_hand_side.split('*')
     right_hand_side = right_hand_side.split('*')
+
+    change_order = 0
 
     for i in range(len(left_hand_side)):
         left_hand_side[i] = left_hand_side[i].strip()
@@ -95,16 +102,19 @@ def find_atomics(left_hand_side, right_hand_side, clocks, parameters, n):
         clock = right_hand_side[0]
         threshold = left_hand_side
         coefficient = 1
+        change_order = 1
 
     elif len(right_hand_side) == 2 and right_hand_side[0] in clocks:
         clock = right_hand_side[0]
         threshold = left_hand_side
         coefficient = int(right_hand_side[1])
+        change_order = 1
 
     elif len(right_hand_side) == 2 and right_hand_side[1] in clocks:
         clock = right_hand_side[1]
         threshold = left_hand_side
         coefficient = int(right_hand_side[0])
+        change_order = 1
 
     else:
         if len(left_hand_side) == 1 and left_hand_side[0] not in parameters:
@@ -115,7 +125,7 @@ def find_atomics(left_hand_side, right_hand_side, clocks, parameters, n):
             clock = right_hand_side[0]
             threshold = left_hand_side
             coefficient = 1
-    print threshold
+
     coefficient_p = 1
 
     if len(threshold) == 1:
@@ -125,12 +135,12 @@ def find_atomics(left_hand_side, right_hand_side, clocks, parameters, n):
             threshold = threshold[0]
     else:
         if threshold[0] in parameters:
-            threshold = parameters[threshold[0]]
             coefficient_p = int(threshold[1])
+            threshold = parameters[threshold[0]]
         else:
-            threshold = parameters[threshold[1]]
             coefficient_p = int(threshold[0])
+            threshold = parameters[threshold[1]]
 
     threshold = int(threshold) * float(n) * coefficient_p / coefficient
 
-    return clock, str(int(threshold))
+    return clock, str(int(threshold)), change_order
