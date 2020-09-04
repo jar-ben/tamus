@@ -1,7 +1,7 @@
 import copy
 import networkx as nx
 
-#import matplotlib.pyplot as plt
+#  import matplotlib.pyplot as plt
 
 
 class TimedAutomata:
@@ -14,7 +14,7 @@ class TimedAutomata:
         self.constraint_registry = dict()  # constraint_id: constraint, source-target/or location, quard
         self.parsed_invariants = dict()  # location : parsed invariant ( a list)
         self.parsed_guards = dict()  # source-target : parsed guard (a list)
-        self.resets = dict() # source-target : list of clocks to be reset
+        self.resets = dict()  # source-target : list of clocks to be reset
         self.clocks = []
         self.template = None
         self.next_id = 0
@@ -31,7 +31,8 @@ class TimedAutomata:
 
         # Add each transition as an edge:
         for t in template.transitions:
-            self.g.add_edge(t.source.name.value, t.target.name.value, key=t.guard.value)
+            self.g.add_edge(t.source.name.value, t.target.name.value,
+                            key=(t.guard.value, t.assignment.value, t.synchronisation.value))
             # Add the guards to the registry.
             self._register_transition_constraints(t)
             self._parse_reset(t)
@@ -64,21 +65,24 @@ class TimedAutomata:
         self.template.transitions = [self.template.transitions[i] for i in index_set]
         self.initialize_from_template(self.template)
 
-
     def _register_transition_constraints(self, t):
         """Register constraints. This will be only called from initialization function."""
         if not t.guard.value:
-            self.parsed_guards[(t.source.name.value, t.target.name.value)] = []
+            self.parsed_guards[(t.source.name.value, t.target.name.value, t.synchronisation.value)] = []
             return
-        c_list = t.guard.value.split('&&') # TODO do not register the empty strings -- no constraint.
+        c_list = t.guard.value.split('&&')  # TODO do not register the empty strings -- no constraint.
         for c in c_list:
             if ('==' in c) or ('true' in c):
                 continue
             self.constraint_registry['c' + str(self.next_id)] = \
-                [c, (t.source.name.value, t.target.name.value)]
+                [c, (t.source.name.value,
+                     t.target.name.value,
+                     t.synchronisation.value)]
             self.next_id += 1
             self.parse_add_clock(c)
-        self.parsed_guards[(t.source.name.value, t.target.name.value)] = [
+        self.parsed_guards[(t.source.name.value,
+                            t.target.name.value,
+                            t.synchronisation.value)] = [
             self.parse_inequality_simple(c) for c in c_list]
 
     def _register_location_constraints(self, l):
@@ -135,15 +139,17 @@ class TimedAutomata:
         location_relax_set = {}
         for cid in relax_set:
             constraint, l_t = self.constraint_registry[cid]
-            if isinstance(l_t, tuple): # A constraint along a transition.
+            if isinstance(l_t, tuple):  # A constraint along a transition.
                 transition_relax_set.setdefault(l_t, []).append(constraint)  # Insert or append
             else:
                 location_relax_set.setdefault(l_t, []).append(constraint)
 
-        new_template = copy.deepcopy(self.template) # The relax operation will be performed on the new template.
+        new_template = copy.deepcopy(self.template)  # The relax operation will be performed on the new template.
         # Go through the transitions, relax them according to transition_relax_set.
         for t in new_template.transitions:
-            t_relax_set = transition_relax_set.get((t.source.name.value, t.target.name.value),[])
+            t_relax_set = transition_relax_set.get((t.source.name.value,
+                                                    t.target.name.value,
+                                                    t.synchronisation.value), [])
             if t_relax_set:
                 t.guard.value = self._relax_constraint(t.guard.value, t_relax_set)
 
@@ -158,7 +164,7 @@ class TimedAutomata:
     def _relax_constraint(self, constraint, relax_set):
         """Returns a string by removing each constraint from the relax set. """
         constraint_list = constraint.split('&&')
-        c_dif = [c for c in constraint_list if c not in relax_set] # InlinesSet difference for two lists.
+        c_dif = [c for c in constraint_list if c not in relax_set]  # InlinesSet difference for two lists.
         return ' && '.join(c_dif)
 
     def print_registry(self, file_name):
@@ -186,11 +192,11 @@ class TimedAutomata:
 
     def _parse_reset(self, t):
         r_list = t.assignment.value.split(',')
-        self.resets[(t.source.name.value, t.target.name.value)] = []
+        self.resets[(t.source.name.value, t.target.name.value, t.synchronisation.value)] = []
         for r in r_list:
             if len(r) != 0:
                 clock_name = self.parse_add_clock(r)
-                self.resets[(t.source.name.value, t.target.name.value)].append(clock_name)
+                self.resets[(t.source.name.value, t.target.name.value, t.synchronisation.value)].append(clock_name)
 
     def parse_add_clock(self, inequality):
         """Input is an inequality x < 10 or x >= p1, add x to the set of clocks."""

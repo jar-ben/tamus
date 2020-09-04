@@ -19,23 +19,25 @@ def find_parameters(ta, path, msr):
     clocks = []
     compute_clocks(path, ta, clocks)
     clocks = sorted(clocks)
+
     _, delays, parameters = construct_path_lp(path, clocks, ta, msr)
     return delays, parameters
 
 
 def compute_clocks(path, ta, clocks):
     # c : clock_name, operator, threshold, equality
-    for c in ta.parsed_invariants[path[0]]:
-        compute_clocks_helper(c, clocks)
-    # along the path
-    for i in range(1, len(path)):
-        for c in ta.parsed_invariants[path[i]]:
-            compute_clocks_helper(c, clocks)
-        for c in ta.parsed_guards[(path[i-1], path[i])]:
-            compute_clocks_helper(c, clocks)
-        for x in ta.resets[(path[i-1], path[i])]:
-            if x not in clocks:
-                clocks.append(x)
+
+    path = set(path)
+
+    for key in ta.parsed_guards:
+        if key[0] in path and key[1] in path:
+            for c in ta.parsed_guards[key]:
+                compute_clocks_helper(c, clocks)
+
+    for key in ta.parsed_invariants:
+        if key in path:
+            for c in ta.parsed_invariants[key]:
+                compute_clocks_helper(c, clocks)
 
 
 def compute_clocks_helper(c, clocks):
@@ -45,7 +47,9 @@ def compute_clocks_helper(c, clocks):
 
 def construct_path_lp(path, clocks, ta, msr):
 
-    number_of_variables = len(path) - 1 + len(msr)
+    length_of_path = len(path)/2
+
+    number_of_variables = length_of_path + len(msr)
     # assign parameters to constraints in mcs
     constraint_to_parameter = ta.parametrize_msr(msr)
 
@@ -56,13 +60,14 @@ def construct_path_lp(path, clocks, ta, msr):
     for x in clocks:
         clock_to_delay[x] = [0]  # set all of them to delay 0 initially.
 
-    for i in range(len(path)-1):
+    for i in range(0, len(path) - 1, 2):
+
         # Add constraints for the invariant.
         # Leaving path[i]
         for c in ta.parsed_invariants[path[i]]:
             if constraint_to_parameter.get((path[i], c)) is not None:
                 a, b = compute_constraint(clock_to_delay, c, number_of_variables,
-                                          constraint_to_parameter[(path[i], c)]+len(path)-1)
+                                          constraint_to_parameter[(path[i], c)] + length_of_path)
             else:
                 a, b = compute_constraint(clock_to_delay, c, number_of_variables, -1)
             for k in range(len(a)):
@@ -70,10 +75,10 @@ def construct_path_lp(path, clocks, ta, msr):
                 B.append(b[k])
 
         # Add constraints for the guards.
-        for c in ta.parsed_guards[(path[i], path[i+1])]:
-            if constraint_to_parameter.get(((path[i], path[i+1]), c)) is not None:
+        for c in ta.parsed_guards[path[i+1]]:
+            if constraint_to_parameter.get((path[i+1], c)) is not None:
                 a, b = compute_constraint(clock_to_delay, c, number_of_variables,
-                                          constraint_to_parameter[((path[i], path[i+1]), c)]+len(path)-1)
+                                          constraint_to_parameter[(path[i+1], c)] + length_of_path)
             else:
                 a, b = compute_constraint(clock_to_delay, c, number_of_variables, -1)
             for k in range(len(a)):
@@ -81,15 +86,15 @@ def construct_path_lp(path, clocks, ta, msr):
                 B.append(b[k])
 
         # Apply reset:
-        for x in ta.resets[(path[i], path[i+1])]:
+        for x in ta.resets[path[i+1]]:
             clock_to_delay[x] = []  # Reset
 
         # Add constraints for the invariant.
         # Entering path[i+1]:
-        for c in ta.parsed_invariants[path[i+1]]:
-            if constraint_to_parameter.get((path[i+1], c)) is not None:
+        for c in ta.parsed_invariants[path[i+2]]:
+            if constraint_to_parameter.get((path[i+2], c)) is not None:
                 a, b = compute_constraint(clock_to_delay, c, number_of_variables,
-                                          constraint_to_parameter[(path[i+1], c)]+len(path)-1)
+                                          constraint_to_parameter[(path[i+2], c)] + length_of_path)
             else:
                 a, b = compute_constraint(clock_to_delay, c, number_of_variables, -1)
             for k in range(len(a)):
@@ -98,18 +103,17 @@ def construct_path_lp(path, clocks, ta, msr):
 
         # Add delay variable to all clocks
         for x in clocks:
-            clock_to_delay[x].append(i+1)
-
+            clock_to_delay[x].append(i/2+1)
 
     # Set the cost:
-    c = [0 for _ in range(len(path)-1)] + [1 for _ in range(len(msr))]
+    c = [0 for _ in range(length_of_path)] + [1 for _ in range(len(msr))]
     # Construct solver
     solver = pywraplp.Solver('', pywraplp.Solver.CBC_MIXED_INTEGER_PROGRAMMING)
     # Create variables for solver
     x = {}
-    for j in range(len(path)-1):
+    for j in range(length_of_path):
         x[j] = solver.NumVar(0, solver.infinity(), 'x[' + str(j) + ']')
-    for j in range(len(path)-1, len(path)-1+len(msr)):
+    for j in range(length_of_path, length_of_path+len(msr)):
         x[j] = solver.IntVar(0, solver.infinity(), 'x[' + str(j) + ']')
 
     obj_expr = [c[j] * x[j] for j in range(number_of_variables)]
@@ -125,9 +129,9 @@ def construct_path_lp(path, clocks, ta, msr):
     delays = []
     parameters = []
     if status == solver.OPTIMAL:
-        for i in range(len(path)-1):
+        for i in range(length_of_path):
             delays.append(x[i].solution_value())
-        for i in range(len(path)-1, len(path)-1+len(msr)):
+        for i in range(length_of_path, length_of_path+len(msr)):
             parameters.append(x[i].solution_value())
         return True, delays, parameters
     else:

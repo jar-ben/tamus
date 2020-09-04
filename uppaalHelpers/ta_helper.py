@@ -111,19 +111,36 @@ def verifyWithTrace(modelfilename, queryfilename, template_name, verifyta='verif
             i += 1
             transition_line = errlines[i]
             while transition_line.find('State') == -1:
+
                 start_of_state_1 = transition_line.find('.')+1
                 t_instance_name = transition_line[:start_of_state_1 - 1].strip()
+                if t_instance_name == '':
+                    i += 1
+                    transition_line = errlines[i]
+                    continue
+
                 end_of_state_1 = transition_line.find('-')
                 state_1 = transition_line[start_of_state_1:end_of_state_1]
+
                 start_of_state_2 = 1 + transition_line.find('.', end_of_state_1)
                 end_of_state_2 = transition_line.find(' ', end_of_state_1)
                 state_2 = transition_line[start_of_state_2:end_of_state_2]
-                if t_instance_name == '':
-                    pass
-                elif t_instance_name in trace:
+
+                start_of_identifiers = transition_line.find('{') + 1
+                end_of_identifiers = transition_line.find('}')
+
+                identifiers = transition_line[start_of_identifiers:end_of_identifiers]
+                sync_start = identifiers.find(',')
+                sync_end = identifiers.find(',', sync_start+1)
+                sync = identifiers[sync_start + 2: sync_end]
+                if sync == 'tau':
+                    sync = ''
+
+                if t_instance_name in trace:
+                    trace[t_instance_name].append((state_1, state_2, sync))
                     trace[t_instance_name].append(state_2)
                 else:
-                    trace[t_instance_name] = [state_1, state_2]
+                    trace[t_instance_name] = [state_1, (state_1, state_2, sync), state_2]
                 i += 1
                 transition_line = errlines[i]
         i += 1
@@ -137,9 +154,9 @@ def verifyWithTrace(modelfilename, queryfilename, template_name, verifyta='verif
 
 
 def find_used_constraints(path, constraint_registry, relaxation_set, used_constraints):
+
     path_dictionary = dict()
-    for i in range(len(path)-1):
-        path_dictionary[(path[i], path[i+1])] = []
+
     for i in range(len(path)):
         path_dictionary[path[i]] = []
 
