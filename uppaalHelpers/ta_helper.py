@@ -118,6 +118,7 @@ def verifyWithTrace(modelfilename, queryfilename, template_name, verifyta='verif
     # Construct the trace
     trace = {}
     i = 0
+    template_names = {}  # template_instance_name : template_name
     while i < len(errlines):
         line = errlines[i]
         if line.find('Transition') != -1:
@@ -149,7 +150,11 @@ def verifyWithTrace(modelfilename, queryfilename, template_name, verifyta='verif
                 if sync == 'tau':
                     sync = ''
 
-                instance_template_name = get_template_name(modelfilename, t_instance_name)
+                if template_names.get(t_instance_name) is not None:
+                    instance_template_name = template_names[t_instance_name]
+                else:
+                    instance_template_name = get_template_name(modelfilename, t_instance_name)
+                    template_names[t_instance_name] = instance_template_name
 
                 if t_instance_name in trace:
                     trace[t_instance_name].append((instance_template_name, state_1, state_2, sync))
