@@ -30,7 +30,7 @@ def compute_clocks(path, ta, clocks):
     path = set(path)
 
     for key in ta.parsed_guards:
-        if key[0] in path and key[1] in path:
+        if key in path:
             for c in ta.parsed_guards[key]:
                 compute_clocks_helper(c, clocks)
 

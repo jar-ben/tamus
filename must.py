@@ -18,10 +18,17 @@ class Tamus:
         # template in self.model is modified during the computation. A modified TA is set for each
         # verification step (verifyta is called).
         # self.location is the target location
-        self.model, template, self.location = ta_helper.get_template(self.model_file,self.query_file, template_name)
+        if template_name == 'All':
+            self.model, templates = ta_helper.get_templates(self.model_file)
+            self.TA = timed_automata.TimedAutomata()
+            self.TA.initialize_from_templates(templates)
 
-        self.TA = timed_automata.TimedAutomata()
-        self.TA.initialize_from_template(template)
+        else:
+            self.model, template, self.location = ta_helper.get_template(self.model_file,
+                                                                         self.query_file,
+                                                                         template_name)
+            self.TA = timed_automata.TimedAutomata()
+            self.TA.initialize_from_template(template)
 
         # Constraint lists for all simple paths.
         # clist, paths = self.TA.constraint_lists_for_all_paths(self.location)
@@ -59,9 +66,9 @@ class Tamus:
     # returs true iff N is a sufficient reduction
     def check(self, N):
         relax_set = [self.clist[c] for c in N]
-        new_template = self.TA.generate_relaxed_template(relax_set)
+        new_templates = self.TA.generate_relaxed_templates(relax_set)
         # Set the TA to template in self.model, store it to file named new_model
-        new_model = ta_helper.set_template_and_save(self.model_file, self.model, new_template)
+        new_model = ta_helper.set_templates_and_save(self.model_file, self.model, new_templates)
         # Now finds constraints from relaxation set that are needed for the trace
         res, used_constraints, trace = ta_helper.verify_reachability(new_model, self.query_file, self.TA,
                                                                      relax_set, self.template_name)

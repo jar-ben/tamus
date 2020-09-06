@@ -31,12 +31,24 @@ def get_template(ta_file_path, query_file_name, template_name):
             return nta, template, location
 
 
-def set_template_and_save(ta_file_path, nta, template, ta_file_path_new=None):
+def get_templates(ta_file_path):
+    ta_file = open(ta_file_path)
+    nta = pyuppaal.NTA.from_xml(ta_file)
+
+    templates = []
+    for template in nta.templates:
+        templates.append(template)
+    return nta, templates
+
+
+def set_templates_and_save(ta_file_path, nta, templates, ta_file_path_new=None):
     """Set template as the first one and store the result."""
+    template_dictionary = {template.name: template for template in templates}
+
     for index in range(len(nta.templates)):
-        if nta.templates[index].name == template.name:
-            nta.templates[index] = template
-            break
+        if template_dictionary.get(nta.templates[index].name) is not None:
+            nta.templates[index] = template_dictionary[nta.templates[index].name]
+
     xml_string = nta.to_xml()
     if not ta_file_path_new:
         ta_file_path_new = ta_file_path[0:-4] + "_new.xml"
@@ -74,7 +86,8 @@ def verify_reachability(ta_file_path, query_file_path, TA, relaxation_set, templ
             for trace in traces:
                 used_constraints = find_used_constraints(trace, constraint_registry, relaxation_set, used_constraints)
             if used_constraints == {}:
-                used_constraints = relaxation_set
+                print "Something wrong happened with verifyta"
+                #  used_constraints = relaxation_set
         if 'is NOT satisfied' in stdoutdata:
             res = -1
 
@@ -136,21 +149,29 @@ def verifyWithTrace(modelfilename, queryfilename, template_name, verifyta='verif
                 if sync == 'tau':
                     sync = ''
 
+                instance_template_name = get_template_name(modelfilename, t_instance_name)
+
                 if t_instance_name in trace:
-                    trace[t_instance_name].append((state_1, state_2, sync))
-                    trace[t_instance_name].append(state_2)
+                    trace[t_instance_name].append((instance_template_name, state_1, state_2, sync))
+                    trace[t_instance_name].append((instance_template_name, state_2))
                 else:
-                    trace[t_instance_name] = [state_1, (state_1, state_2, sync), state_2]
+                    trace[t_instance_name] = [(instance_template_name, state_1),
+                                              (instance_template_name, state_1, state_2, sync),
+                                              (instance_template_name, state_2)]
                 i += 1
                 transition_line = errlines[i]
         i += 1
 
-    template_trace = []
-    for key in trace:
-        instance_template_name = get_template_name(modelfilename, key)
-        if instance_template_name == template_name:
-            template_trace.append(trace[key])
-    return stdoutdata, template_trace
+    result_traces = []
+    if template_name != "All":
+        for key in trace:
+            instance_template_name = get_template_name(modelfilename, key)
+            if instance_template_name == template_name:
+                result_traces.append(trace[key])
+    else:
+        for key in trace:
+            result_traces.append(trace[key])
+    return stdoutdata, result_traces
 
 
 def find_used_constraints(path, constraint_registry, relaxation_set, used_constraints):
