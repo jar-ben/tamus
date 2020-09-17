@@ -37,15 +37,15 @@ broadcast chan sleep;
 		</location>
 		<location id="id1" x="200" y="0">
 			<name x="170" y="17">add_sugar</name>
-			<label kind="invariant" x="187" y="34">y &lt;= 1 </label>
+			<label kind="invariant" x="187" y="34">y &lt;= 5</label>
 		</location>
 		<location id="id2" x="400" y="0">
 			<name x="348" y="17">preparing_coffee</name>
-			<label kind="invariant" x="374" y="34">y &lt;= 2 </label>
+			<label kind="invariant" x="374" y="34">y &lt;= 8</label>
 		</location>
 		<location id="id3" x="600" y="0">
 			<name x="620" y="-17">cdone</name>
-			<label kind="invariant" x="620" y="0">x &lt;= 2 </label>
+			<label kind="invariant" x="620" y="0">x &lt;= 10</label>
 		</location>
 		<init ref="id0"/>
 		<transition>
@@ -58,7 +58,7 @@ broadcast chan sleep;
 		<transition>
 			<source ref="id1"/>
 			<target ref="id1"/>
-			<label kind="guard" x="178" y="-68">x &gt;= 2 </label>
+			<label kind="guard" x="178" y="-68">x &gt;= 1</label>
 			<label kind="synchronisation" x="178" y="-85">press!</label>
 			<label kind="assignment" x="178" y="-51">x = 0</label>
 			<nail x="170" y="-34"/>
@@ -74,7 +74,7 @@ broadcast chan sleep;
 		<transition>
 			<source ref="id2"/>
 			<target ref="id3"/>
-			<label kind="guard" x="433" y="-34">y &lt;= 2 &amp;&amp; y&gt;= 15 </label>
+			<label kind="guard" x="433" y="-34">y &lt;= 2 &amp;&amp; y&gt;=8</label>
 			<label kind="synchronisation" x="467" y="-51">coffee!</label>
 			<label kind="assignment" x="476" y="-17">x = 0</label>
 			<nail x="586" y="0"/>
@@ -89,7 +89,7 @@ broadcast chan sleep;
 		<transition>
 			<source ref="id3"/>
 			<target ref="id0"/>
-			<label kind="guard" x="238" y="-195">x &lt;= 2 &amp;&amp; x &gt;= 18 </label>
+			<label kind="guard" x="238" y="-195">x &lt;= 10 &amp;&amp; x &gt;= 10</label>
 			<label kind="synchronisation" x="289" y="-212">sleep!</label>
 			<nail x="314" y="-229"/>
 		</transition>

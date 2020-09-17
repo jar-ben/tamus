@@ -1,0 +1,336 @@
+(************************************************************
+ *                      IMITATOR MODEL                      
+ *
+ * IEEE 1394 Root Contention Protocol
+ *
+ * Description     : IEEE 1394 Root Contention Protocol
+ * Correctness     : ?
+ * Source          : unknown source
+ * Author          : ?
+ * Modeling        : ?
+ * Input by        : ?? (< 2007) and Etienne Andre
+ *
+ * Created         : 2008/01/10
+ * Last modified   : 2015/07/31
+ *
+ * IMITATOR version: 2.7.2
+ ************************************************************)
+
+
+var 	ckN1, ckN2, ckW12x, ckW12y, ckW21x, ckW21y
+		: clock;
+
+(*	rc_fast_min, rc_fast_max,
+	rc_slow_min, rc_slow_max,
+	delay
+			: parameter;*)
+
+	rc_fast_min (*= 76*), rc_fast_max (*= 85*),
+	rc_slow_min, rc_slow_max (*= 167*),
+	delay,
+	p0
+			: parameter;
+
+
+(************************************************************)
+automaton node1
+(************************************************************)
+synclabs : snd_idle12, snd_ack12, rec_req21, root1, child1, snd_req12, rec_idle21, rec_ack21;
+
+loc node1_N1rec_idle: invariant ckN1 <= 0 
+	when True sync snd_idle12 do {ckN1 := 0} goto node1_N1rec_idle_fast;
+	when True sync rec_req21 do {ckN1 := 0} goto node1_N1root_contention;
+	when True sync snd_idle12 do {ckN1 := 0} goto node1_N1rec_idle_slow;
+
+loc node1_N1rec_req_slow: invariant ckN1 <= 34 
+	when True sync rec_idle21 do {} goto node1_N1rec_idle_slow;
+	when  ckN1 >= 159   sync snd_ack12 do {ckN1 := 0} goto node1_N1almost_root;
+
+loc node1_N1rec_idle_slow: invariant ckN1 <= 167 
+	when  ckN1 >= 287 -p0  sync snd_req12 do {} goto node1_N1snt_req;
+	when True sync rec_req21 do {} goto node1_N1rec_req_slow;
+
+loc node1_N1root_contention: invariant ckN1 <= 0 
+	when True sync rec_idle21 do {ckN1 := 0} goto node1_N1rec_idle;
+	when True sync snd_idle12 do {ckN1 := 0} goto node1_N1rec_req_slow;
+	when True sync snd_idle12 do {ckN1 := 0} goto node1_N1rec_req_fast;
+
+loc node1_N1rec_req_fast: invariant ckN1 <= 85 
+	when True sync rec_idle21 do {} goto node1_N1rec_idle_fast;
+	when  ckN1 >= 137   sync snd_ack12 do {ckN1 := 0} goto node1_N1almost_root;
+
+loc node1_N1almost_child: invariant ckN1 <= 0
+	when True sync child1 do {} goto node1_N1child;
+
+loc node1_N1snt_req: invariant ckN1 >= 0
+	when True sync rec_ack21 do {ckN1 := 0} goto node1_N1almost_child;
+	when True sync rec_req21 do {ckN1 := 0} goto node1_N1root_contention;
+
+loc node1_N1root: invariant ckN1 >= 0 
+
+loc node1_N1rec_idle_fast: invariant ckN1 <= 17
+	when  ckN1 >= 76  sync snd_req12 do {} goto node1_N1snt_req;
+	when True sync rec_req21 do {} goto node1_N1rec_req_fast;
+
+loc node1_N1child: invariant ckN1 >= 0 
+
+loc node1_N1almost_root: invariant ckN1 <= 0 
+	when True sync root1 do {} goto node1_N1root;
+end -- node1
+
+
+
+(************************************************************)
+automaton node2
+(************************************************************)
+synclabs : rec_req12, root2, child2, rec_idle12, rec_ack12, snd_req21, snd_ack21, snd_idle21;
+
+loc node2_N2child: invariant ckN2 >= 0 
+
+loc node2_N2rec_req_slow: invariant ckN2 <= 167 
+	when True sync rec_idle12 do {} goto node2_N2rec_idle_slow;
+	when  ckN2 >= 159  sync snd_ack21 do {ckN2 := 0} goto node2_N2almost_root;
+
+loc node2_N2rec_idle_fast: invariant ckN2 <= 17 
+	when  ckN2 >= 76  sync snd_req21 do {} goto node2_N2snt_req;
+	when True sync rec_req12 do {} goto node2_N2rec_req_fast;
+
+loc node2_N2almost_child: invariant ckN2 <= 0
+	when True sync child2 do {} goto node2_N2child;
+
+loc node2_N2snt_req: invariant ckN2 >= 0 
+	when True sync rec_ack12 do {ckN2 := 0} goto node2_N2almost_child;
+	when True sync rec_req12 do {ckN2 := 0} goto node2_N2root_contention;
+
+loc node2_N2rec_idle_slow: invariant ckN2 <= 34 
+	when  ckN2 >= 159   sync snd_req21 do {} goto node2_N2snt_req;
+	when True sync rec_req12 do {} goto node2_N2rec_req_slow;
+
+loc node2_N2rec_req_fast: invariant ckN2 <= 85
+	when True sync rec_idle12 do {} goto node2_N2rec_idle_fast;
+	when  ckN2 >= 137 sync snd_ack21 do {ckN2 := 0} goto node2_N2almost_root;
+
+loc node2_N2root_contention: invariant ckN2 <= 0 
+	when True sync snd_idle21 do {ckN2 := 0} goto node2_N2rec_req_slow;
+	when True sync rec_idle12 do {ckN2 := 0} goto node2_N2rec_idle;
+	when True sync snd_idle21 do {ckN2 := 0} goto node2_N2rec_req_fast;
+
+loc node2_N2root: invariant ckN2 >= 0
+
+loc node2_N2rec_idle: invariant ckN2 <= 0 
+	when True sync rec_req12 do {ckN2 := 0} goto node2_N2root_contention;
+	when True sync snd_idle21 do {ckN2 := 0} goto node2_N2rec_idle_fast;
+	when True sync snd_idle21 do {ckN2 := 0} goto node2_N2rec_idle_slow;
+
+loc node2_N2almost_root: invariant ckN2 <= 0 
+	when True sync root2 do {} goto node2_N2root;
+end -- node2
+
+(************************************************************)
+automaton wire12
+(************************************************************)
+synclabs : snd_req12, rec_ack12, snd_ack12, snd_idle12, rec_req12, rec_idle12;
+
+loc wire12_W12rec_req_idle: invariant ckW12x <= 30 
+	when True sync rec_req12 do {} goto wire12_W12rec_idle;
+	when True sync snd_idle12 do {} goto wire12_W12rec_req_idle;
+
+loc wire12_W12empty: invariant True
+	when True sync snd_idle12 do {ckW12x := 0, ckW12y := 0} goto wire12_W12rec_idle;
+	when True sync snd_req12 do {ckW12x := 0, ckW12y := 0} goto wire12_W12rec_req;
+	when True sync snd_ack12 do {ckW12x := 0, ckW12y := 0} goto wire12_W12rec_ack;
+
+loc wire12_W12rec_ack_req: invariant ckW12x <= 30 
+	when True sync rec_ack12 do {} goto wire12_W12rec_req;
+	when True sync snd_req12 do {} goto wire12_W12rec_ack_req;
+
+loc wire12_W12rec_idle_ack: invariant ckW12x <= 30 
+	when True sync snd_ack12 do {} goto wire12_W12rec_idle_ack;
+	when True sync rec_idle12 do {} goto wire12_W12rec_ack;
+
+loc wire12_W12rec_req_ack: invariant ckW12x <= 30 
+	when True sync rec_req12 do {} goto wire12_W12rec_ack;
+	when True sync snd_ack12 do {} goto wire12_W12rec_req_ack;
+
+loc wire12_W12rec_idle_req: invariant ckW12x <= 6 
+	when True sync snd_req12 do {} goto wire12_W12rec_idle_req;
+	when True sync rec_idle12 do {} goto wire12_W12rec_req;
+
+loc wire12_W12rec_idle: invariant ckW12y <= 6 
+	when True sync snd_idle12 do {} goto wire12_W12rec_idle;
+	when True sync snd_ack12 do {ckW12y := 0} goto wire12_W12rec_idle_ack;
+	when True sync snd_req12 do {ckW12y := 0} goto wire12_W12rec_idle_req;
+	when True sync rec_idle12 do {} goto wire12_W12empty;
+
+loc wire12_W12rec_ack: invariant ckW12y <= 30 
+	when True sync rec_ack12 do {} goto wire12_W12empty;
+	when True sync snd_idle12 do {ckW12y := 0} goto wire12_W12rec_ack_idle;
+	when True sync snd_ack12 do {} goto wire12_W12rec_ack;
+	when True sync snd_req12 do {ckW12y := 0} goto wire12_W12rec_ack_req;
+
+loc wire12_W12rec_req: invariant ckW12y <= 30 
+	when True sync rec_req12 do {} goto wire12_W12empty;
+	when True sync snd_idle12 do {ckW12y := 0} goto wire12_W12rec_req_idle;
+	when True sync snd_req12 do {} goto wire12_W12rec_req;
+	when True sync snd_ack12 do {ckW12y := 0} goto wire12_W12rec_req_ack;
+
+loc wire12_W12rec_ack_idle: invariant ckW12x <= 30 
+	when True sync rec_ack12 do {} goto wire12_W12rec_idle;
+	when True sync snd_idle12 do {} goto wire12_W12rec_ack_idle;
+end -- wire12
+
+
+(************************************************************)
+automaton wire21
+(************************************************************)
+synclabs : snd_ack21, snd_req21, rec_idle21, rec_req21, rec_ack21, snd_idle21;
+
+loc wire21_W21rec_req_ack: invariant ckW21x <= 30
+	when True sync rec_req21 do {} goto wire21_W21rec_ack;
+	when True sync snd_ack21 do {} goto wire21_W21rec_req_ack;
+
+loc wire21_W21rec_ack_req: invariant ckW21x <= 6
+	when True sync rec_ack21 do {} goto wire21_W21rec_req;
+	when True sync snd_req21 do {} goto wire21_W21rec_ack_req;
+
+loc wire21_W21rec_idle_ack: invariant ckW21x <= 6 
+	when True sync snd_ack21 do {} goto wire21_W21rec_idle_ack;
+	when True sync rec_idle21 do {} goto wire21_W21rec_ack;
+
+loc wire21_W21rec_req_idle: invariant ckW21x <= 30
+	when True sync rec_req21 do {} goto wire21_W21rec_idle;
+	when True sync snd_idle21 do {} goto wire21_W21rec_req_idle;
+
+loc wire21_W21rec_idle_req: invariant ckW21x <= 30 
+	when True sync snd_req21 do {} goto wire21_W21rec_idle_req;
+	when True sync rec_idle21 do {} goto wire21_W21rec_req;
+
+loc wire21_W21rec_idle: invariant ckW21y <= 30 
+	when True sync snd_idle21 do {} goto wire21_W21rec_idle;
+	when True sync snd_ack21 do {ckW21y := 0} goto wire21_W21rec_idle_ack;
+	when True sync snd_req21 do {ckW21y := 0} goto wire21_W21rec_idle_req;
+	when True sync rec_idle21 do {} goto wire21_W21empty;
+
+loc wire21_W21rec_ack: invariant ckW21y <= 30 
+	when True sync rec_ack21 do {} goto wire21_W21empty;
+	when True sync snd_idle21 do {ckW21y := 0} goto wire21_W21rec_ack_idle;
+	when True sync snd_ack21 do {} goto wire21_W21rec_ack;
+	when True sync snd_req21 do {ckW21y := 0} goto wire21_W21rec_ack_req;
+
+loc wire21_W21empty: invariant True
+	when True sync snd_idle21 do {ckW21x := 0, ckW21y := 0} goto wire21_W21rec_idle;
+	when True sync snd_req21 do {ckW21x := 0, ckW21y := 0} goto wire21_W21rec_req;
+	when True sync snd_ack21 do {ckW21x := 0, ckW21y := 0} goto wire21_W21rec_ack;
+
+loc wire21_W21rec_req: invariant ckW21y <= 6 
+	when True sync rec_req21 do {} goto wire21_W21empty;
+	when True sync snd_idle21 do {ckW21y := 0} goto wire21_W21rec_req_idle;
+	when True sync snd_req21 do {} goto wire21_W21rec_req;
+	when True sync snd_ack21 do {ckW21y := 0} goto wire21_W21rec_req_ack;
+
+loc wire21_W21rec_ack_idle: invariant ckW21x <= 30 
+	when True sync rec_ack21 do {} goto wire21_W21rec_idle;
+	when True sync snd_idle21 do {} goto wire21_W21rec_ack_idle;
+end -- wire2
+
+
+
+(************************************************************)
+  automaton s1o -- Safety 1 Observer
+(************************************************************)
+
+synclabs : root1, child2, child1, root2;
+
+loc s1o_S1oStart: invariant True
+	when True sync root2 do {} goto s1o_S1o4;
+	when True sync child2 do {} goto s1o_S1o3;
+	when True sync child1 do {} goto s1o_S1o2;
+	when True sync root1 do {} goto s1o_S1o1;
+
+loc s1o_S1oEnd: invariant True
+
+loc s1o_S1o4: invariant True
+	when True sync child1 do {} goto s1o_S1oEnd;
+
+loc s1o_S1o3: invariant True
+	when True sync root1 do {} goto s1o_S1oEnd;
+
+loc s1o_S1o2: invariant True
+	when True sync root2 do {} goto s1o_S1oEnd;
+
+loc s1o_S1o1: invariant True
+	when True sync child2 do {} goto s1o_S1oEnd;
+end -- s1o
+
+
+
+(************************************************************)
+(* Initial state *)
+(************************************************************)
+
+init :=
+	(*------------------------------------------------------------*)
+	(* Initial location *)
+	(*------------------------------------------------------------*)
+	& loc[node1]  = node1_N1root_contention
+	& loc[node2]  = node2_N2root_contention
+	& loc[wire12] = wire12_W12empty
+	& loc[wire21] = wire21_W21empty
+	& loc[s1o]    = s1o_S1oStart
+
+	(*------------------------------------------------------------*)
+	(* Initial clock constraints *)
+	(*------------------------------------------------------------*)
+	& ckN1 = 0
+	& ckN2 = 0
+	& ckW12x = 0
+	& ckW12y = 0
+	& ckW21x = 0
+	& ckW21y = 0
+
+	(*------------------------------------------------------------*)
+	(* Parameter constraints *)
+	(*------------------------------------------------------------*)
+	& delay >= 0 
+	& rc_fast_min >= 0
+	& rc_fast_max >= 0
+	& rc_slow_max >= 0
+	& rc_slow_min >= 0
+	& p0 >= 0
+
+	
+
+	(*------------------------------------------------------------*)
+	(* Old parameter constraints *)
+	(*------------------------------------------------------------*)
+-- 	& rc_fast_max	= 85 -- 76 .. 100 (* 85 *)
+-- 	& rc_fast_min	= 76
+-- 	& rc_slow_max	= 159 .. 200 (* 167 *)
+-- 	& rc_slow_min	= 159
+-- 	& delay		= 30
+	
+-- 	& rc_fast_max <= 100
+-- 	& rc_slow_max <= 200
+
+	----------------------
+	-- Constraint output by IMITATOR 1
+	----------------------
+--       & 2delay + rc_fast_max < rc_slow_min
+--       & rc_slow_min <= rc_slow_max
+--       & 2delay < rc_fast_min
+--       & 0 <= delay
+--       & rc_fast_min <= rc_fast_max
+;
+
+
+(************************************************************)
+(* Property specification *)
+(************************************************************)
+
+property := unreachable loc[s1o] = s1o_S1oEnd;
+
+
+(************************************************************)
+(* The end *)
+(************************************************************)
+end

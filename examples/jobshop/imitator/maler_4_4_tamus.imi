@@ -1,0 +1,335 @@
+--****************************************************--
+--****************************************************--
+--   Laboratoire Specification et Verification
+--
+--   Scheduling example
+--
+--   Romain Soulat
+--
+--   Last modified : 25/10/2011
+--****************************************************--
+--****************************************************--
+--
+--Job2_4: solution = 27
+--
+--J1: m3(1),m1(3),m2(6),m4(7)
+--J2: m2(8),m3(5),m1(10),m4(4)
+--
+--****************************************************--
+--****************************************************--
+
+var 	x1, x2, x3, x4, s
+		: clock;
+
+	m1,m2,m3,m4
+		: discrete;
+
+	d11,d12,d13,d14,d21,d22,d23,d24,d31,d32,d33,d34, d41,d42,d43,d44,
+	p0,
+	p1,
+	p2,
+	p3,
+	p4,
+	p5,
+	p6,
+	p7,
+	p8,
+	p9,
+	p10,
+	p11,
+	p12,
+	p13,
+	p14,
+	p15,
+	p16,
+	p17,
+	p18,
+	p19,
+	p20,
+	p21,
+	p22,
+	p23,
+	p24,
+	p25,
+	p26,
+	p27,
+	p28,
+	p29,
+	p30,
+	p31,
+	p32,
+	p33,
+	p34,
+	p35,
+	p36,
+	p37,
+	p38,
+	p39,
+	p40,
+	p41,
+	p42,
+	p43,
+	p44,
+	p45,
+	p46,
+	p47
+		: parameter;
+
+--****************************************************--
+  automaton job1
+--****************************************************--
+synclabs: b1;
+ 
+loc job1_I1: invariant True
+	when m3 = 0 sync b1 do {x1 := 0, m3 := 1} goto job1_J1;
+  
+loc job1_J1: invariant x1 <= 6 + p3
+	when  x1 <= 6 + p4 & x1 >= 6 - p5  sync b1 do {m3 := 0} goto job1_K1; 
+
+
+loc job1_K1: invariant True
+	when m1 = 0 sync b1 do {x1 := 0, m1 := 1} goto job1_L1;   
+ 
+loc job1_L1: invariant x1 <= 1 + p2
+	when  x1 <= 1 + p6 & x1 >= 1 - p7  sync b1 do {m1 := 0} goto job1_M1; 
+ 
+loc job1_M1: invariant True
+	when m2 = 0 sync b1 do {x1 := 0, m2 := 1} goto job1_N1;  
+ 
+loc job1_N1: invariant x1 <= 3 + p1
+	when  x1 <= 3 + p8 & x1 >= 3 - p9  sync b1 do {m3 := 0} goto job1_P1; 
+ 
+loc job1_P1: invariant True
+	when m4 = 0 sync b1 do {x1 := 0, m4 := 1} goto job1_Q1;
+ 
+loc job1_Q1: invariant x1 <= 7 + p0
+	when  x1 <= 6 + p10 & x1 >= 7 - p11  sync b1 do {m3 := 0} goto job1_End1; 
+
+loc job1_End1: invariant True
+
+end -- job1
+
+--****************************************************--
+  automaton job2
+--****************************************************--
+synclabs: b2;
+
+loc job2_I2: invariant True
+	when m2 = 0 sync b2 do {x2 := 0, m2 := 1} goto job2_J2;
+
+loc job2_K2: invariant True
+	when m3 = 0 sync b2 do {x2 := 0, m3 := 1} goto job2_L2;
+
+loc job2_End2: invariant True
+
+loc job2_J2: invariant x2 <= 5 + p12
+	when  x2 <= 5 + p16 & x2 >= 5 - p17  sync b2 do {m2 := 0} goto job2_K2;
+
+loc job2_P2: invariant True
+	when m4 = 0 sync b2 do {x2 := 0, m4 := 1} goto job2_Q2;
+
+loc job2_Q2: invariant x2 <= 4 + p15
+	when  x2 <= 4 + p22 & x2 >= 5 - p23  sync b2 do {m4 := 0} goto job2_End2;
+
+loc job2_N2: invariant x2 <= 7 + p14
+	when  x2 <= 8 + p20 & x2 >= 8 - p21  sync b2 do {m1 := 0} goto job2_P2;
+
+loc job2_L2: invariant x2 <= 10 + p13
+	when  x2 <= 10 + p18 & x2 >= 10 - p19  sync b2 do {m3 := 0} goto job2_M2;
+
+loc job2_M2: invariant True
+	when m1 = 0 sync b2 do {x2 := 0, m1 := 1} goto job2_N2;
+
+end -- job2
+--****************************************************--
+  automaton job3
+--****************************************************--
+synclabs: b3;
+
+loc job3_M3: invariant True
+	when m1 = 0 sync b3 do {x3 := 0, m1 := 1} goto job3_N3;
+
+loc job3_L3: invariant x3 <= 1 + p24
+	when  x3 <= 1 + p30 & x3 >= 1 - p31  sync b3 do {m4 := 0} goto job3_M3;
+
+loc job3_I3: invariant True
+	when m3 = 0 sync b3 do {x3 := 0, m3 := 1} goto job3_J3;
+
+loc job3_N3: invariant x3 <= 5 + p26
+	when  x3 <= 5 + p32 & x3 >= 5 - p33  sync b3 do {m1 := 0} goto job3_P3;
+
+loc job3_Q3: invariant x3 <= 4 + p27
+	when  x3 <= 4 + p34 & x3 >= 4 - p35  sync b3 do {m2 := 0} goto job3_End3;
+
+loc job3_J3: invariant x3 <= 9 + p25
+	when  x3 <= 8 + p28 & x3 >= 9 - p29  sync b3 do {m3 := 0} goto job3_K3;
+
+loc job3_P3: invariant True
+	when m2 = 0 sync b3 do {x3 := 0, m2 := 1} goto job3_Q3;
+
+loc job3_K3: invariant True
+	when m4 = 0 sync b3 do {x3 := 0, m4 := 1} goto job3_L3;
+
+loc job3_End3: invariant True
+
+end -- job3
+--****************************************************--
+  automaton job4
+--****************************************************--
+synclabs: b4;
+
+loc job4_N4: invariant x3 <= 9 + p38
+	when  x4 <= 8 + p44 & x4 >= 9 - p45  sync b4 do {m3 := 0} goto job4_P4;
+
+loc job4_I4: invariant True
+	when m2 = 0 sync b4 do {x4 := 0, m2 := 1} goto job4_J4;
+
+loc job4_M4: invariant True
+	when m3 = 0 sync b4 do {x4 := 0, m3 := 1} goto job4_N4;
+
+loc job4_K4: invariant True
+	when m1 = 0 sync b4 do {x4 := 0, m1 := 1} goto job4_L4;
+
+loc job4_J4: invariant x3 <= 3 + p36
+	when  x4 <= 3 + p40 & x4 >= 3 - p41  sync b4 do {m2 := 0} goto job4_K4;
+
+loc job4_End4: invariant True
+
+loc job4_P4: invariant True
+	when m4 = 0 sync b4 do {x4 := 0, m4 := 1} goto job4_Q4;
+
+loc job4_Q4: invariant x3 <= 1 + p37
+	when  x4 <= 1 + p46 & x4 >= 1 - p47  sync b4 do {m4 := 0} goto job4_End4;
+
+loc job4_L4: invariant x3 <= 3 + p39
+	when  x4 <= 3 + p42 & x4 >= 3 - p43  sync b4 do {m1 := 0} goto job4_M4; 
+
+end -- job4
+
+
+
+--****************************************************--
+--****************************************************--
+-- ANALYSIS
+--****************************************************--
+--****************************************************--
+
+var init	: region;
+
+init :=
+	----------------------
+	-- Initial locations
+	----------------------
+	  loc[job1] = job1_I1
+	& loc[job2] = job2_I2
+	& loc[job3] = job3_I3
+	& loc[job4] = job4_I4
+
+	& m1=0 & m2=0 	& m3=0 & m4=0 
+	----------------------
+	-- Clocks
+	----------------------
+	& x1=0 
+	& x2=0
+	& x3=0
+	& x4=0
+	& s=0
+	----------------------
+	-- Durations 
+	----------------------
+(*	& d11=1
+	& d12=3
+	& d13=6
+	& d14=7
+
+	& d21=8
+	& d22=5
+	& d23=10
+	& d24=4
+
+	& d31=5
+	& d32=4
+	& d33=9
+	& d34=1
+
+	& d41=9
+	& d42=3
+	& d43=3
+	& d44=1*)
+	& d11 >= 0
+	& d12 >= 0
+	& d13 >= 0
+	& d14 >= 0
+	& d21 >= 0
+	& d22 >= 0
+	& d23 >= 0
+	& d24 >= 0
+	& d31 >= 0
+	& d32 >= 0
+	& d33 >= 0
+	& d34 >= 0
+	& d41 >= 0
+	& d42 >= 0
+	& d43 >= 0
+	& d44 >= 0
+	& p0 >= 0
+	& p1 >= 0
+	& p2 >= 0
+	& p3 >= 0
+	& p4 >= 0
+	& p5 >= 0
+	& p6 >= 0
+	& p7 >= 0
+	& p8 >= 0
+	& p9 >= 0
+	& p10 >= 0
+	& p11 >= 0
+	& p12 >= 0
+	& p13 >= 0
+	& p14 >= 0
+	& p15 >= 0
+	& p16 >= 0
+	& p17 >= 0
+	& p18 >= 0
+	& p19 >= 0
+	& p20 >= 0
+	& p21 >= 0
+	& p22 >= 0
+	& p23 >= 0
+	& p24 >= 0
+	& p25 >= 0
+	& p26 >= 0
+	& p27 >= 0
+	& p28 >= 0
+	& p29 >= 0
+	& p30 >= 0
+	& p31 >= 0
+	& p32 >= 0
+	& p33 >= 0
+	& p34 >= 0
+	& p35 >= 0
+	& p36 >= 0
+	& p37 >= 0
+	& p38 >= 0
+	& p39 >= 0
+	& p40 >= 0
+	& p41 >= 0
+	& p42 >= 0
+	& p43 >= 0
+	& p44 >= 0
+	& p45 >= 0
+	& p46 >= 0
+	& p47 >= 0
+;
+
+(************************************************************)
+(* Property specification *)
+(************************************************************)
+
+property := unreachable loc[job1] = job1_End1 & loc[job2] = job2_End2 & loc[job3] = job3_End3 & loc[job4] = job4_End4;
+
+(************************************************************)
+(* The end *)
+(************************************************************)
+
+end

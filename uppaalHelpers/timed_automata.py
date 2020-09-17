@@ -35,6 +35,8 @@ class TimedAutomata:
                             key=(t.guard.value, t.assignment.value, t.synchronisation.value))
             # Add the guards to the registry.
             self._register_transition_constraints(t, template.name)
+            # If there are multiple edges between two locations, analysis is only possible if these edges have different
+            # synchronisations or one edge does not have a synchronisation and others have different synchronisations.
             self._parse_reset(t, template.name)
 
         self.clocks = sorted(self.clocks)
@@ -62,6 +64,9 @@ class TimedAutomata:
             for t in template.transitions:
                 # Add the guards to the registry.
                 self._register_transition_constraints(t, template.name)
+                # If there are multiple transitions between two locations,
+                # analysis is only possible if these transitions have different synchronisations or
+                # one transition does not have a synchronisation and others have different synchronisations.
                 self._parse_reset(t, template.name)
 
         self.clocks = sorted(self.clocks)
@@ -88,7 +93,7 @@ class TimedAutomata:
             return
         c_list = t.guard.value.split('&&')
         for c in c_list:
-            if ('==' in c) or ('true' in c):
+            if ('==' in c) or ('!=' in c) or ('true' in c):
                 continue
             self.constraint_registry['c' + str(self.next_id)] = \
                 [c, (template_name,

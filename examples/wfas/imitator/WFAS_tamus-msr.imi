@@ -1,0 +1,135 @@
+(************************************************************
+ *                      IMITATOR MODEL                      
+ *
+ * Wireless fire alarm system
+ *
+ * Description     : wireless fire alarm system. Note that [BBLS15] only synthesize point valuations, and not the most general constraint satisfying correctness. (Some parts are changed for TAMUS)
+ * Correctness     : No failure and no timeout (safety property)
+ *
+ * Source          : "Language Emptiness of Continuous-Time Parametric Timed Automata" by Nikola Benes, Peter Bezdek, Kim G. Larsen, and Jiri Srba (the model was described in Sergio Feo-Arenis, Bernd Westphal, Daniel Dietsch, Marco Mun ̃iz, and Siyar Andisha. The wireless fire alarm system: Ensuring conformance to industrial standards through formal verification. In FM'14, volume 8442 of LNCS, pages 658–672. Springer, 2014.)
+ * URL             : http://arxiv.org/abs/1504.07838v1
+ * Author          : cf. above
+ * Input by        : Étienne André
+ *
+ * Created         : 2015/05/13
+ * Last modified   : 2018/09/10
+ *
+ * IMITATOR version: 2.10.4
+ ************************************************************)
+
+var
+
+(* Clocks *)
+ 	x1, x2, x, y
+		: clock;
+
+(* Parameters *)
+	p1 = 5, p2 = 9,
+	p3
+	
+		: parameter;
+
+
+
+(************************************************************)
+automaton sensor1
+(************************************************************)
+synclabs : result1, wakeup1;
+loc sensor1_awake: invariant x1 < 3
+	when True sync wakeup1 do {} goto sensor1_awake;
+	when x1 > 2&x1 < 3 sync result1 do {} goto sensor1_idle;
+loc sensor1_idle: invariant True
+	when True sync wakeup1 do {x1 := 0} goto sensor1_awake;
+end (* sensor1 *)
+
+
+
+(************************************************************)
+automaton sensor2
+(************************************************************)
+synclabs : result2, wakeup2;
+loc sensor2_idle: invariant True
+	when True sync wakeup2 do {x2 := 0} goto sensor2_awake;
+loc sensor2_awake: invariant x2 < 17
+	when x2 > 16&x2 < 17 sync result2 do {} goto sensor2_idle;
+	when x2 > 2&x2 < 3 sync result2 do {} goto sensor2_idle;
+	when True sync wakeup2 do {} goto sensor2_awake;
+end (* sensor2 *)
+
+
+(************************************************************)
+automaton controller
+(************************************************************)
+synclabs : wakeup2, wakeup1, result2, result1;
+loc controller_cont_4: invariant x <= 9  & y <= 20 
+	when True sync result1 do {} goto controller_fail;
+	when  y <= 20  & y >= 20 do {} goto controller_timeout;
+	when  x <= 9  & x >= 9  do {x := 0, y := 0} goto controller_cont_1;
+	when  x < 9   sync result2 do {x := 0, y := 0} goto controller_cont_1;
+loc controller_cont_3: invariant y <= 20 & x < 2
+	when True sync result1 do {} goto controller_fail;
+	when True sync result2 do {} goto controller_fail;
+	when  y <= 20 & y >= 20 do {} goto controller_timeout;
+	when  x < 2 sync wakeup2 do {} goto controller_cont_4;
+loc controller_cont_2: invariant x <= 5 & y <= 20
+	when True sync result2 do {} goto controller_fail;
+	when  y <= 20 & y >= 20 do {} goto controller_timeout;
+	when  x <= 5 & x >= 5 do {x := 0} goto controller_cont_3;
+	when  x < 5 sync result1 do {x := 0} goto controller_cont_3;
+loc controller_cont_1: invariant y <= 20 & x < 2 +p3
+	when True sync result1 do {} goto controller_fail;
+	when True sync result2 do {} goto controller_fail;
+	when  y <= 20 & y >= 20 do {} goto controller_timeout;
+	when  x < 2 sync wakeup1 do {} goto controller_cont_2;
+loc controller_fail: invariant True
+loc controller_timeout: invariant True
+
+end (* controller *)
+
+
+(************************************************************)
+(* Property specification *)
+(************************************************************)
+
+init := True
+	(*------------------------------------------------------------
+	   INITIAL LOCATION
+	  ------------------------------------------------------------*)
+	& loc[sensor1] = sensor1_idle
+	& loc[sensor2] = sensor2_idle
+	& loc[controller] = controller_cont_1
+
+	(*------------------------------------------------------------
+	   INITIAL CLOCKS
+	  ------------------------------------------------------------*)
+	& x1 = 0
+	& x2 = 0
+	& x = 0
+	& y = 0
+
+
+	(*------------------------------------------------------------
+	   PARAMETER CONSTRAINTS
+	  ------------------------------------------------------------*)
+	& p1 >= 0
+	& p2 >= 0
+	& p3 >= 0
+	
+	
+(*	& p1 <= 50
+	& p2 <= 50*)
+	
+(* 	& 0 < p1 & p1 < 5 *)
+(* 	& p1 > 2 *)
+
+	
+;
+
+
+(************************************************************)
+(* Analysis *)
+(************************************************************)
+
+property := unreachable loc[controller] = controller_fail ;
+
+end
