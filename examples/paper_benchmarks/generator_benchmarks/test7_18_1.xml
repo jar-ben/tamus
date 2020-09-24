@@ -1,0 +1,366 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC "-//Uppaal Team//DTD Flat System 1.1//EN" "http://www.it.uu.se/research/group/darts/uppaal/flat-1_1.dtd">
+<nta>
+  <declaration>clock x0, x1, x2, x3, x4, x5, x6;</declaration>
+    <template>
+    <name x="5" y="5">TA</name>
+    
+    <declaration></declaration>
+    
+    <location id="id0" x="-40" y="-3763">
+      <name x="-40" y="-3748">l0</name>
+      
+      
+      
+      
+    </location>
+
+    <location id="id1" x="-40" y="-27">
+      <name x="-40" y="-12">l1</name>
+      
+      
+      
+      
+    </location>
+
+    <location id="id2" x="-40" y="-3561">
+      <name x="-40" y="-3546">l2</name>
+      
+      
+      
+      
+    </location>
+
+    <location id="id3" x="-40" y="-3381">
+      <name x="-40" y="-3366">l3</name>
+      
+      
+      
+      
+    </location>
+
+    <location id="id4" x="-40" y="-3180">
+      <name x="-40" y="-3165">l4</name>
+      
+      
+      
+      
+    </location>
+
+    <location id="id5" x="-40" y="-2979">
+      <name x="-40" y="-2964">l5</name>
+      
+      
+      
+      
+    </location>
+
+    <location id="id6" x="-40" y="-2778">
+      <name x="-40" y="-2763">l6</name>
+      
+      
+      
+      
+    </location>
+
+    <location id="id7" x="-40" y="-2577">
+      <name x="-40" y="-2562">l7</name>
+      
+      
+      
+      
+    </location>
+
+    <location id="id8" x="-40" y="-2376">
+      <name x="-40" y="-2361">l8</name>
+      
+      
+      
+      
+    </location>
+
+    <location id="id9" x="-40" y="-2175">
+      <name x="-40" y="-2160">l9</name>
+      
+      
+      
+      
+    </location>
+
+    <location id="id10" x="-40" y="-1974">
+      <name x="-40" y="-1959">l10</name>
+      
+      
+      
+      
+    </location>
+
+    <location id="id11" x="-40" y="-1773">
+      <name x="-40" y="-1758">l11</name>
+      
+      
+      
+      
+    </location>
+
+    <location id="id12" x="-40" y="-1572">
+      <name x="-40" y="-1557">l12</name>
+      
+      
+      
+      
+    </location>
+
+    <location id="id13" x="-40" y="-1392">
+      <name x="-40" y="-1377">l13</name>
+      
+      
+      
+      
+    </location>
+
+    <location id="id14" x="-40" y="-1191">
+      <name x="-40" y="-1176">l14</name>
+      
+      
+      
+      
+    </location>
+
+    <location id="id15" x="-40" y="-1011">
+      <name x="-40" y="-996">l15</name>
+      
+      
+      
+      
+    </location>
+
+    <location id="id16" x="-40" y="-810">
+      <name x="-40" y="-795">l16</name>
+      
+      
+      
+      
+    </location>
+
+    <location id="id17" x="-40" y="-609">
+      <name x="-40" y="-594">l17</name>
+      
+      
+      
+      
+    </location>
+
+    <location id="id18" x="-40" y="-408">
+      <name x="-40" y="-393">l18</name>
+      
+      
+      
+      
+    </location>
+
+    <location id="id19" x="-40" y="-228">
+      <name x="-40" y="-213">l19</name>
+      
+      
+      
+      
+    </location>
+    
+    <init ref="id0" />
+    
+    <transition>
+      <source ref="id0" />
+      <target ref="id2" />
+      
+      
+      
+      <label kind="assignment" x="-261" y="-3617">x0 = 0  , x1 = 0  , x2 = 0  , x3 = 0  , x4 = 0  , x5 = 0 </label>
+      
+    </transition>
+
+    <transition>
+      <source ref="id2" />
+      <target ref="id3" />
+      
+      
+      
+      
+      
+    </transition>
+
+    <transition>
+      <source ref="id3" />
+      <target ref="id4" />
+      
+      <label kind="guard" x="-79" y="-3265">x0 &gt;= 11</label>
+      
+      <label kind="assignment" x="-79" y="-3235">x0 = 0 </label>
+      
+    </transition>
+
+    <transition>
+      <source ref="id4" />
+      <target ref="id5" />
+      
+      <label kind="guard" x="-79" y="-3064">x3 &lt;= 15</label>
+      
+      <label kind="assignment" x="-79" y="-3034">x3 = 0 </label>
+      
+    </transition>
+
+    <transition>
+      <source ref="id5" />
+      <target ref="id6" />
+      
+      <label kind="guard" x="-140" y="-2863">x0 &gt;= 11 &amp;&amp; x1 &gt;= 21</label>
+      
+      <label kind="assignment" x="-140" y="-2833">x0 = 0  , x1 = 0 </label>
+      
+    </transition>
+
+    <transition>
+      <source ref="id6" />
+      <target ref="id7" />
+      
+      <label kind="guard" x="-79" y="-2662">x4 &lt;= 25</label>
+      
+      <label kind="assignment" x="-79" y="-2632">x4 = 0 </label>
+      
+    </transition>
+
+    <transition>
+      <source ref="id7" />
+      <target ref="id8" />
+      
+      <label kind="guard" x="-201" y="-2461">x0 &gt;= 11 &amp;&amp; x2 &gt;= 31 &amp;&amp; x3 &lt;= 15</label>
+      
+      <label kind="assignment" x="-201" y="-2431">x0 = 0  , x2 = 0  , x3 = 0 </label>
+      
+    </transition>
+
+    <transition>
+      <source ref="id8" />
+      <target ref="id9" />
+      
+      <label kind="guard" x="-79" y="-2260">x5 &lt;= 35</label>
+      
+      <label kind="assignment" x="-79" y="-2230">x5 = 0 </label>
+      
+    </transition>
+
+    <transition>
+      <source ref="id9" />
+      <target ref="id10" />
+      
+      <label kind="guard" x="-140" y="-2059">x0 &gt;= 11 &amp;&amp; x1 &gt;= 21</label>
+      
+      <label kind="assignment" x="-140" y="-2029">x0 = 0  , x1 = 0 </label>
+      
+    </transition>
+
+    <transition>
+      <source ref="id10" />
+      <target ref="id11" />
+      
+      <label kind="guard" x="-79" y="-1858">x3 &lt;= 15</label>
+      
+      <label kind="assignment" x="-79" y="-1828">x3 = 0 </label>
+      
+    </transition>
+
+    <transition>
+      <source ref="id11" />
+      <target ref="id12" />
+      
+      <label kind="guard" x="-140" y="-1657">x0 &gt;= 11 &amp;&amp; x4 &lt;= 25</label>
+      
+      <label kind="assignment" x="-140" y="-1627">x0 = 0  , x4 = 0 </label>
+      
+    </transition>
+
+    <transition>
+      <source ref="id12" />
+      <target ref="id13" />
+      
+      
+      
+      
+      
+    </transition>
+
+    <transition>
+      <source ref="id13" />
+      <target ref="id14" />
+      
+      <label kind="guard" x="-261" y="-1276">x0 &gt;= 11 &amp;&amp; x1 &gt;= 21 &amp;&amp; x2 &gt;= 31 &amp;&amp; x3 &lt;= 15</label>
+      
+      <label kind="assignment" x="-261" y="-1246">x0 = 0  , x1 = 0  , x2 = 0  , x3 = 0 </label>
+      
+    </transition>
+
+    <transition>
+      <source ref="id14" />
+      <target ref="id15" />
+      
+      
+      
+      
+      
+    </transition>
+
+    <transition>
+      <source ref="id15" />
+      <target ref="id16" />
+      
+      <label kind="guard" x="-140" y="-895">x0 &gt;= 11 &amp;&amp; x5 &lt;= 35</label>
+      
+      <label kind="assignment" x="-140" y="-865">x0 = 0  , x5 = 0 </label>
+      
+    </transition>
+
+    <transition>
+      <source ref="id16" />
+      <target ref="id17" />
+      
+      <label kind="guard" x="-140" y="-694">x3 &lt;= 15 &amp;&amp; x4 &lt;= 25</label>
+      
+      <label kind="assignment" x="-140" y="-664">x3 = 0  , x4 = 0 </label>
+      
+    </transition>
+
+    <transition>
+      <source ref="id17" />
+      <target ref="id18" />
+      
+      <label kind="guard" x="-140" y="-493">x0 &gt;= 11 &amp;&amp; x1 &gt;= 21</label>
+      
+      <label kind="assignment" x="-140" y="-463">x0 = 0  , x1 = 0 </label>
+      
+    </transition>
+
+    <transition>
+      <source ref="id18" />
+      <target ref="id19" />
+      
+      
+      
+      
+      
+    </transition>
+
+    <transition>
+      <source ref="id19" />
+      <target ref="id1" />
+      
+      <label kind="guard" x="-266" y="-112">x6 &lt;= 190 &amp;&amp; x0 &gt;= 11 &amp;&amp; x2 &gt;= 31 &amp;&amp; x3 &lt;= 15</label>
+      
+      <label kind="assignment" x="-266" y="-82">x0 = 0  , x2 = 0  , x3 = 0 </label>
+      
+    </transition>
+  </template>
+
+  <system>
+ta = TA();
+ system ta;</system>
+</nta>
