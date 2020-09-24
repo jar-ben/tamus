@@ -16,7 +16,7 @@ The input model and query files are in the xml-uppaal compliant format. See the 
 For instance, run `python2 tamus.py examples/example_TA.xml examples/example_TA.q`. Note that due to dependencies on third-party libraries that we use, you need to run Tamus with python2. 
 
 ## Copyright Note
-This tool has been developed by Jaroslav Bendik, Ahmet Sencan, and Ebru Aydin Gol. We distribute it under the ... lincence. 
+This tool has been developed by Jaroslav Bendik, Ahmet Sencan, Ebru Aydin Gol, and Ivana Cerna. We distribute it under the ... lincence. 
 
 ## Citing
 A paper describing Tamus is currently under a conference review process. We will provide a reference to the paper at the time of acceptance.
