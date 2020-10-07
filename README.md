@@ -5,18 +5,25 @@ The automaton A' found by Tamus originates from A by relaxing only the minimum n
 
 
 ## Installation
-TBA
+Tamus requires several external libraries to be installed. 
+- First, you need python2 to run Tamus (due to dependencies on third-party libraries that we use)
+- Second, you need to install the z3 solver with python bindings enabled. You can download z3 and install it from here: https://github.com/Z3Prover/z3. Do not forget to use "--python" with python scripts/mk_make.py, and also make sure that you install the python bindings, e.g., with "pip install z3-solver"
+- Third, you need to install networkx. "pip install networkx" should do the trick. Follow instructions at https://networkx.github.io/documentation/stable/install.html for further details.
+- Fourth, you need to install the or-tools from https://developers.google.com/optimization/install
+- Finally, you need to download uppaal from http://www.uppaal.org/. Once you download it, make sure that you add to the system $PATH the path to the binary "verifyta" that is located at uppaal-<version_number>/bin-Linux. Make sure that verifyta works by running "verifyta -t1  -o0 -S1 -q examples/example_TA.xml examples/example_TA.q" in the main directory of Tamus. There is a solid chance that it will trow this error: "Internet connection is required for activation.". In such case, follow instructions at https://www.it.uu.se/research/group/darts/uppaal/documentation.shtml. In our case (Ubuntu 18.04 LTS, 64 bit), the following did the trick: "sudo apt-get update -y; sudo apt-get install -y libc6-i386"
+
+
 
 ## Running Tamus
 ```
-python2 ./tamus.py <input_model_file> <input_query_file>
+python2 ./tamus.py <input_model_file> <input_query_file> TA
 ```
 
 The input model and query files are in the xml-uppaal compliant format. See the examples in the folder ./examples/. 
-For instance, run `python2 tamus.py examples/example_TA.xml examples/example_TA.q`. Note that due to dependencies on third-party libraries that we use, you need to run Tamus with python2. 
+For instance, run `python2 tamus.py examples/example_TA.xml examples/example_TA.q TA`. 
 
 ## Copyright Note
-This tool has been developed by Jaroslav Bendik, Ahmet Sencan, Ebru Aydin Gol, and Ivana Cerna. We distribute it under the ... lincence. 
+This tool has been developed by Jaroslav Bendik, Ahmet Sencan, Ebru Aydin Gol, and Ivana Cerna. We distribute it under the GPL-3.0 License (see the LICENSE file). 
 
 ## Citing
 A paper describing Tamus is currently under a conference review process. We will provide a reference to the paper at the time of acceptance.
