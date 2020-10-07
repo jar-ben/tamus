@@ -16,11 +16,11 @@ Tamus requires several external libraries to be installed.
 
 ## Running Tamus
 ```
-python2 ./tamus.py <input_model_file> <input_query_file> TA
+python2 ./must.py <input_model_file> <input_query_file> TA
 ```
 
 The input model and query files are in the xml-uppaal compliant format. See the examples in the folder ./examples/. 
-For instance, run `python2 tamus.py examples/example_TA.xml examples/example_TA.q TA`. 
+For instance, run `python2 must.py examples/example_TA.xml examples/example_TA.q TA`. 
 
 ## Copyright Note
 This tool has been developed by Jaroslav Bendik, Ahmet Sencan, Ebru Aydin Gol, and Ivana Cerna. We distribute it under the GPL-3.0 License (see the LICENSE file). 
