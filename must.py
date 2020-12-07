@@ -44,6 +44,7 @@ class Tamus:
         self.traces = []
         self.verbosity = 0
         self.use_unsat_cores = True
+        self.useGrow = True
 
         #statistics related data-structures and functionality
         self.stats = {}
@@ -150,7 +151,8 @@ class Tamus:
                 msr, trace = self.shrink(core, trace)
                 self.markMSR(msr, trace)
             else:
-                seed = self.grow(seed)
+                if self.useGrow:
+                    seed = self.grow(seed)
                 self.explorer.block_down(seed)
             seed = self.explorer.get_unex()
             if time.clock() - start_time > self.timelimit:
@@ -198,6 +200,7 @@ if __name__ == '__main__':
     parser.add_argument("--all-msrs", "-a", action="count", help = "Use the flag to ensure that all MSRs are identified.")    
     parser.add_argument("--msr-timelimit", type=int, help = "Sets up timelimit for MSR enumeration. Note that the computation is not terminated exactly after the timelimit, but once the last identified MSR exceeds the timelimit. We recommend you to use UNIX timeout when using our tool, if you want to timeout the whole computation. ")
     #parse the command line arguments
+    parser.add_argument("--no-grow", action="store_true", help = "Use the flag to disable the 'enlarging' heuristic.")    
     args = parser.parse_args()
 
     #run the computation
@@ -205,6 +208,7 @@ if __name__ == '__main__':
     query_file = args.query_file
     template_name = args.template_name
     t = Tamus(model, query_file, template_name)
+    t.useGrow = not args.no_grow
     t.timelimit = args.msr_timelimit if args.msr_timelimit != None else 1000000 
     t.verbosity = args.verbose if args.verbose != None else 0
     t.use_unsat_cores = args.no_unsat_cores == None
