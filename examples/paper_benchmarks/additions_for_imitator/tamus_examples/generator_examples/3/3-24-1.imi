@@ -1,0 +1,166 @@
+(************************************************************
+ *                      IMITATOR MODEL                      
+ *
+ * example_TA
+ *
+ * Description     : example ta for the paper
+
+ ************************************************************)
+ 
+var 
+(* Clocks *)
+	x0, 
+	x1,
+	x2
+		:clock;
+
+(* Parameters *)
+	p0,
+	p1,
+	p2,
+	p3,
+	p4,
+	p5,
+	p6,
+	p7,
+	p8,
+	p9,
+	p10,
+	p11,
+	p12,
+	p13,
+	p14,
+	p15,
+	p16,
+	p17,
+	p18,
+	p19,
+	p20
+		: parameter;
+
+
+
+(************************************************************)
+automaton TA
+(************************************************************)
+synclabs : e0, e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15, e16, e17, e18, e19, e20, e21, e22, e23, e24;
+loc TA_l9: invariant True
+	when  x0 >= 11 - p5  sync e8 do {x0 := 0 } goto TA_l10;
+loc TA_l8: invariant True
+	when True sync e7 do {} goto TA_l9;
+loc TA_l1: invariant True
+loc TA_l0: invariant True
+	when True sync e0 do {x0 := 0  , x1 := 0 } goto TA_l2;
+loc TA_l3: invariant True
+	when  x0 >= 11 - p0  sync e2 do {x0 := 0 } goto TA_l4;
+loc TA_l2: invariant True
+	when True sync e1 do {} goto TA_l3;
+loc TA_l5: invariant True
+	when  x0 >= 11 - p2  sync e4 do {x0 := 0 } goto TA_l6;
+loc TA_l4: invariant True
+	when  x1 <= 15 + p1  sync e3 do {x1 := 0 } goto TA_l5;
+loc TA_l7: invariant True
+	when  x0 >= 11 - p3 & x1 <= 15 + p4  sync e6 do {x0 := 0  , x1 := 0 } goto TA_l8;
+loc TA_l6: invariant True
+	when True sync e5 do {} goto TA_l7;
+loc TA_l24: invariant True
+	when True sync e23 do {} goto TA_l25;
+loc TA_l25: invariant True
+	when  x2 <= 250 + p18 & x0 >= 11 - p19 & x1 <= 15 + p20  sync e24 do {x0 := 0  , x1 := 0 } goto TA_l1;
+loc TA_l20: invariant True
+	when True sync e19 do {} goto TA_l21;
+loc TA_l21: invariant True
+	when  x0 >= 11 - p15  sync e20 do {x0 := 0 } goto TA_l22;
+loc TA_l22: invariant True
+	when  x1 <= 15 + p16  sync e21 do {x1 := 0 } goto TA_l23;
+loc TA_l23: invariant True
+	when  x0 >= 11 - p17  sync e22 do {x0 := 0 } goto TA_l24;
+loc TA_l11: invariant True
+	when  x0 >= 11 - p7  sync e10 do {x0 := 0 } goto TA_l12;
+loc TA_l10: invariant True
+	when  x1 <= 15 + p6  sync e9 do {x1 := 0 } goto TA_l11;
+loc TA_l13: invariant True
+	when  x0 >= 11 - p8 & x1 <= 15 + p9  sync e12 do {x0 := 0  , x1 := 0 } goto TA_l14;
+loc TA_l12: invariant True
+	when True sync e11 do {} goto TA_l13;
+loc TA_l15: invariant True
+	when  x0 >= 11 - p10  sync e14 do {x0 := 0 } goto TA_l16;
+loc TA_l14: invariant True
+	when True sync e13 do {} goto TA_l15;
+loc TA_l17: invariant True
+	when  x0 >= 11 - p12  sync e16 do {x0 := 0 } goto TA_l18;
+loc TA_l16: invariant True
+	when  x1 <= 15 + p11  sync e15 do {x1 := 0 } goto TA_l17;
+loc TA_l19: invariant True
+	when  x0 >= 11 - p13 & x1 <= 15 + p14  sync e18 do {x0 := 0  , x1 := 0 } goto TA_l20;
+loc TA_l18: invariant True
+	when True sync e17 do {} goto TA_l19;
+
+
+
+
+end
+
+
+
+(************************************************************)
+(* Initial state *)
+(************************************************************)
+
+init :=
+	(*------------------------------------------------------------*)
+	(* Initial location *)
+	(*------------------------------------------------------------*)
+	& loc[TA] = TA_l0
+
+
+	(*------------------------------------------------------------*)
+	(* Initial clock constraints *)
+	(*------------------------------------------------------------*)
+	& x0 = 0
+	& x1 = 0
+	& x2 = 0
+
+
+	(*------------------------------------------------------------*)
+	(* Parameter constraints *)
+	(*------------------------------------------------------------*)
+	& p0 >= 0
+	& p1 >= 0
+	& p2 >= 0
+	& p3 >= 0
+	& p4 >= 0
+	& p5 >= 0
+	& p6 >= 0
+	& p7 >= 0
+	& p8 >= 0
+	& p9 >= 0
+	& p10 >= 0
+	& p11 >= 0
+	& p12 >= 0
+	& p13 >= 0
+	& p14 >= 0
+	& p15 >= 0
+	& p16 >= 0
+	& p17 >= 0
+	& p18 >= 0
+	& p19 >= 0
+	& p20 >= 0
+	
+
+
+;
+
+
+(************************************************************)
+(* Property specification *)
+(************************************************************)
+
+property := unreachable loc[TA] = TA_l1;
+
+
+
+(************************************************************)
+(* The end *)
+(************************************************************)
+end

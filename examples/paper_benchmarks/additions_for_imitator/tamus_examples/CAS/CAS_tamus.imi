@@ -1,0 +1,231 @@
+(************************************************************
+ *                      IMITATOR MODEL                      
+ *
+ * CAS
+ *
+ * Description     : CAS
+ * Source          : Time For Mutants -Model-Based MutationTesting with Timed Automata, Bernhard K. Aichernig, Florian Lorber, and Dejan Nickovic
+ 
+ ************************************************************)
+ 
+var 
+(* Clocks *)
+	c,
+	g,
+	e,
+	f,
+	d  
+		:clock;
+
+(* Parameters *)
+	p0,
+	p1,
+	p2,
+	p3,
+	p4,
+	p5,
+	p6,
+	p7,
+	p8,
+	p9,
+	p10,
+	p11,
+	p12,
+	p13,
+	p14,
+	p15,
+	p16,
+	p17
+		: parameter;
+
+
+(************************************************************)
+automaton Sound
+(************************************************************)
+synclabs : soundOff, soundOn;
+
+loc Sound_id1: invariant True
+	when True sync soundOn do {} goto Sound_id2;
+
+loc Sound_id2: invariant True
+	when True sync soundOff do {} goto Sound_id1;
+
+end
+(************************************************************)
+automaton LockOpen
+(************************************************************)
+synclabs : unlock, close, open, lock;
+
+loc LockOpen_id5: invariant True
+	when True do {} goto LockOpen_id3;
+
+loc LockOpen_id4: invariant True
+	when True do {} goto LockOpen_id3;
+
+loc LockOpen_id7: invariant True
+	when True do {} goto LockOpen_id3;
+
+loc LockOpen_id6: invariant True
+	when True do {} goto LockOpen_id3;
+
+loc LockOpen_id3: invariant True
+	when True sync unlock do {} goto LockOpen_id5;
+	when True sync lock do {} goto LockOpen_id4;
+	when True sync open do {} goto LockOpen_id7;
+	when True sync close do {} goto LockOpen_id6;
+
+end
+(************************************************************)
+automaton System
+(************************************************************)
+synclabs : armedOff, soundOn, unlock, flashOn, close, armedOn, open, soundOff, lock, flashOff;
+
+loc System_l13: invariant e <= 24 + p0
+	when  e <= 30 + p14 & e>=36 - p15  sync soundOff do {} goto System_l15;
+	when  e < 30 + p13  sync unlock do {g:=0} goto System_l14;
+
+loc System_l12: invariant e <= 0 + p9
+	when True sync soundOn do {} goto System_l13;
+
+loc System_l11: invariant e <= 0 + p8
+	when True sync flashOn do {} goto System_l12;
+
+loc System_l10: invariant e <= 0 + p7
+	when True sync armedOff do {} goto System_l11;
+
+loc System_l15: invariant e <= 300 + p10
+	when  e<=240 + p11 & e>=360 - p12  sync soundOff do {} goto System_l8;
+	when True sync unlock do {g:=0} goto System_l14;
+
+loc System_l14: invariant g<=0 + p1
+	when True sync soundOff do {} goto System_l4;
+
+loc System_l9: invariant True
+	when True sync unlock do {} goto System_l0;
+	when True sync close do {f:=0} goto System_l7;
+
+loc System_l8: invariant e<=300 + p6
+	when True sync flashOff do {} goto System_l9;
+
+loc System_l3: invariant c<=16 + p2
+	when True sync unlock do {} goto System_l2;
+	when True sync open do {} goto System_l1;
+	when  c <= 20 + p16 & c>=20 - p17  sync armedOn do {} goto System_l6;
+
+loc System_l2: invariant True
+	when True sync lock do {c:=0} goto System_l3;
+	when True sync open do {} goto System_l0;
+
+loc System_l1: invariant True
+	when True sync close do {c:=0} goto System_l3;
+	when True sync unlock do {} goto System_l0;
+
+loc System_l0: invariant True
+	when True sync close do {} goto System_l2;
+	when True sync lock do {} goto System_l1;
+
+loc System_l7: invariant f<=0 + p5
+	when True sync armedOn do {} goto System_l6;
+
+loc System_l6: invariant True
+	when True sync open do {e := 0} goto System_l10;
+	when True sync unlock do {d:=0} goto System_l5;
+
+loc System_l5: invariant d<=0 + p4
+	when True sync armedOff do {} goto System_l1;
+
+loc System_l4: invariant g<=0 + p3
+	when True sync flashOff do {} goto System_l0;
+
+end
+(************************************************************)
+automaton Armed
+(************************************************************)
+synclabs : armedOn, armedOff;
+
+loc Armed_id8: invariant True
+	when True sync armedOn do {} goto Armed_id9;
+
+loc Armed_id9: invariant True
+	when True sync armedOff do {} goto Armed_id8;
+
+end
+(************************************************************)
+automaton Flash
+(************************************************************)
+synclabs : flashOff, flashOn;
+
+loc Flash_id11: invariant True
+	when True sync flashOff do {} goto Flash_id10;
+
+loc Flash_id10: invariant True
+	when True sync flashOn do {} goto Flash_id11;
+
+end
+
+
+
+
+(************************************************************)
+(* Initial state *)
+(************************************************************)
+
+init :=
+	(*------------------------------------------------------------*)
+	(* Initial location *)
+	(*------------------------------------------------------------*)
+	& loc[Sound] = Sound_id1
+	& loc[LockOpen] = LockOpen_id3
+	& loc[Armed] = Armed_id8
+	& loc[Flash] = Flash_id10
+	& loc[System] = System_l0
+
+
+	(*------------------------------------------------------------*)
+	(* Initial clock constraints *)
+	(*------------------------------------------------------------*)
+	& c = 0
+	& g = 0
+	& e = 0
+	& f = 0
+	& d = 0
+
+
+	(*------------------------------------------------------------*)
+	(* Parameter constraints *)
+	(*------------------------------------------------------------*)
+	& p0 >= 0
+	& p1 >= 0
+	& p2 >= 0
+	& p3 >= 0
+	& p4 >= 0
+	& p5 >= 0
+	& p6 >= 0
+	& p7 >= 0
+	& p8 >= 0
+	& p9 >= 0
+	& p10 >= 0
+	& p11 >= 0
+	& p12 >= 0
+	& p13 >= 0
+	& p14 >= 0
+	& p15 >= 0
+	& p16 >= 0
+	& p17 >= 0
+
+
+;
+
+
+(************************************************************)
+(* Property specification *)
+(************************************************************)
+
+property := unreachable loc[System] = System_l15;
+
+
+
+(************************************************************)
+(* The end *)
+(************************************************************)
+end

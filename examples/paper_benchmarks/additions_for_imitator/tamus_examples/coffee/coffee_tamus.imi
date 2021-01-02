@@ -1,0 +1,102 @@
+(************************************************************
+ *                      IMITATOR MODEL                      
+ *
+ * Coffee machine
+ *
+ * Description     : Coffee machine (no coin, coffee is free!); a single button is used to wake the machine up, and to add sugar. Then a cup, and coffee are delivered after a (parametric) time.
+ * Correctness     : Many possibilities (e.g., "it is possible to get a coffee")
+ * Source          : Own work
+ * Author          : Étienne André
+ * Input by        : Étienne André
+ *
+ * Created         : 2011/01/21
+ * Last modified   : 2018/11/13
+ *
+ * IMITATOR version: 2.10.4
+ ************************************************************)
+
+var
+
+(* Clocks *)
+ 	x, y
+		: clock;
+
+(* Parameters *)
+	p0,
+	p1,
+	p2,
+	p3,
+	p4,
+	p5,
+	p6,
+	p7,
+	p8,
+	p9
+		: parameter;
+
+
+
+(************************************************************)
+automaton Machine
+(************************************************************)
+synclabs : press, cup, coffee, sleep;
+loc Machine_idle: invariant True
+	when True sync press do {x := 0, y := 0} goto Machine_add_sugar;
+loc Machine_cdone: invariant x <= 10 + p1
+	when  x <= 10 + p8 & x >= 10 - p9  sync sleep do {} goto Machine_idle;
+	when True sync press do {x := 0, y := 0} goto Machine_add_sugar;
+loc Machine_preparing_coffee: invariant y <= 8 + p0
+	when  y <= 2 + p6 & y>=8 - p7  sync coffee do {x := 0} goto Machine_cdone;
+loc Machine_add_sugar: invariant y <= 5 + p2
+	when  x >= 1 - p3  sync press do {x := 0} goto Machine_add_sugar;
+	when  y <= 1 + p4 & y>= 9 - p5  sync cup do {} goto Machine_preparing_coffee;
+
+
+end (* machine *)
+
+
+
+(************************************************************)
+(* Initial state *)
+(************************************************************)
+
+init :=
+	(*------------------------------------------------------------*)
+	(* Initial location *)
+	(*------------------------------------------------------------*)
+	& loc[Machine] = Machine_idle
+
+	(*------------------------------------------------------------*)
+	(* Initial clock constraints *)
+	(*------------------------------------------------------------*)
+	& x = 0
+	& y = 0
+
+	(*------------------------------------------------------------*)
+	(* Parameter constraints *)
+	(*------------------------------------------------------------*)
+	& p0 >= 0
+	& p1 >= 0
+	& p2 >= 0
+	& p3 >= 0
+	& p4 >= 0
+	& p5 >= 0
+	& p6 >= 0
+	& p7 >= 0
+	& p8 >= 0
+	& p9 >= 0
+;
+
+
+
+(************************************************************)
+(* Property specification *)
+(************************************************************)
+
+property := unreachable loc[Machine] = Machine_cdone;
+
+
+(************************************************************)
+(* The end *)
+(************************************************************)
+end

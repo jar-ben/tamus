@@ -1,0 +1,181 @@
+(************************************************************
+ *                      IMITATOR MODEL                      
+ *
+ *	IMITATOR Sched2.100.2.imi -mode EF -incl -output-cart -merge
+ *	IMITATOR Sched2.100.2.imi Sched2.100.0.pi0 -mode cover -PRP -incl -output-cart -merge
+ *
+ * Modeling of the uniprocessor Non-Preemptive Fixed-Priority scheduling of three periodic tasks
+ *
+ * Description     : Three periodic tasks run upon a uniprocessor by their fixed priorites, and the execution of a task cannot be preempted.
+ *		     The priority order: tau_1 > tau_2 > tau_3.
+ *		     Task periods T1 = a, T2 = 2a, T3 = 3a.
+ *		     Execution Times: C1 in [e=10, b], C2 in [c, d], C3 in [C3_BEST, C3_WORST]
+ *
+ * Extension with a jitter J2=2
+ *
+ * References      : "Integer Parameter Synthesis for Timed Automata" (2013) by A. Jovanovic, D. Lime and O.H. Roux; Section 6
+                     "Reachability Preservation Based Parameter Synthesis for Timed Automata" (2015) by Etienne Andre, Giuseppe Lipari, Hoang Gia Nguyen and Youcheng Sun; Sched2.100.2 
+ * Modeling        : Youcheng Sun
+ * Input by        : Youcheng Sun, Étienne André
+ *
+ * Created         : xxxx (< 2015/10/29)
+ * Last modified   : 2018/09/07
+ *
+ * IMITATOR version: 2.10.3
+ ************************************************************)
+
+var 
+    p1, p2, p3, c1, c2, c3 : clock;
+    b, C3_WORST,
+    p0
+	: parameter;
+    e=10,a=100, c=18, d=28, C3_BEST=20, J2=2: constant;
+    b_min = 10, b_max = 1000, C3_WORST_min = 20, C3_WORST_max = 1000: constant;
+
+
+(************************************************************)
+automaton act1
+(************************************************************)
+synclabs : r1;
+loc act1_waiting1: invariant p1 <= 100
+	when p1 >= 100 sync r1 do {p1 := 0} goto act1_waiting1;
+end
+
+
+(************************************************************)
+automaton act2
+(************************************************************)
+synclabs : r2;
+loc act2_waiting2: invariant p2 <= 202
+	when p2 >= 200 sync r2 do {p2 := 0} goto act2_waiting2;
+end
+
+
+(************************************************************)
+automaton act3
+(************************************************************)
+synclabs : r3;
+loc act3_waiting3: invariant p3 <= 300
+	when p3 >= 300 sync r3 do {p3 := 0} goto act3_waiting3;
+end
+
+
+(************************************************************)
+automaton sched
+(************************************************************)
+synclabs : r2, r1, r3;
+loc sched_x1R3W: invariant c1 <= 20
+	when True sync r2 do {} goto sched_x1R2W3W;
+	when  c1 < 20 sync r1 do {} goto sched_error;
+	when True sync r3 do {} goto sched_error;
+	when  c1 >= 10 do {c3 := 0} goto sched_x3R;
+loc sched_x1R2W: invariant c1 <= 20
+	when  c1 >= 10 do {c2 := 0} goto sched_x2R;
+	when True sync r3 do {} goto sched_x1R2W3W;
+	when  c1 < 20 sync r1 do {} goto sched_error;
+	when True sync r2 do {} goto sched_error;
+loc sched_x1R: invariant c1 <= 20
+	when  c1 >= 10 do {} goto sched_idle;
+	when True sync r3 do {} goto sched_x1R3W;
+	when True sync r2 do {} goto sched_x1R2W;
+	when  c1 < 20 sync r1 do {} goto sched_error;
+
+loc sched_x1W2R: invariant c2 <= 28
+	when  c2 >= 18 do {c1 := 0} goto sched_x1R;
+	when  c2 < 28 sync r2 do {} goto sched_error;
+	when True sync r1 do {} goto sched_error;
+	when True sync r3 do {} goto sched_x1W2R3W;
+loc sched_x1W2W3R: invariant c3 <= 28
+	when  c3 >= 20 do {c1 := 0} goto sched_x1R2W;
+	when  c3 < 28 sync r3 do {} goto sched_error;
+	when True sync r1 do {} goto sched_error;
+	when True sync r2 do {} goto sched_error;
+loc sched_error: invariant True
+loc sched_idle: invariant True
+	when True sync r2 do {c2 := 0} goto sched_x2R;
+	when True sync r1 do {c1 := 0} goto sched_x1R;
+	when True sync r3 do {c3 := 0} goto sched_x3R;
+
+loc sched_x2R3W: invariant c2 <= 28
+	when  c2 < 28 sync r2 do {} goto sched_error;
+	when True sync r3 do {} goto sched_error;
+	when  c2 >= 18  do {c3 := 0} goto sched_x3R;
+	when True sync r1 do {} goto sched_x1W2R3W;
+loc sched_x1W3R: invariant c3 <= 28
+	when  c3 >= 20 do {c1 := 0} goto sched_x1R;
+	when  c3 < 28  sync r3 do {} goto sched_error;
+	when True sync r1 do {} goto sched_error;
+	when True sync r2 do {} goto sched_x1W2W3R;
+loc sched_x2R: invariant c2 <= 28
+	when  c2 >= 18  do {} goto sched_idle;
+	when True sync r3 do {} goto sched_x2R3W;
+	when  c2 < 28  sync r2 do {} goto sched_error;
+	when True sync r1 do {} goto sched_x1W2R;
+loc sched_x1R2W3W: invariant c1 <= 20 
+	when  c1 >= 10   do {c2 := 0} goto sched_x2R3W;
+	when  c1 < 20   sync r1 do {} goto sched_error;
+	when True sync r2 do {} goto sched_error;
+	when True sync r3 do {} goto sched_error;
+loc sched_x2W3R: invariant c3 <= 28 
+	when  c3 >= 20 - p0  do {c1 := 0} goto sched_x1R;
+	when  c3 < 28   sync r3 do {} goto sched_error;
+	when True sync r2 do {} goto sched_error;
+	when True sync r1 do {} goto sched_x1W2W3R;
+loc sched_x3R: invariant c3 <= 28 
+	when  c3 >= 20   do {} goto sched_idle;
+	when True sync r1 do {} goto sched_x1W3R;
+	when  c3 < 28   sync r3 do {} goto sched_error;
+	when True sync r2 do {} goto sched_x2W3R;
+loc sched_x1W2R3W: invariant c2 <= 28 
+	when  c2 >= 18   do {c1 := 0} goto sched_x1R3W;
+	when  c2 < 28   sync r2 do {} goto sched_error;
+	when True sync r1 do {} goto sched_error;
+	when True sync r3 do {} goto sched_error;
+
+
+end
+
+
+(************************************************************)
+(* Initial state *)
+(************************************************************)
+
+init :=
+	(*------------------------------------------------------------*)
+	(* Initial location *)
+	(*------------------------------------------------------------*)
+	& loc[act1]=act1_waiting1
+	& loc[act2]=act2_waiting2
+	& loc[act3]=act3_waiting3
+	& loc[sched]=sched_idle
+
+	(*------------------------------------------------------------*)
+	(* Initial clock constraints *)
+	(*------------------------------------------------------------*)
+	& p1 = 0
+	& p2 = 0
+	& p3 = 0
+	& c2 = 0
+	& c1 = 0
+	& c3 = 0
+
+	(*------------------------------------------------------------*)
+	(* Parameter constraints *)
+	(*------------------------------------------------------------*)
+	& b >= b_min & b <= b_max
+	& C3_WORST >= C3_WORST_min & C3_WORST <= C3_WORST_max
+	& p0 >= 0
+;
+
+
+(************************************************************)
+(* Property specification *)
+(************************************************************)
+
+property := unreachable loc[sched] = sched_error;
+
+
+(************************************************************)
+(* The end *)
+(************************************************************)
+end

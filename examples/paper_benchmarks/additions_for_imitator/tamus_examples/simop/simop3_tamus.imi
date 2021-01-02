@@ -1,0 +1,484 @@
+(************************************************************
+ *                      IMITATOR MODEL                      
+ *
+ * SIMOP
+ *
+ * Description     : Networked automation system
+ * Correctness     : TODO
+ * Source          : SIMOP Project / Étienne André, Thomas Chatain, Olivier De Smet, Laurent Fribourg and Silvain Ruel. Synthèse de contraintes temporisées pour une architecture d’automatisation en réseau. In Didier Lime and Olivier H. Roux (eds.), MSR’09, Journal Européen des Systèmes Automatisés 43(7-9), Hermès, pages 1049–1064, 2009.
+ * Author          : Étienne André, Thomas Chatain, Olivier De Smet, Laurent Fribourg and Silvain Ruel
+ * Modeling        : ?, Étienne André, Laurent Fribourg
+ * Input by        : ?, Étienne André, Laurent Fribourg
+ * License         : Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)
+ *
+ * Created         : < 06/2007
+ * Last modified   : 2018/09/07
+ *
+ * IMITATOR version: 2.10.3
+ ************************************************************)
+
+ 
+var
+
+(* Clocks *)
+ 	PLCclk, COMclk, NETclk, RIOclk, ENVclk,
+	tt, yy , zz,
+		: clock;
+		
+		(*** TODO: yy is only used for urgency, and could be replaced with urgent locations ***)
+
+(* Parameters *)
+	PLCmtt = 100,
+	PLCct = 600,
+	COMd = 25,
+	COMct = 2090,
+	NETd = 10,
+	RIOd = 70,
+	SIGmrt = 2071,
+	p0,
+	p1,
+	p2,
+	p3,
+	p4,
+	p5,
+	p6,
+	p7,
+	p8,
+	p9,
+	p10,
+	p11,
+	p12,
+	p13,
+	p14,
+	p15,
+	p16,
+	p17,
+	p18,
+	p19,
+	p20,
+	p21,
+	p22,
+	p23,
+	p24,
+	p25,
+	p26,
+	p27,
+	p28,
+	p29,
+	p30,
+	p31,
+	p32,
+	p33,
+	p34,
+	p35,
+	p36,
+	p37,
+	p38,
+	p39,
+	p40,
+	p41,
+	p42,
+	p43,
+	p44,
+	p45,
+	p46,
+	p47,
+	p48,
+	p49,
+	p50,
+	p51,
+	p52,
+	p53,
+	p54,
+	p55,
+	p56,
+	p57,
+	p58,
+	p59,
+	p60,
+	p61,
+	p62,
+	p63,
+	p64,
+	p65,
+	p66,
+	p67,
+	p68,
+	p69,
+	p70,
+	p71,
+	p72,
+	p73,
+	p74,
+	p75,
+	p76,
+	p77,
+	p78,
+	p79
+		: parameter;
+
+ 
+(************************************************************)
+automaton PLC
+(************************************************************)
+synclabs : COMin1, PLCout0, PLCout1, PLCbeg, COMin0;
+
+loc PLC_PLC9: invariant PLCclk <= 600 + p1
+	when True sync COMin1 do {} goto PLC_PLC9;
+	when  PLCclk <= 480 + p16 & PLCclk >= 600 - p17  do {PLCclk := 0} goto PLC_PLC7;
+
+loc PLC_PLCinit: invariant True
+	when True sync PLCbeg do {PLCclk := 0} goto PLC_PLC1;
+
+loc PLC_PLC3: invariant PLCclk <= 480 + p4
+	when True sync COMin0 do {} goto PLC_PLC3;
+	when  PLCclk <= 480 + p8 & PLCclk >= 720 - p9  do {PLCclk := 0} goto PLC_PLC1;
+	when True sync COMin1 do {} goto PLC_PLC6;
+
+loc PLC_PLC1: invariant PLCclk <= 480 + p6
+	when  PLCclk >= 100 - p7  sync PLCout0 do {} goto PLC_PLC3;
+	when True sync COMin0 do {} goto PLC_PLC1;
+
+loc PLC_PLC7: invariant PLCclk <= 480 + p0
+	when  PLCclk >= 100 - p15  sync PLCout1 do {} goto PLC_PLC9;
+	when True sync COMin1 do {} goto PLC_PLC7;
+
+loc PLC_PLC6: invariant PLCclk <= 600 + p3
+	when  PLCclk <= 480 + p13 & PLCclk >= 720 - p14  do {PLCclk := 0} goto PLC_PLC7;
+	when True sync COMin1 do {} goto PLC_PLC6;
+
+loc PLC_PLC5: invariant yy <= 0 + p2
+	when  yy <= 0 + p11 & yy >= 0 - p12  sync PLCout0 do {} goto PLC_PLC6;
+	when True sync COMin1 do {} goto PLC_PLC5;
+
+loc PLC_PLC4: invariant PLCclk <= 600 + p5
+	when  PLCclk >= 100 - p10  do {yy := 0} goto PLC_PLC5;
+	when True sync COMin1 do {} goto PLC_PLC4;
+
+end -- PLC
+
+
+(************************************************************)
+automaton COM
+(************************************************************)
+synclabs : COMin0, NCrep1, NCrep0, COMin1, PLCout1, CNreq1, PLCout0, PLCbeg, CNreq0;
+
+loc COM_COM10: invariant True
+	when  tt <= 0 + p35 & tt >= 0 - p36  sync COMin1 do {} goto COM_COM11;
+
+loc COM_COM11: invariant COMclk <= 1672 + p25
+	when  COMclk <= 2090 + p37 & COMclk >= 2508 - p38  do {COMclk := 0} goto COM_COM12;
+	when True sync PLCout1 do {} goto COM_COM11;
+
+loc COM_COM8: invariant COMclk <= 1672 + p24
+	when True sync NCrep1 do {tt := 0} goto COM_COM10;
+	when True sync NCrep0 do {tt := 0} goto COM_COM9;
+	when True sync PLCout1 do {} goto COM_COM8;
+
+loc COM_COMinit: invariant True
+	when True sync PLCbeg do {} goto COM_COM1;
+
+loc COM_COM7: invariant COMclk <= 20 + p23
+	when True sync PLCout1 do {} goto COM_COM7;
+	when  COMclk <= 20 + p33 & COMclk >= 30 - p34  sync CNreq0 do {} goto COM_COM8;
+
+loc COM_COM15: invariant COMclk <= 1672 + p26
+	when  COMclk <= 1672 + p43 & COMclk >= 2508 - p44  do {COMclk := 0} goto COM_COM12;
+	when True sync PLCout1 do {} goto COM_COM15;
+
+loc COM_COM9: invariant True
+	when True sync COMin0 do {} goto COM_COM11;
+
+loc COM_COM6: invariant COMclk <= 2090 + p22
+	when True sync PLCout0 do {} goto COM_COM6;
+	when True sync PLCout1 do {} goto COM_COM11;
+	when  COMclk <= 1672 + p31 & COMclk >= 2090 - p32  do {COMclk := 0} goto COM_COM2;
+
+loc COM_COM13: invariant COMclk <= 2090 + p19
+	when True sync PLCout1 do {} goto COM_COM13;
+	when True sync NCrep1 do {tt := 0} goto COM_COM14;
+
+loc COM_COM12: invariant COMclk <= 20 + p18
+	when  COMclk <= 20 + p39 & COMclk >= 30 - p40  sync CNreq1 do {} goto COM_COM13;
+	when True sync PLCout1 do {} goto COM_COM12;
+
+loc COM_COM5: invariant True
+	when  tt <= 0 + p29 & tt >= 0 - p30  sync COMin1 do {} goto COM_COM6;
+
+loc COM_COM4: invariant True
+	when True sync COMin0 do {} goto COM_COM6;
+
+loc COM_COM3: invariant COMclk <= 1672 + p21
+	when True sync NCrep1 do {tt := 0} goto COM_COM5;
+	when True sync NCrep0 do {tt := 0} goto COM_COM4;
+	when True sync PLCout0 do {} goto COM_COM3;
+
+loc COM_COM2: invariant COMclk <= 20 + p20
+	when  COMclk <= 20 + p27 & COMclk >= 30 - p28  sync CNreq0 do {} goto COM_COM3;
+	when True sync PLCout0 do {} goto COM_COM2;
+
+loc COM_COM1: invariant True
+	when True do {COMclk := 0} goto COM_COM2;
+	when True sync PLCout0 do {} goto COM_COM1;
+
+loc COM_COM14: invariant True
+	when  tt <= 0 + p41 & tt >= 0 - p42  sync COMin1 do {} goto COM_COM15;
+
+end -- COM
+
+
+(************************************************************)
+automaton NET
+(************************************************************)
+synclabs : RNrep1, CNreq0, NRreq1, NRreq0, CNreq1, RNrep0, NCrep0, NCrep1;
+
+loc NET_NET7: invariant NETclk <= 8 + p46
+	when  NETclk <= 8 + p55 & NETclk >= 12 - p56  sync NCrep1 do {} goto NET_NET1;
+
+loc NET_NET6: invariant True
+	when True sync RNrep1 do {NETclk := 0} goto NET_NET7;
+
+loc NET_NET5: invariant NETclk <= 10 + p45
+	when  NETclk <= 10 + p53 & NETclk >= 12 - p54  sync NRreq1 do {} goto NET_NET6;
+
+loc NET_NET4: invariant NETclk <= 8 + p48
+	when  NETclk <= 8 + p51 & NETclk >= 12 - p52  sync NCrep0 do {} goto NET_NET1;
+
+loc NET_NET3: invariant True
+	when True sync RNrep1 do {NETclk := 0} goto NET_NET7;
+	when True sync RNrep0 do {NETclk := 0} goto NET_NET4;
+
+loc NET_NET2: invariant NETclk <= 8 + p47
+	when  NETclk <= 8 + p49 & NETclk >= 12 - p50  sync NRreq0 do {} goto NET_NET3;
+
+loc NET_NET1: invariant True
+	when True sync CNreq1 do {NETclk := 0} goto NET_NET5;
+	when True sync CNreq0 do {NETclk := 0} goto NET_NET2;
+
+end -- NET
+
+
+(************************************************************)
+automaton RIO
+(************************************************************)
+synclabs : SIGout1, SIGout0, SIGin1, RNrep0, NRreq0, NRreq1, RNrep1;
+
+loc RIO_RIO10: invariant True
+	when  zz <= 0 + p75 & zz >= 0 - p76  sync RNrep1 do {} goto RIO_RIO6;
+
+loc RIO_RIO3: invariant True
+	when  zz <= 0 + p63 & zz >= 0 - p64  sync RNrep0 do {} goto RIO_RIO1;
+
+loc RIO_RIO2: invariant RIOclk <= 70 + p60
+	when  RIOclk <= 56 + p61 & RIOclk >= 84 - p62  sync SIGout0 do {zz := 0} goto RIO_RIO3;
+	when True sync SIGin1 do {} goto RIO_RIO4;
+
+loc RIO_RIO1: invariant True
+	when True sync NRreq0 do {RIOclk := 0} goto RIO_RIO2;
+
+loc RIO_RIO7: invariant RIOclk <= 70 + p58
+	when  RIOclk <= 56 + p69 & RIOclk >= 70 - p70  sync SIGout0 do {zz := 0} goto RIO_RIO8;
+
+loc RIO_RIO6: invariant True
+	when True sync NRreq1 do {RIOclk := 0} goto RIO_RIO9;
+	when True sync NRreq0 do {RIOclk := 0} goto RIO_RIO7;
+
+loc RIO_RIO5: invariant True
+	when  zz <= 0 + p67 & zz >= 0 - p68  sync RNrep0 do {} goto RIO_RIO6;
+
+loc RIO_RIO4: invariant RIOclk <= 70 + p59
+	when  RIOclk <= 70 + p65 & RIOclk >= 70 - p66  sync SIGout0 do {zz := 0} goto RIO_RIO5;
+
+loc RIO_RIO9: invariant RIOclk <= 70 + p57
+	when  RIOclk <= 56 + p73 & RIOclk >= 70 - p74  sync SIGout1 do {zz := 0} goto RIO_RIO10;
+
+loc RIO_RIO8: invariant True
+	when  zz <= 0 + p71 & zz >= 0 - p72  sync RNrep1 do {} goto RIO_RIO6;
+
+end -- RIO
+
+(************************************************************)
+automaton ENV
+(************************************************************)
+synclabs : SIGout0, SIGin1, SIGout1;
+
+loc ENV_ENVinit: invariant True
+	when True sync SIGout0 do {} goto ENV_ENV1;
+
+loc ENV_ENV5: invariant True
+
+loc ENV_ENV4: invariant True
+
+loc ENV_ENV2: invariant ENVclk <= 1657 + p77
+	when  ENVclk <= 2071 + p78 & ENVclk >= 2071 - p79  do {yy := 0} goto ENV_ENV5;
+	when True sync SIGout1 do {yy := 0} goto ENV_ENV4;
+	when True sync SIGout0 do {} goto ENV_ENV2;
+
+loc ENV_ENV1: invariant True
+	when True sync SIGin1 do {ENVclk := 0} goto ENV_ENV2;
+	when True sync SIGout0 do {} goto ENV_ENV1;
+
+end -- ENV
+
+
+
+(************************************************************)
+(* Initial state *)
+(************************************************************)
+
+init :=
+	(*------------------------------------------------------------*)
+	(* Initial location *)
+	(*------------------------------------------------------------*)
+	&	loc[PLC]=PLC_PLCinit 
+	&	loc[COM]=COM_COMinit
+	&	loc[NET]=NET_NET1
+	&	loc[RIO]=RIO_RIO1
+	&	loc[ENV]=ENV_ENVinit
+
+	(*------------------------------------------------------------*)
+	(* Initial clock constraints *)
+	(*------------------------------------------------------------*)
+	& PLCclk>=0 & COMclk>=0 & NETclk>=0 & RIOclk>=0 & ENVclk>=0 
+
+	(*------------------------------------------------------------*)
+	(* Parameter constraints *)
+	(*------------------------------------------------------------*)
+
+
+--	& 	0 <  NETd
+--	& 	NETd < COMd 
+--	&	COMd < RIOd 
+--	& 	RIOd < PLCmtt
+--	& 	PLCmtt < PLCct
+--	& 	PLCct < COMct
+--	& 	COMct < SIGmrt
+
+	---START PI0---
+--	&	PLCct  = 600
+--	&	COMct  = 500
+--	& 	SIGmrt = 2071
+--	&	PLCmtt = 100
+--	&	RIOd   = 70
+--	&	COMd   = 25
+--	&	NETd   = 10
+	---END PI0---
+
+	&	PLCct  > 0
+	&	COMct  > 0
+	&	SIGmrt  > 0
+	&	PLCmtt  > 0
+	&	RIOd  > 0
+	&	COMd  > 0
+	&	NETd  > 0
+
+
+	& 	tt = 0 & yy = 0 & zz=0 -- & s = 0
+
+--	&	ta = 0 & tb = 0 & tc = 0 & td = 0 & te = 0
+--	&	tf = 0 & tg = 0 & th = 0 & ti = 0 
+
+	---START PI0---
+-- 	&	PLCct  = 600
+-- 	&	COMct  = 500
+-- 	& 	SIGmrt = 2071
+-- 	&	PLCmtt = 100
+-- 	&	RIOd   = 70
+-- 	&	COMd   = 25
+-- 	&	NETd   = 10
+	---END PI0---
+	& p0>= 0
+	& p1>= 0
+	& p2>= 0
+	& p3>= 0
+	& p4>= 0
+	& p5>= 0
+	& p6>= 0
+	& p7>= 0
+	& p8>= 0
+	& p9>= 0
+	& p10>= 0
+	& p11>= 0
+	& p12>= 0
+	& p13>= 0
+	& p14>= 0
+	& p15>= 0
+	& p16>= 0
+	& p17>= 0
+	& p18>= 0
+	& p19>= 0
+	& p20>= 0
+	& p21>= 0
+	& p22>= 0
+	& p23>= 0
+	& p24>= 0
+	& p25>= 0
+	& p26>= 0
+	& p27>= 0
+	& p28>= 0
+	& p29>= 0
+	& p30>= 0
+	& p31>= 0
+	& p32>= 0
+	& p33>= 0
+	& p34>= 0
+	& p35>= 0
+	& p36>= 0
+	& p37>= 0
+	& p38>= 0
+	& p39>= 0
+	& p40>= 0
+	& p41>= 0
+	& p42>= 0
+	& p43>= 0
+	& p44>= 0
+	& p45>= 0
+	& p46>= 0
+	& p47>= 0
+	& p48>= 0
+	& p49>= 0
+	& p50>= 0
+	& p51>= 0
+	& p52>= 0
+	& p53>= 0
+	& p54>= 0
+	& p55>= 0
+	& p56>= 0
+	& p57>= 0
+	& p58>= 0
+	& p59>= 0
+	& p60>= 0
+	& p61>= 0
+	& p62>= 0
+	& p63>= 0
+	& p64>= 0
+	& p65>= 0
+	& p66>= 0
+	& p67>= 0
+	& p68>= 0
+	& p69>= 0
+	& p70>= 0
+	& p71>= 0
+	& p72>= 0
+	& p73>= 0
+	& p74>= 0
+	& p75>= 0
+	& p76>= 0
+	& p77>= 0
+	& p78>= 0
+	& p79>= 0
+
+;
+
+
+(************************************************************)
+(* Property specification *)
+(************************************************************)
+
+property := unreachable loc[ENV] = ENV_ENV5;
+
+
+(************************************************************)
+(* The end *)
+(************************************************************)
+end
