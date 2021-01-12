@@ -9,6 +9,8 @@ if __name__ == '__main__':
             "examples/paper_benchmarks/literature_benchmarks/accel/accel_1000-uppaal.q", "pta"),
            ("examples/paper_benchmarks/literature_benchmarks/rcp/RCP-uppaal_fixed_mutated.xml",
             "examples/paper_benchmarks/literature_benchmarks/rcp/RCP-uppaal.q", "All"),
+           ("examples/paper_benchmarks/literature_benchmarks/jlr/JLR13-3tasks-npfp-100-2-uppaal_fixed.xml",
+            "examples/paper_benchmarks/literature_benchmarks/jlr/JLR13-3tasks-npfp-100-2-uppaal.q", "sched"),
            ("examples/paper_benchmarks/literature_benchmarks/CAS/CAS_mutated.xml",
             "examples/paper_benchmarks/literature_benchmarks/CAS/cas.q", "System"),
            ("examples/paper_benchmarks/literature_benchmarks/coffee/coffee-uppaal_mutated.xml",
@@ -21,8 +23,6 @@ if __name__ == '__main__':
             "examples/paper_benchmarks/literature_benchmarks/simop/simop3-uppaal.q", "All"),
            ("examples/paper_benchmarks/literature_benchmarks/fischer/fischerHRSV02-2-uppaal_fixed.xml",
             "examples/paper_benchmarks/literature_benchmarks/fischer/fischerHRSV02.q", "All"),
-           ("examples/paper_benchmarks/literature_benchmarks/jlr/JLR13-3tasks-npfp-100-2-uppaal_fixed.xml",
-            "examples/paper_benchmarks/literature_benchmarks/jlr/JLR13-3tasks-npfp-100-2-uppaal.q", "sched"),
            ("examples/paper_benchmarks/literature_benchmarks/wfas/WFAS-BBLS15-uppaal_fixed.xml",
             "examples/paper_benchmarks/literature_benchmarks/wfas/WFAS-BBLS15-uppaal.q", "controller")]
 
