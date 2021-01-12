@@ -64,7 +64,6 @@ chan child2;
 		</location>
 		<location id="id4" x="800" y="0">
 			<name x="800" y="-40">N1root</name>
-			<label kind="invariant" x="800" y="40">ckN1 &gt;= 0 </label>
 		</location>
 		<location id="id5" x="1000" y="0">
 			<name x="1000" y="-40">N1rec_idle</name>
@@ -80,7 +79,6 @@ chan child2;
 		</location>
 		<location id="id8" x="1600" y="0">
 			<name x="1600" y="-40">N1snt_req</name>
-			<label kind="invariant" x="1600" y="40">ckN1 &gt;= 0</label>
 		</location>
 		<location id="id9" x="1800" y="0">
 			<name x="1800" y="-40">N1almost_child</name>
@@ -88,7 +86,6 @@ chan child2;
 		</location>
 		<location id="id10" x="2000" y="0">
 			<name x="2000" y="-40">N1child</name>
-			<label kind="invariant" x="2000" y="40">ckN1 &gt;= 0</label>
 		</location>
 		<init ref="id0"/>
 		<transition>
@@ -218,7 +215,6 @@ chan child2;
 		</location>
 		<location id="id15" x="800" y="0">
 			<name x="800" y="-40">N2root</name>
-			<label kind="invariant" x="800" y="40">ckN2 &gt;= 0</label>
 		</location>
 		<location id="id16" x="1000" y="0">
 			<name x="1000" y="-40">N2rec_idle</name>
@@ -234,7 +230,6 @@ chan child2;
 		</location>
 		<location id="id19" x="1600" y="0">
 			<name x="1600" y="-40">N2snt_req</name>
-			<label kind="invariant" x="1600" y="40">ckN2 &gt;= 0</label>
 		</location>
 		<location id="id20" x="1800" y="0">
 			<name x="1800" y="-40">N2almost_child</name>
@@ -242,7 +237,6 @@ chan child2;
 		</location>
 		<location id="id21" x="2000" y="0">
 			<name x="2000" y="-40">N2child</name>
-			<label kind="invariant" x="2000" y="40">ckN2 &gt;= 0 </label>
 		</location>
 		<init ref="id11"/>
 		<transition>
