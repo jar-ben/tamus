@@ -45,6 +45,7 @@ class Tamus:
         self.verbosity = 0
         self.use_unsat_cores = True
         self.useGrow = True
+        self.all_msrs = False
 
         #statistics related data-structures and functionality
         self.stats = {}
@@ -144,17 +145,20 @@ class Tamus:
     def enumerate(self):
         start_time = time.clock()
         seed = self.explorer.get_unex()
+        current_min = -1
         while seed is not None:
-            seed = self.explorer.maximize(seed[:])
+            seed = self.explorer.maximize(seed[:], maxCard = current_min - 1)
             sufficient, core, trace = self.is_sufficient(seed)
             if sufficient:
                 msr, trace = self.shrink(core, trace)
                 self.markMSR(msr, trace)
+                if self.all_msrs: assert (current_min == -1) or current_min > len(msr)
+                current_min = len(msr)
             else:
                 if self.useGrow:
                     seed = self.grow(seed)
                 self.explorer.block_down(seed)
-            seed = self.explorer.get_unex()
+            seed = self.explorer.get_unex(maxCard = -1 if self.all_msrs else current_min - 1)
             if time.clock() - start_time > self.timelimit:
                 self.stats["timeout"] = True
                 print("User-defined timelimit of {} seconds exceeded. Aborting MSR enumeration.".format(self.timelimit))
@@ -212,7 +216,7 @@ if __name__ == '__main__':
     t.timelimit = args.msr_timelimit if args.msr_timelimit != None else 1000000 
     t.verbosity = args.verbose if args.verbose != None else 0
     t.use_unsat_cores = args.no_unsat_cores == None
-    t.explorer.all_msrs = args.all_msrs != None
+    t.all_msrs = args.all_msrs != None
     print "Model: ", model, ", query: ", query_file
     print "dimension:", t.dimension
     print "is the target location reachable?", t.is_sufficient([])[0]
