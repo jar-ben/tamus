@@ -26,8 +26,22 @@ For instance, run `python2 must.py examples/example_TA.xml examples/example_TA.q
 This tool has been developed by Jaroslav Bendik, Ahmet Sencan, Ebru Aydin Gol, and Ivana Cerna. We distribute it under the GPL-3.0 License (see the LICENSE file). 
 
 ## Citing
-A paper describing Tamus is currently under a conference review process. We will provide a reference to the paper at the time of acceptance.
-
+If you use Tamus, please, cite the following paper:
+```
+@inproceedings{DBLP:conf/tacas/BendikSGC21,
+  author    = {Jaroslav Bend{\'{\i}}k and
+               Ahmet Sencan and
+               Ebru Aydin Gol and
+               Ivana Cern{\'{a}}},
+  title     = {Timed Automata Relaxation for Reachability},
+  booktitle = {{TACAS} {(1)}},
+  series    = {Lecture Notes in Computer Science},
+  volume    = {12651},
+  pages     = {291--310},
+  publisher = {Springer},
+  year      = {2021}
+}
+```
 
 ## Contact
 In case of any troubles, do not hesitate to contact us at xbendik=at=gmail.com.
