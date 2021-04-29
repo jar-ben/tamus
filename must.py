@@ -41,6 +41,7 @@ class Tamus:
         self.dimension = len(self.clist)
         self.explorer = Explorer(self.dimension)
         self.msres = []
+        self.mgs = []
         self.traces = []
         self.verbosity = 0
         self.task = "mmsr"
@@ -137,20 +138,21 @@ class Tamus:
         self.msres.append(N)
         self.traces.append(trace)
 
+    def markCoMG(self, N):
+        print "Found MG: {}".format([self.clist[c] for c in self.complement(N)])
+        self.explorer.block_up(N)
+        self.explorer.block_down(N)
+        self.mgs.append(self.complement(N))
 
     def run(self):
         t = self.task
-        if t == "msr":
-            pass
-        elif t == "mmsr":
+        if t in ["mmsr", "amsr"]:
             self.runMMSR()
+        elif t in ["mmg", "amg"]:
+            self.runMMG()
+        elif t == "msr":
+            pass
         elif t == "mg":
-            pass
-        elif t == "mmg":
-            self.minimumMG()
-        elif t == "amsr":
-            pass
-        elif t == "amg":
             pass
         elif t == "amsramg":
             pass
@@ -159,7 +161,7 @@ class Tamus:
 
 
     #finds a minimum minimal guarantee
-    def minimumMG(self):
+    def minimumMG(self, allMGs = False):
         start_time = time.clock()
         seed = self.explorer.get_unex()
         current_max = -1
@@ -169,21 +171,40 @@ class Tamus:
             if not sufficient:
                 coMG = self.grow(seed)
                 self.markCoMG(coMG)
-                assert (current_max == -1) or current_max < len(coMG)
-                current_max = len(coMG)
+                if not allMGs:
+                    assert (current_max == -1) or current_max < len(coMG)
+                    current_max = len(coMG)
             else:
-                seed = self.shrink(seed)
+                seed,_ = self.shrink(seed, None)
                 self.explorer.block_up(seed)
             seed = self.explorer.get_unex(minCard = current_max + 1)
             if time.clock() - start_time > self.timelimit:
                 self.stats["timeout"] = True
                 print("User-defined timelimit of {} seconds exceeded. Aborting MMG extraction.".format(self.timelimit))
                 break
+        
+    def runMMG(self):
+        self.minimumMG(allMGs = self.task == "amg")
+        #print statistics
+        print "MG computation terminated"
+        mgs, constraints = self.get_MGs()
+        print "Elapsed time in seconds:", (time.clock() - self.start_time)
+        print "identified MGs:", mgs
+        print "corresponding constraints:", constraints
+
+        # Minimal mgs:
+        mgs_size = [len(m) for m in mgs]
+        min_size = min(mgs_size)
+        min_mgs_indexes = [i for i in range(len(mgs_size)) if mgs_size[i] == min_size]
+        print "Minimum MGs:"
+        for i in min_mgs_indexes:
+            print constraints[i]
+
 
     def runMMSR(self):
-        self.minimumMSR()
+        self.minimumMSR(allMSRs = self.task == "amsr")
         #print statistics
-        print "MSR enumeration terminated"
+        print "MSR computation terminated"
         msres, constraints, traces = self.get_MSRes()
         print "Elapsed time in seconds:", (time.clock() - self.start_time)
         print "identified MSRes:", msres
@@ -200,7 +221,7 @@ class Tamus:
         print "Elapsed time in seconds after LP:", (time.clock() - self.start_time)
 
     #finds a minimum minimal sufficient reduction
-    def minimumMSR(self):
+    def minimumMSR(self, allMSRs = False):
         start_time = time.clock()
         seed = self.explorer.get_unex()
         current_min = -1
@@ -210,8 +231,9 @@ class Tamus:
             if sufficient:
                 msr, trace = self.shrink(core, trace)
                 self.markMSR(msr, trace)
-                assert (current_min == -1) or current_min > len(msr)
-                current_min = len(msr)
+                if not allMSRs:
+                    assert (current_min == -1) or current_min > len(msr)
+                    current_min = len(msr)
             else:
                 seed = self.grow(seed)
                 self.explorer.block_down(seed)
@@ -228,6 +250,14 @@ class Tamus:
             msres.append([self.clist[c] for c in m])
             constraints.append([self.TA.constraint_registry[c] for c in msres[-1]])
         return msres, constraints, self.traces
+
+    def get_MGs(self):
+        mgs = []
+        constraints = []
+        for m in self.mgs:
+            mgs.append([self.clist[c] for c in m])
+            constraints.append([self.TA.constraint_registry[c] for c in mgs[-1]])
+        return mgs, constraints
 
     def print_statistics(self):
         print ""

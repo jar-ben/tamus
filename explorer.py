@@ -24,11 +24,11 @@ class Explorer:
         self.s.add(Or(block))
 
     def get_unex(self, minCard = -1, maxCard = -1):
-        if min(minCard, maxCard) > 0:
+        if max(minCard, maxCard) >= 0:
             self.s.push()
-        if minCard > 0:
+        if minCard >= 0:
             self.s.add(PbGe([(x,1) for x in self.vars], minCard))
-        if maxCard > 0:
+        if maxCard >= 0:
             self.s.add(PbLe([(x,1) for x in self.vars], maxCard))
         
         check = self.s.check()
@@ -38,36 +38,35 @@ class Explorer:
             for x in m:
                 if is_true(m[x]):
                     seed.append(int(str(x)[1:]))
-            if min(minCard, maxCard) > 0:
+            if max(minCard, maxCard) >= 0:
                 self.s.pop()
             return seed
-
-        if min(minCard, maxCard) > 0:
+        if max(minCard, maxCard) >= 0:
             self.s.pop()
         return None
 
     # maximize a given unexplored subset (seed)
     def maximize(self, seed, minCard = -1, maxCard = -1):
-        if min(minCard, maxCard) > 0:
+        if max(minCard, maxCard) >= 0:
             self.s.push()
-        if minCard > 0:
+        if minCard >= 0:
             self.s.add(PbGe([(x,1) for x in self.vars], minCard))
-        if maxCard > 0:
+        if maxCard >= 0:
             self.s.add(PbLe([(x,1) for x in self.vars], maxCard))
         for c in self.complement(seed):
             if self.is_unexplored(seed + [c]):
                 seed.append(c)
-        if min(minCard, maxCard) > 0:
+        if max(minCard, maxCard) >= 0:
             self.s.pop()
         return seed
 
     # minimize a given unexplored subset (seed)
     def minimize(self, seed, minCard = -1, maxCard = -1):
-        if min(minCard, maxCard) > 0:
+        if max(minCard, maxCard) >= 0:
             self.s.push()
-        if minCard > 0:
+        if minCard >= 0:
             self.s.add(PbGe([(x,1) for x in self.vars], minCard))
-        if maxCard > 0:
+        if maxCard >= 0:
             self.s.add(PbLe([(x,1) for x in self.vars], maxCard))
         candidates = seed[:]
         while len(candidates) > 0:
@@ -75,7 +74,7 @@ class Explorer:
             candidates = candidates[:-1]
             if not self.is_critical(c, seed):
                 seed.remove(c)
-        if min(minCard, maxCard) > 0:
+        if max(minCard, maxCard) >= 0:
             self.s.pop()
         return seed
 
