@@ -90,10 +90,11 @@ class Explorer:
     def is_conflicting(self, c, N):
         assert c not in N
         Nc = N + [c]
-        for b in self.blockUps:
-            if set(b).issubset(Nc):
-                return True
-        return False
+        return not self.is_unexplored(Nc)
+        #for b in self.blockUps:
+        #    if set(b).issubset(Nc):
+        #        return True
+        #return False
 
     # checks if N is unexplored
     def is_unexplored(self, N):

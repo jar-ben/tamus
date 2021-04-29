@@ -43,9 +43,8 @@ class Tamus:
         self.msres = []
         self.traces = []
         self.verbosity = 0
-        self.use_unsat_cores = True
-        self.useGrow = True
-        self.all_msrs = False
+        self.task = "mmsr"
+
 
         #statistics related data-structures and functionality
         self.stats = {}
@@ -60,8 +59,8 @@ class Tamus:
         self.stats["grows_time"] = 0
         self.stats["timeout"] = False
 
-	self.timelimit = 1000000 #time limit for the MSR enumeration
-
+        self.timelimit = 1000000 #time limit for the MSR enumeration
+        self.start_time = time.clock()
     def complement(self, N):
         return [i for i in range(self.dimension) if i not in N]
 
@@ -75,7 +74,7 @@ class Tamus:
         res, used_constraints, trace = ta_helper.verify_reachability(new_model, self.query_file, self.TA,
                                                                      relax_set, self.template_name)
         core = []
-        if res == 1 and self.use_unsat_cores:
+        if res == 1:
             for c in used_constraints:
                 assert c in self.clist
                 core.append(self.clist.index(c))
@@ -140,9 +139,68 @@ class Tamus:
 
 
     def run(self):
-        self.enumerate()
+        t = self.task
+        if t == "msr":
+            pass
+        elif t == "mmsr":
+            self.runMMSR()
+        elif t == "mg":
+            pass
+        elif t == "mmg":
+            self.minimumMG()
+        elif t == "amsr":
+            pass
+        elif t == "amg":
+            pass
+        elif t == "amsramg":
+            pass
+        else:
+            assert False
 
-    def enumerate(self):
+
+    #finds a minimum minimal guarantee
+    def minimumMG(self):
+        start_time = time.clock()
+        seed = self.explorer.get_unex()
+        current_max = -1
+        while seed is not None:
+            seed = self.explorer.minimize(seed[:], minCard = current_max + 1)
+            sufficient, core, trace = self.is_sufficient(seed)
+            if not sufficient:
+                coMG = self.grow(seed)
+                self.markCoMG(coMG)
+                assert (current_max == -1) or current_max < len(coMG)
+                current_max = len(coMG)
+            else:
+                seed = self.shrink(seed)
+                self.explorer.block_up(seed)
+            seed = self.explorer.get_unex(minCard = current_max + 1)
+            if time.clock() - start_time > self.timelimit:
+                self.stats["timeout"] = True
+                print("User-defined timelimit of {} seconds exceeded. Aborting MMG extraction.".format(self.timelimit))
+                break
+
+    def runMMSR(self):
+        self.minimumMSR()
+        #print statistics
+        print "MSR enumeration terminated"
+        msres, constraints, traces = self.get_MSRes()
+        print "Elapsed time in seconds:", (time.clock() - self.start_time)
+        print "identified MSRes:", msres
+        print "corresponding constraints:", constraints
+
+        # Minimal msres:
+        msres_size = [len(m) for m in msres]
+        min_size = min(msres_size)
+        min_msres_indexes = [i for i in range(len(msres_size)) if msres_size[i] == min_size]
+        print "Minimum MSRes:"
+        for i in min_msres_indexes:
+            delays, parameters = path_analysis.find_parameters(self.TA,traces[i],msres[i])
+            print "{} delays:{} parameters{}".format(constraints[i], delays, parameters)
+        print "Elapsed time in seconds after LP:", (time.clock() - self.start_time)
+
+    #finds a minimum minimal sufficient reduction
+    def minimumMSR(self):
         start_time = time.clock()
         seed = self.explorer.get_unex()
         current_min = -1
@@ -152,16 +210,15 @@ class Tamus:
             if sufficient:
                 msr, trace = self.shrink(core, trace)
                 self.markMSR(msr, trace)
-                if self.all_msrs: assert (current_min == -1) or current_min > len(msr)
+                assert (current_min == -1) or current_min > len(msr)
                 current_min = len(msr)
             else:
-                if self.useGrow:
-                    seed = self.grow(seed)
+                seed = self.grow(seed)
                 self.explorer.block_down(seed)
-            seed = self.explorer.get_unex(maxCard = -1 if self.all_msrs else current_min - 1)
+            seed = self.explorer.get_unex(maxCard = current_min - 1)
             if time.clock() - start_time > self.timelimit:
                 self.stats["timeout"] = True
-                print("User-defined timelimit of {} seconds exceeded. Aborting MSR enumeration.".format(self.timelimit))
+                print("User-defined timelimit of {} seconds exceeded. Aborting MMSR extraction.".format(self.timelimit))
                 break
 
     def get_MSRes(self):
@@ -192,7 +249,6 @@ class Tamus:
         print ""
 
 if __name__ == '__main__':
-    start_time = time.clock()
     
     #define command line arguments
     parser = argparse.ArgumentParser("TAMUS - a tool for relaxing reachability properties in Time Automatas based on Minimal Sufficinet Reductions (MRS) and linear programming.")
@@ -200,11 +256,8 @@ if __name__ == '__main__':
     parser.add_argument("query_file", help = "A path to a query file")
     parser.add_argument("template_name", help="Name of template")
     parser.add_argument("--verbose", "-v", action="count", help = "Use the flag to increase the verbosity of the outputs. The flag can be used repeatedly.")    
-    parser.add_argument("--no-unsat-cores", "-n", action="count", help = "Use the flag to disable usage of unsat cores.")    
-    parser.add_argument("--all-msrs", "-a", action="count", help = "Use the flag to ensure that all MSRs are identified.")    
     parser.add_argument("--msr-timelimit", type=int, help = "Sets up timelimit for MSR enumeration. Note that the computation is not terminated exactly after the timelimit, but once the last identified MSR exceeds the timelimit. We recommend you to use UNIX timeout when using our tool, if you want to timeout the whole computation. ")
-    #parse the command line arguments
-    parser.add_argument("--no-grow", action="store_true", help = "Use the flag to disable the 'enlarging' heuristic.")    
+    parser.add_argument("--task", choices=["msr", "mmsr", "mg", "mmg", "amsr", "amg", "amsramg"], help = "Choose the computation taks: msr - an MSR, mmsr - a minimum MSR, mg - an MG, mmg - a minimum MG, amsr - all MSRs, amg - all MGs, amsramg - all MSRs and MGs.", default = "mmsr")
     args = parser.parse_args()
 
     #run the computation
@@ -212,34 +265,15 @@ if __name__ == '__main__':
     query_file = args.query_file
     template_name = args.template_name
     t = Tamus(model, query_file, template_name)
-    t.useGrow = not args.no_grow
     t.timelimit = args.msr_timelimit if args.msr_timelimit != None else 1000000 
     t.verbosity = args.verbose if args.verbose != None else 0
-    t.use_unsat_cores = args.no_unsat_cores == None
-    t.all_msrs = args.all_msrs != None
+    t.task = args.task
     print "Model: ", model, ", query: ", query_file
     print "dimension:", t.dimension
     print "is the target location reachable?", t.is_sufficient([])[0]
     print ""
     t.run()
 
-    #print statistics
-    print "MSR enumeration terminated"
-    msres, constraints, traces = t.get_MSRes()
-    print "Elapsed time in seconds:", (time.clock() - start_time)
-    print "identified MSRes:", msres
-    print "corresponding constraints:", constraints
-
-
-    # Minimal msres:
-    msres_size = [len(m) for m in msres]
-    min_size = min(msres_size)
-    min_msres_indexes = [i for i in range(len(msres_size)) if msres_size[i] == min_size]
-    print "Minimum MSRes:"
-    for i in min_msres_indexes:
-        delays, parameters = path_analysis.find_parameters(t.TA,traces[i],msres[i])
-        print "{} delays:{} parameters{}".format(constraints[i], delays, parameters)
-    print "Elapsed time in seconds after LP:", (time.clock() - start_time)
 
     if t.verbosity > 0:
         t.print_statistics()
