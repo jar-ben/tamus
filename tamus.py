@@ -2,17 +2,21 @@ import sys
 import time
 import argparse
 import signal
+import os
 
 from explorer import Explorer
 from uppaalHelpers import ta_helper
 from uppaalHelpers import timed_automata
 from uppaalHelpers import path_analysis
+from uppaalHelpers import xml_to_imi
+
 
 class Tamus:
-    def __init__(self, model_file, query_file, template_name):
+    def __init__(self, model_file, query_file, template_name, args):
         self.model_file = model_file # file name
         self.query_file = query_file # file name
         self.template_name = template_name
+        self.args = args
         # self.model stores the network of ta from model_file
         # template is the TA of interest for which the constraint analysis is performed.
         # template in self.model is modified during the computation. A modified TA is set for each
@@ -200,6 +204,28 @@ class Tamus:
         for i in min_mgs_indexes:
             print constraints[i]
 
+        if self.args.run_imitator_on_mg:
+            #                       imitator creation                   #
+            mg = mgs[0]
+            relax_list = [c for c in self.clist]
+
+            for c in mg:                # create the list that will be removed from the model
+                relax_list.remove(c)
+
+            # this will be used to create the imi file
+            new_templates, parameter_count = self.TA.generate_relaxed_and_parametrized_templates(relax_list, mg)
+            declaraion_of_the_system = self.model.declaration
+            process_template_pair_of_the_system = self.model.system
+            # print set(constraints[0])
+            imi_name, imiporp_name = xml_to_imi.create_imitator_on_mg(new_templates,
+                                                                      declaraion_of_the_system,
+                                                                      process_template_pair_of_the_system,
+                                                                      self.query_file,
+                                                                      parameter_count)
+            output_file = self.query_file.split(".q")[0]
+            command = "imitator " + imi_name + " " + imiporp_name + " -output-prefix " + output_file + " -verbose mute"
+            print "running " + command
+            os.system(command)
 
     def runMMSR(self):
         self.minimumMSR(allMSRs = self.task == "amsr")
@@ -288,13 +314,14 @@ if __name__ == '__main__':
     parser.add_argument("--verbose", "-v", action="count", help = "Use the flag to increase the verbosity of the outputs. The flag can be used repeatedly.")    
     parser.add_argument("--msr-timelimit", type=int, help = "Sets up timelimit for MSR enumeration. Note that the computation is not terminated exactly after the timelimit, but once the last identified MSR exceeds the timelimit. We recommend you to use UNIX timeout when using our tool, if you want to timeout the whole computation. ")
     parser.add_argument("--task", choices=["msr", "mmsr", "mg", "mmg", "amsr", "amg", "amsramg"], help = "Choose the computation taks: msr - an MSR, mmsr - a minimum MSR, mg - an MG, mmg - a minimum MG, amsr - all MSRs, amg - all MGs, amsramg - all MSRs and MGs.", default = "mmsr")
+    parser.add_argument("--run_imitator_on_mg", type=bool, help="After fnding minimal guarantee, runs imitator on it. This value does not have effect if any task other than mmg is selected.", default=True)
     args = parser.parse_args()
 
     #run the computation
     model = args.model_file
     query_file = args.query_file
     template_name = args.template_name
-    t = Tamus(model, query_file, template_name)
+    t = Tamus(model, query_file, template_name, args)
     t.timelimit = args.msr_timelimit if args.msr_timelimit != None else 1000000 
     t.verbosity = args.verbose if args.verbose != None else 0
     t.task = args.task
