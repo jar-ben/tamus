@@ -1,3 +1,5 @@
+import ta_helper
+
 def parse_declaration(declaration_text):
     all_clocks = []
     all_discrete = []
@@ -76,7 +78,13 @@ def fix_assignments(assignments):
     return assignments
 
 
-def create_imitator_on_mg(new_templates, declaration, system, query_name, parameter_count):
+def create_imitator_on_mg(new_templates, declaration, system, model_name, query_name, parameter_count):
+    # create the model
+    model, templates = ta_helper.get_templates(model_name)
+
+    create_the_new_templates(templates, new_templates)
+
+    # create the file names for imitator
     imi_file_name = ".".join([query_name.split(".q")[0], "imi"])
     imiprop_file_name = ".".join([query_name.split(".q")[0], "imiprop"])
     imi_file = open(imi_file_name, "w+")
@@ -96,7 +104,7 @@ def create_imitator_on_mg(new_templates, declaration, system, query_name, parame
         imi_file.write(", ".join(discrete_variables))
         imi_file.write("\n\t: discrete;\n")
     if parameter_count > 0:
-        parameters = ["p"+str(i) for i in range(parameter_count)]       # p1, p2, p3 :parameter;
+        parameters = ["par"+str(i) for i in range(parameter_count)]       # p1, p2, p3 :parameter;
         imi_file.write("\t" + ", ".join(parameters))
         imi_file.write("\n\t: parameter;\n")
     """if len(parameters) > 0:
@@ -116,18 +124,20 @@ def create_imitator_on_mg(new_templates, declaration, system, query_name, parame
             location_invariant = fix_constraints(location_invariant)
 
             location_invariant_list.append((location_id, location_name, location_invariant))
-            location_transition_dictionary[location_id] = []                # we will append transition to here
+            location_transition_dictionary[location_id.strip()] = []                # we will append transition to here
 
         #                               Reading  transitions                        #
         syncs = set()
+
         for transiton in template.transitions:
             sync = transiton.synchronisation.value.strip()  # find all the synchronizations in the template
-            if len(sync) == 0:
-                continue
-            if sync[-1] == "!" or sync[-1] == "?":
-                sync = sync[:-1]
-            if sync not in syncs:
-                syncs.add(sync)
+            if len(sync) != 0:
+                if sync[-1] == "!" or sync[-1] == "?":
+                    sync = sync[:-1]
+                if sync not in syncs:
+                    syncs.add(sync)
+            else:
+                sync = ""
 
             guard = transiton.guard.value
             assignment = transiton.assignment.value
@@ -136,7 +146,7 @@ def create_imitator_on_mg(new_templates, declaration, system, query_name, parame
             #                       fix the guard               #
             guard = fix_constraints(guard)
             assignment = fix_assignments(assignment)
-            location_transition_dictionary[source].append((guard, sync, assignment, target))
+            location_transition_dictionary[source.strip()].append((guard, sync, assignment, target))
 
         #                           Writing to a imi file                       #
 
@@ -151,13 +161,25 @@ def create_imitator_on_mg(new_templates, declaration, system, query_name, parame
 
         for location in location_invariant_list:
             imi_file.write("\nloc " + location[1] + ": invariant " + location[2] + "\n")    # loc loc1: invraiant inv1
-            for transition in location_transition_dictionary[location[0]]:
-                imi_file.write("\twhen  " + transition[0] + " ")              # when guard sync b1 do {update] goto loc2
-                if transition[1] != "":
-                    imi_file.write("sync " + transition[1] + " ")
-                if transition[2] != "":
-                    imi_file.write("do {" + transition[2] + "} ")
-                imi_file.write("goto " + transition[3] + ";\n")
+
+            for transition in location_transition_dictionary[location[0].strip()]:
+                if "!=" in transition[0]:
+                    atomics = transition[0].split("!=")
+                    not_equals = ["<".join(atomics), ">".join(atomics)]
+                    for i in range(2):
+                        imi_file.write("\twhen  " + not_equals[i] + " ")          # when guard sync b1 do {update] goto loc2
+                        if transition[1] != "":
+                            imi_file.write("sync " + transition[1] + " ")
+                        if transition[2] != "":
+                            imi_file.write("do {" + transition[2] + "} ")
+                        imi_file.write("goto " + transition[3] + ";\n")
+                else:
+                    imi_file.write("\twhen  " + transition[0] + " ")  # when guard sync b1 do {update] goto loc2
+                    if transition[1] != "":
+                        imi_file.write("sync " + transition[1] + " ")
+                    if transition[2] != "":
+                        imi_file.write("do {" + transition[2] + "} ")
+                    imi_file.write("goto " + transition[3] + ";\n")
 
         imi_file.write("\nend\n\n")
 
@@ -173,7 +195,7 @@ def create_imitator_on_mg(new_templates, declaration, system, query_name, parame
             imi_file.write("\t& " + discrete + "\n")
     if parameter_count > 0:                                                         # &p1 >= 0
         for i in range(parameter_count):
-            imi_file.write("\t& p" + str(i) + ">=0\n")
+            imi_file.write("\t& par" + str(i) + ">=0\n")
     imi_file.write(";\n\n\nend")
 
     query_file = open(query_name, "r")
@@ -190,3 +212,14 @@ def create_imitator_on_mg(new_templates, declaration, system, query_name, parame
     property_file = open(imiprop_file_name, "w+")
     property_file.write("property := #synth AGnot(" + "&".join(new_query) + ");")
     return imi_file_name, imiprop_file_name
+
+
+def create_the_new_templates(templates, new_templates):
+    new_template_names = []
+    for template in new_templates:
+        new_template_names.append(template.name)
+
+    for template in templates:
+        if template.name not in new_template_names:
+            new_templates.append(template)
+            print new_templates

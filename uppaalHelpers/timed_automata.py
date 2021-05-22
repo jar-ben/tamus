@@ -192,7 +192,7 @@ class TimedAutomata:
         """Returns a string by removing each constraint from the relax set. """
         constraint_list = constraint.split('&&')
         c_dif = [c for c in constraint_list if c not in relax_set]  # InlinesSet difference for two lists.
-        return ' && '.join(c_dif)
+        return '&&'.join(c_dif)
 
     def print_registry(self, file_name):
         f = open(file_name, "w")
@@ -255,13 +255,13 @@ class TimedAutomata:
         for c in constraint_list:
             if c in parametrize_set:
                 if "<" in c:
-                    c_par.append(c + "+p" + str(parameter_count))
+                    c_par.append(c + "+par" + str(parameter_count))
                 elif ">" in c:
-                    c_par.append(c + "-p" + str(parameter_count))
+                    c_par.append(c + "-par" + str(parameter_count))
                 parameter_count += 1
             else:
                 c_par.append(c)
-        return ' && '.join(c_par), parameter_count
+        return '&&'.join(c_par), parameter_count
 
     def generate_relaxed_and_parametrized_templates(self, relax_set, parametrize_set):
         """Removes the constraints from the relaxed set and returns the resulting template."""

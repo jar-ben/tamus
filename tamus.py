@@ -206,7 +206,7 @@ class Tamus:
 
         if self.args.run_imitator_on_mg:
             #                       imitator creation                   #
-            mg = mgs[0]
+            mg = mgs[min_mgs_indexes[0]]
             relax_list = [c for c in self.clist]
 
             for c in mg:                # create the list that will be removed from the model
@@ -220,6 +220,7 @@ class Tamus:
             imi_name, imiporp_name = xml_to_imi.create_imitator_on_mg(new_templates,
                                                                       declaraion_of_the_system,
                                                                       process_template_pair_of_the_system,
+                                                                      self.model_file,
                                                                       self.query_file,
                                                                       parameter_count)
             output_file = self.query_file.split(".q")[0]
