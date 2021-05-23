@@ -1,4 +1,6 @@
 import ta_helper
+from ortools.linear_solver import pywraplp
+
 
 def parse_declaration(declaration_text):
     all_clocks = []
@@ -211,6 +213,8 @@ def create_imitator_on_mg(new_templates, declaration, system, model_name, query_
     #       property := #synth AGnot(loc[loc1] = End1 & loc[loc2] = End2)
     property_file = open(imiprop_file_name, "w+")
     property_file.write("property := #synth AGnot(" + "&".join(new_query) + ");")
+    property_file.close()
+    imi_file.close()
     return imi_file_name, imiprop_file_name
 
 
@@ -222,4 +226,87 @@ def create_the_new_templates(templates, new_templates):
     for template in templates:
         if template.name not in new_template_names:
             new_templates.append(template)
-            print new_templates
+
+
+def read_res_file(file_name):           # in res file reads the part between BEGIN CONSTRAINT AND END CONSTRAINT
+    res_file = open(file_name, "r")
+    feasible_zones = []
+    for line in res_file:
+        if "BEGIN CONSTRAINT" in line:      # read until BEGIN CONSTRAINT
+            break
+
+    current_zone = []
+    for line in res_file:        # we add current line to current_zone, in our examples there is only one possible zone
+        if "OR" in line:         # parameters can be, however if there were more they are separated with OR
+            feasible_zones.append(current_zone)
+            current_zone = []
+            continue
+        elif "END CONSTRAINT" in line:      # After reading END CONSTRAINT we are done
+            feasible_zones.append(current_zone)
+            break
+        current_zone.append(line)
+
+    res_file.close()
+    return feasible_zones
+
+
+def fix_constraints_of_zone(zone):  # Takes the lines found from res file and converts them into usable form
+    fixed_zone = []
+    decrease_flag = 0
+    for constraint in zone:
+        constraint = constraint.split("&")[-1]
+        if ">= 0" in constraint:        # par1 >= 0 implies parameter is geq 0, we add this to solver in a different way
+            continue                    # Hence do not add this to constraints
+        """if "<=" in constraint:       # In our examples there are no <= or < all constraints have the form
+            operator = "<="             # value >(=) pari + parj + park + ... Hence I skip this part for now maybe 
+        elif "<" in constraint:         # we might need it in the future 
+            operator = "<"""""
+        if ">=" in constraint:          # value >(=) pari  + parj + ... ->pari + parj + ...<(=) value
+            operator = ">="
+            final_operator = "<="
+        elif ">" in constraint:         # If the operator is > we dec value by 1 since we are using integers and solver
+            operator = ">"              # only accepts inequalities with c1*var1 + ... <= value
+            final_operator = "<="
+            decrease_flag = 1
+        else:                           # Again we do not have these in our examples but might need it later
+            operator = "=="
+            final_operator = "=="
+
+        atomics = constraint.split(operator)    # atomics = [value, "pari+parj+..."]
+
+        lhs = atomics[0]
+        rhs = atomics[1]
+
+        value = int(lhs.strip()) - decrease_flag
+        rhs = rhs.split("+")
+        parameters = [int(parameter.strip()[3]) for parameter in rhs]
+        fixed_zone.append((parameters, final_operator, value))
+    return fixed_zone
+
+
+def find_maximum_parameter_values(file_name, parameter_count):
+    zones = read_res_file(file_name)    # read all zones
+    fixed_zone = fix_constraints_of_zone(zones[0])  # Our examples only have one but might extend it to multiple later
+
+    solver = pywraplp.Solver('', pywraplp.Solver.CBC_MIXED_INTEGER_PROGRAMMING)  # create the solver
+    x = {}
+    for i in range(parameter_count):
+        x[i] = solver.IntVar(0, solver.infinity(), 'x[' + str(i) + ']')  # add constraints par1, par2, ..., parn
+
+    obj_expr = [x[j] for j in range(parameter_count)]   # maximize par1+par2+...+parn
+    solver.Maximize(solver.Sum(obj_expr))
+
+    for i in range(len(fixed_zone)):
+        constraint = solver.RowConstraint(-solver.infinity(), fixed_zone[i][2], '')  # add the constraints
+        for j in range(parameter_count):
+            constraint.SetCoefficient(x[j], 1 if j in fixed_zone[i][0] else 0)  # adjust which parameters to use
+
+    status = solver.Solve()
+
+    parameter_values = []
+    total_sum = 0
+    if status == solver.OPTIMAL:
+        for i in range(parameter_count):
+            parameter_values.append(x[i].solution_value())
+            total_sum += x[i].solution_value()
+    return parameter_values, total_sum
