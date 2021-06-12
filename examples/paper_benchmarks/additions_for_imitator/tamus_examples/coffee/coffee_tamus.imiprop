@@ -1,0 +1,1 @@
+property := #synth EF(loc[Machine]=Machine_cdone);

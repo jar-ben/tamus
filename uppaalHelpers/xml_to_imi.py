@@ -89,6 +89,8 @@ def create_imitator_on_mg(new_templates, declaration, system, model_name, query_
     # create the file names for imitator
     imi_file_name = ".".join([query_name.split(".q")[0], "imi"])
     imiprop_file_name = ".".join([query_name.split(".q")[0], "imiprop"])
+    """imi_file_name = ".".join([query_name.split(".q")[0]+"_single_param", "imi"]) 
+    imiprop_file_name = ".".join([query_name.split(".q")[0]+"_single_param", "imiprop"])"""
     imi_file = open(imi_file_name, "w+")
 
     clocks, discretes, _ = parse_declaration(declaration)
@@ -201,7 +203,7 @@ def create_imitator_on_mg(new_templates, declaration, system, model_name, query_
     imi_file.write(";\n\n\nend")
 
     query_file = open(query_name, "r")
-    query = query_file.readline()[4:-1].split("&&")
+    query = query_file.readline()[4:].strip().split("&&")
 
     new_query = []
     for process in query:

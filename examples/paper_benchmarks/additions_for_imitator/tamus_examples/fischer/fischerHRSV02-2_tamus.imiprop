@@ -1,0 +1,1 @@
+property := #synth EF(loc[process_1]=process_1_cs_1&loc[process_2]=process_2_cs_2);

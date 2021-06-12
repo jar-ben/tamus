@@ -221,7 +221,7 @@ init :=
 (* Property specification *)
 (************************************************************)
 
-property := unreachable loc[System] = System_l15;
+
 
 
 

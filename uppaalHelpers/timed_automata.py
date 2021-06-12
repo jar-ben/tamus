@@ -256,8 +256,10 @@ class TimedAutomata:
             if c in parametrize_set:
                 if "<" in c:
                     c_par.append(c + "+par" + str(parameter_count))
+                    #c_par.append(c + "+par0")  # + str(parameter_count))
                 elif ">" in c:
                     c_par.append(c + "-par" + str(parameter_count))
+                    #c_par.append(c + "-par0")  # + str(parameter_count))
                 parameter_count += 1
             else:
                 c_par.append(c)

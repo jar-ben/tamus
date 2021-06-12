@@ -267,12 +267,6 @@ init :=
 ;
 
 
-(************************************************************)
-(* Property specification *)
-(************************************************************)
-
-(* φ2 = ConsWaiting ∧ ProdReady ∧ xtotal ≥ 5 *)
-property := unreachable loc[Consumer] = Consumer_consWaiting & loc[Producer] = Producer_prodReady (*& xtotal >= 5*) & loc[observer] = observer_finished;
 
 
 (************************************************************)

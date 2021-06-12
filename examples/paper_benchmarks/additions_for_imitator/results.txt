@@ -1,0 +1,204 @@
+Model: accel/accel_1000_tamus
+Time: 232.00356698
+
+Model: accel/accel_1000_tamus
+Time: 1.69434285164
+
+Model: accel/accel_1000_tamus
+Time: 1.94237399101
+
+Model: accel/accel_1000_tamus
+Time: 0.95526599884
+
+Model: CAS/CAS_tamus
+Time: 0.869091033936
+
+Model: CAS/CAS_tamus
+Time: 0.0718808174133
+
+Model: CAS/CAS_tamus
+Time: 0.103496074677
+
+Model: CAS/CAS_tamus
+Time: 0.0211532115936
+
+Model: coffee/coffee_tamus
+Time: 0.0214660167694
+
+Model: coffee/coffee_tamus
+Time: 0.021852016449
+
+Model: coffee/coffee_tamus
+Time: 0.0099880695343
+
+Model: coffee/coffee_tamus
+Time: 0.00930094718933
+
+Model: fischer/fischerHRSV02-2_tamus
+Time: 1200.01233912
+
+Model: fischer/fischerHRSV02-2_tamus
+Time: 0.196151971817
+
+Model: fischer/fischerHRSV02-2_tamus
+Time: 1200.05717802
+
+Model: fischer/fischerHRSV02-2_tamus
+Time: 0.0362808704376
+
+Model: jlr/JLR13-3tasks-npfp-100-2_tamus
+Time: 1200.09836102
+
+Model: jlr/JLR13-3tasks-npfp-100-2_tamus
+Time: 0.0895040035248
+
+Model: jlr/JLR13-3tasks-npfp-100-2_tamus
+Time: 3.50159811974
+
+Model: jlr/JLR13-3tasks-npfp-100-2_tamus
+Time: 0.115483999252
+
+Model: jobshop/maler_4_4_tamus
+Time: 0.0159990787506
+
+Model: jobshop/maler_4_4_tamus
+Time: 0.0112628936768
+
+Model: jobshop/maler_4_4_tamus
+Time: 0.0122158527374
+
+Model: jobshop/maler_4_4_tamus
+Time: 0.0147459506989
+
+Model: pipeline/Pipeline-KP12-3-3_tamus
+Time: 1200.05589795
+
+Model: pipeline/Pipeline-KP12-3-3_tamus
+Time: 1200.09317517
+
+Model: pipeline/Pipeline-KP12-3-3_tamus
+Time: 0.0428988933563
+
+Model: pipeline/Pipeline-KP12-3-3_tamus
+Time: 0.0458190441132
+
+Model: rcp/RCP_tamus
+Time: 0.0176770687103
+
+Model: rcp/RCP_tamus
+Time: 0.0177919864655
+
+Model: rcp/RCP_tamus
+Time: 0.0143311023712
+
+Model: rcp/RCP_tamus
+Time: 0.0128960609436
+
+Model: simop/simop3_tamus
+Time: 0.0143721103668
+
+Model: simop/simop3_tamus
+Time: 0.012050151825
+
+Model: simop/simop3_tamus
+Time: 0.0128719806671
+
+Model: simop/simop3_tamus
+Time: 0.0134069919586
+
+Model: wfas/WFAS_tamus
+Time: 16.5209560394
+
+Model: wfas/WFAS_tamus
+Time: 16.0464169979
+
+Model: wfas/WFAS_tamus
+Time: 0.0272629261017
+
+Model: wfas/WFAS_tamus
+Time: 0.0257351398468
+
+Model: generator_examples/3/3-12-1
+Time: 0.156002044678
+
+Model: generator_examples/3/3-12-1
+Time: 0.0967350006104
+
+Model: generator_examples/3/3-12-2
+Time: 0.554432153702
+
+Model: generator_examples/3/3-12-2
+Time: 0.231523036957
+
+Model: generator_examples/3/3-18-1
+Time: 66.859951973
+
+Model: generator_examples/3/3-18-1
+Time: 67.6688320637
+
+Model: generator_examples/3/3-18-2
+Time: 1200.02983904
+
+Model: generator_examples/3/3-18-2
+Time: 410.917644024
+
+Model: generator_examples/3/3-24-1
+Time: 1200.0331769
+
+Model: generator_examples/3/3-24-1
+Time: 1200.03166413
+
+Model: generator_examples/3/3-24-2
+Time: 1200.05598402
+
+Model: generator_examples/3/3-24-2
+Time: 1200.0411551
+
+Model: generator_examples/3/3-30-1
+Time: 1200.03483796
+
+Model: generator_examples/3/3-30-1
+Time: 1200.03368402
+
+Model: generator_examples/3/3-30-2
+Time: 1200.06177902
+
+Model: generator_examples/3/3-30-2
+Time: 1200.05684185
+
+Model: generator_examples/5/5-12-1
+Time: 82.2796490192
+
+Model: generator_examples/5/5-12-1
+Time: 80.4419190884
+
+Model: generator_examples/5/5-12-2
+Time: 1200.06751585
+
+Model: generator_examples/5/5-12-2
+Time: 531.868960142
+
+Model: generator_examples/5/5-18-1
+Time: 1200.04700398
+
+Model: generator_examples/5/5-18-1
+Time: 1200.06310201
+
+Model: generator_examples/5/5-18-2
+Time: 1200.05922699
+
+Model: generator_examples/5/5-18-2
+Time: 1200.06011891
+
+Model: generator_examples/7/7-12-1
+Time: 1200.03919792
+
+Model: generator_examples/7/7-12-1
+Time: 1200.04368901
+
+Model: generator_examples/7/7-12-2
+Time: 1200.04253888
+
+Model: generator_examples/7/7-12-2
+Time: 1200.05156708
+

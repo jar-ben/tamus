@@ -6,7 +6,7 @@ import sys
 
 if __name__ == '__main__':
     timelimit = int(sys.argv[1])
-    f = open("benchmarks/tamus_examples/results/results.txt", "w")
+    f = open("results.txt", "w")
     fis = ["accel/accel_1000_tamus",
            "CAS/CAS_tamus",
            "coffee/coffee_tamus",
@@ -22,8 +22,8 @@ if __name__ == '__main__':
         last_part = fi[fi.find("/")+1:]
 
         start_time = time.time()                                                    # base model
-        cmd = "./bin/imitator benchmarks/tamus_examples/" + fi + \
-              ".imi -mode EFunsafe -incl -output-result"
+        cmd = "imitator tamus_examples/" + fi + \
+              ".imi tamus_examples/" + fi + ".imiprop"
         with Popen(cmd, shell=True, stdout=PIPE, preexec_fn=os.setsid) as process:
             try:
                 output = process.communicate(timeout=timelimit)[0]
@@ -33,10 +33,10 @@ if __name__ == '__main__':
         elapsed_time = time.time() - start_time
         print time.time() - start_time
 
-        mv_cmd = "mv benchmarks/tamus_examples/" + fi +\
-                 ".res benchmarks/tamus_examples/results/imitator_output && " \
-                 "mv benchmarks/tamus_examples/results/imitator_output/" + last_part + ".res " \
-                 "benchmarks/tamus_examples/results/imitator_output/" + last_part + "_whole.res "
+        mv_cmd = "mv " + last_part +\
+                 ".res tamus_examples/results/imitator_output && " \
+                 "mv tamus_examples/results/imitator_output/" + last_part + ".res " \
+                 "tamus_examples/results/imitator_output/" + last_part + "_whole.res "
         with Popen(mv_cmd, shell=True, stdout=PIPE, preexec_fn=os.setsid) as process:
             try:
                 process.communicate()
@@ -46,8 +46,8 @@ if __name__ == '__main__':
         f.write("Time: " + str(elapsed_time) + "\n\n")
 
         start_time = time.time()                                                    # base model with counterexample
-        cmd = "./bin/imitator benchmarks/tamus_examples/" + fi + \
-              ".imi -counterexample -mode EFunsafe -incl -output-result"
+        cmd = "imitator tamus_examples/" + fi + \
+              ".imi tamus_examples/" + fi + "_witness.imiprop"
         with Popen(cmd, shell=True, stdout=PIPE, preexec_fn=os.setsid) as process:
             try:
                 output = process.communicate(timeout=timelimit)[0]
@@ -57,10 +57,10 @@ if __name__ == '__main__':
         elapsed_time = time.time() - start_time
         print time.time() - start_time
 
-        mv_cmd = "mv benchmarks/tamus_examples/" + fi + \
-                 ".res benchmarks/tamus_examples/results/imitator_output && " \
-                 "mv benchmarks/tamus_examples/results/imitator_output/" + last_part + ".res " \
-                 "benchmarks/tamus_examples/results/imitator_output/" + last_part + "_counter.res "
+        mv_cmd = "mv " + last_part +\
+                 ".res tamus_examples/results/imitator_output && " \
+                 "mv tamus_examples/results/imitator_output/" + last_part + ".res " \
+                 "tamus_examples/results/imitator_output/" + last_part + "_counter.res "
         with Popen(mv_cmd, shell=True, stdout=PIPE, preexec_fn=os.setsid) as process:
             try:
                 process.communicate()
@@ -70,8 +70,8 @@ if __name__ == '__main__':
         f.write("Time: " + str(elapsed_time) + "\n\n")
 
         start_time = time.time()                                                    # msr model
-        cmd = "./bin/imitator benchmarks/tamus_examples/" + fi + \
-              "_msr.imi -mode EFunsafe -incl -output-result"
+        cmd = "imitator tamus_examples/" + fi + \
+              "_msr.imi tamus_examples/" + fi + ".imiprop"
         with Popen(cmd, shell=True, stdout=PIPE, preexec_fn=os.setsid) as process:
             try:
                 output = process.communicate(timeout=timelimit)[0]
@@ -81,10 +81,10 @@ if __name__ == '__main__':
         elapsed_time = time.time() - start_time
         print time.time() - start_time
 
-        mv_cmd = "mv benchmarks/tamus_examples/" + fi + \
-                 "_msr.res benchmarks/tamus_examples/results/imitator_output && " \
-                 "mv benchmarks/tamus_examples/results/imitator_output/" + last_part + "_msr.res " \
-                 "benchmarks/tamus_examples/results/imitator_output/" + last_part + "_msr_whole.res "
+        mv_cmd = "mv " + last_part +\
+                 "_msr.res tamus_examples/results/imitator_output && " \
+                 "mv tamus_examples/results/imitator_output/" + last_part + "_msr.res " \
+                 "tamus_examples/results/imitator_output/" + last_part + "_msr_whole.res "
         with Popen(mv_cmd, shell=True, stdout=PIPE, preexec_fn=os.setsid) as process:
             try:
                 process.communicate()
@@ -94,8 +94,8 @@ if __name__ == '__main__':
         f.write("Time: " + str(elapsed_time) + "\n\n")
 
         start_time = time.time()                                                    # msr model with counterexample
-        cmd = "./bin/imitator benchmarks/tamus_examples/" + fi + \
-              "_msr.imi -counterexample -mode EFunsafe -incl -output-result"
+        cmd = "imitator tamus_examples/" + fi + \
+              "_msr.imi tamus_examples/" + fi + "_witness.imiprop"
         with Popen(cmd, shell=True, stdout=PIPE, preexec_fn=os.setsid) as process:
             try:
                 output = process.communicate(timeout=timelimit)[0]
@@ -105,10 +105,10 @@ if __name__ == '__main__':
         elapsed_time = time.time() - start_time
         print time.time() - start_time
 
-        mv_cmd = "mv benchmarks/tamus_examples/" + fi + \
-                 "_msr.res benchmarks/tamus_examples/results/imitator_output && " \
-                 "mv benchmarks/tamus_examples/results/imitator_output/" + last_part + "_msr.res " \
-                 "benchmarks/tamus_examples/results/imitator_output/" + last_part + "_msr_counter.res "
+        mv_cmd = "mv " + last_part +\
+                 "_msr.res tamus_examples/results/imitator_output && " \
+                 "mv tamus_examples/results/imitator_output/" + last_part + "_msr.res " \
+                 "tamus_examples/results/imitator_output/" + last_part + "_msr_counter.res "
         with Popen(mv_cmd, shell=True, stdout=PIPE, preexec_fn=os.setsid) as process:
             try:
                 process.communicate()
@@ -134,10 +134,10 @@ if __name__ == '__main__':
            ]
 
     for fi in fis:
-        last_part = fi[fi.find("/") + 1:]
+        last_part = fi[21:]
         start_time = time.time()                                                    # base model
-        cmd = "./bin/imitator benchmarks/tamus_examples/" + fi + \
-              ".imi -mode EFunsafe -incl -output-result"
+        cmd = "imitator tamus_examples/" + fi + \
+              ".imi tamus_examples/" + fi + ".imiprop"
         with Popen(cmd, shell=True, stdout=PIPE, preexec_fn=os.setsid) as process:
             try:
                 output = process.communicate(timeout=timelimit)[0]
@@ -147,10 +147,10 @@ if __name__ == '__main__':
         elapsed_time = time.time() - start_time
         print time.time() - start_time
 
-        mv_cmd = "mv benchmarks/tamus_examples/" + fi + \
-                 ".res benchmarks/tamus_examples/results/imitator_output && " \
-                 "mv benchmarks/tamus_examples/results/imitator_output/" + last_part + ".res " \
-                 "benchmarks/tamus_examples/results/imitator_output/" + last_part + "_whole.res "
+        mv_cmd = "mv " + last_part +\
+                 ".res tamus_examples/results/imitator_output && " \
+                 "mv tamus_examples/results/imitator_output/" + last_part + ".res " \
+                 "tamus_examples/results/imitator_output/" + last_part + "_whole.res "
         with Popen(mv_cmd, shell=True, stdout=PIPE, preexec_fn=os.setsid) as process:
             try:
                 process.communicate()
@@ -160,8 +160,8 @@ if __name__ == '__main__':
         f.write("Time: " + str(elapsed_time) + "\n\n")
 
         start_time = time.time()                                                    # base model with counterexample
-        cmd = "./bin/imitator benchmarks/tamus_examples/" + fi + \
-              ".imi -counterexample -mode EFunsafe -incl -output-result"
+        cmd = "imitator tamus_examples/" + fi + \
+              ".imi tamus_examples/" + fi + "_witness.imiprop"
         with Popen(cmd, shell=True, stdout=PIPE, preexec_fn=os.setsid) as process:
             try:
                 output = process.communicate(timeout=timelimit)[0]
@@ -171,10 +171,10 @@ if __name__ == '__main__':
         elapsed_time = time.time() - start_time
         print time.time() - start_time
 
-        mv_cmd = "mv benchmarks/tamus_examples/" + fi + \
-                 ".res benchmarks/tamus_examples/results/imitator_output && " \
-                 "mv benchmarks/tamus_examples/results/imitator_output/" + last_part + ".res " \
-                 "benchmarks/tamus_examples/results/imitator_output/" + last_part + "_counter.res "
+        mv_cmd = "mv " + last_part +\
+                 ".res tamus_examples/results/imitator_output && " \
+                 "mv tamus_examples/results/imitator_output/" + last_part + ".res " \
+                 "tamus_examples/results/imitator_output/" + last_part + "_counter.res "
         with Popen(mv_cmd, shell=True, stdout=PIPE, preexec_fn=os.setsid) as process:
             try:
                 process.communicate()
