@@ -18,9 +18,8 @@ if __name__ == '__main__':
     parser.add_argument("--task", choices=["msr", "mmsr", "mg", "mmg", "amsr", "amg", "amsramg"],
                         help="Choose the computation taks: msr - an MSR, mmsr - a minimum MSR, mg - an MG, mmg - a minimum MG, amsr - all MSRs, amg - all MGs, amsramg - all MSRs and MGs.",
                         default="mmsr")
-    parser.add_argument("--run_imitator_on_mg", type=bool,
-                        help="After fnding minimal guarantee, runs imitator on it. This value does not have effect if any task other than mmg is selected.",
-                        default=False)
+    parser.add_argument("--run_imitator_on_mg", action='store_true',
+                        help="After fnding minimal guarantee, runs imitator on it. This value does not have effect if any task other than mmg is selected.")
 
     args = parser.parse_args()
 
