@@ -18,6 +18,9 @@ if __name__ == '__main__':
     parser.add_argument("--task", choices=["msr", "mmsr", "mg", "mmg", "amsr", "amg", "amsramg"],
                         help="Choose the computation taks: msr - an MSR, mmsr - a minimum MSR, mg - an MG, mmg - a minimum MG, amsr - all MSRs, amg - all MGs, amsramg - all MSRs and MGs.",
                         default="mmsr")
+    parser.add_argument("--run_imitator_on_mg", type=bool,
+                        help="After fnding minimal guarantee, runs imitator on it. This value does not have effect if any task other than mmg is selected.",
+                        default=False)
 
     args = parser.parse_args()
 
@@ -43,7 +46,7 @@ if __name__ == '__main__':
             "examples/paper_benchmarks/literature_benchmarks/wfas/WFAS-BBLS15-uppaal.q", "controller")]
 
     if args.task == "mmsr":
-        f = open("examples/paper_benchmarks/literature_benchmarks.txt", "w")
+        f = open("examples/paper_benchmarks/literature_benchmarks_msr_results.txt", "w")
         for fi in fis:
             print fi[0]
             f.write("Model: ")
@@ -87,7 +90,7 @@ if __name__ == '__main__':
             print("")
             f.write("\n")
     else:
-        f = open("examples/paper_benchmarks/literature_benchmarks_mg.txt", "w")
+        f = open("examples/paper_benchmarks/literature_benchmarks_mg_results.txt", "w")
         for fi in fis:
             print fi[0]
             f.write("Model: ")
@@ -119,37 +122,39 @@ if __name__ == '__main__':
             min_size = min(mgs_size)
             min_mgs_indexes = [i for i in range(len(mgs_size)) if mgs_size[i] == min_size]
             mg = mgs[min_mgs_indexes[0]]
+            f.write("Min MSR size: " + str(len(mg)) + "\n")
             relax_list = [c for c in t.clist]
 
-            for c in mg:  # create the list that will be removed from the model
-                relax_list.remove(c)
+            if args.run_imitator_on_mg:
+                for c in mg:  # create the list that will be removed from the model
+                    relax_list.remove(c)
 
-            new_templates, parameter_count = t.TA.generate_relaxed_and_parametrized_templates(relax_list, mg)
-            declaraion_of_the_system = t.model.declaration
-            process_template_pair_of_the_system = t.model.system
-            # print set(constraints[0])
-            imi_name, imiporp_name = xml_to_imi.create_imitator_on_mg(new_templates,
-                                                                      declaraion_of_the_system,
-                                                                      process_template_pair_of_the_system,
-                                                                      t.model_file,
-                                                                      t.query_file,  # 1)
-                                                                      parameter_count)
-            output_file = imi_name.split(".imi")[0]
-            command = "imitator " + imi_name + " " + imiporp_name + " -output-prefix " + output_file + " -verbose mute"
-            f.write("running " + command + "\n")
-            start_time = time.clock()
-            with Popen(command, shell=True, stdout=PIPE, preexec_fn=os.setsid) as process:
-                try:
-                    output = process.communicate(timeout=1200)[0]
-                    parameter_vals, total_sum = xml_to_imi.find_maximum_parameter_values(output_file + ".res",
-                                                                                        parameter_count)
-                    f.write("Total sum for maximum parameter valuations: "+str(total_sum)+"\n")
-                    f.write("Imitator Time: " + str(time.clock()-start_time) + "\n")
+                new_templates, parameter_count = t.TA.generate_relaxed_and_parametrized_templates(relax_list, mg)
+                declaraion_of_the_system = t.model.declaration
+                process_template_pair_of_the_system = t.model.system
+                # print set(constraints[0])
+                imi_name, imiporp_name = xml_to_imi.create_imitator_on_mg(new_templates,
+                                                                          declaraion_of_the_system,
+                                                                          process_template_pair_of_the_system,
+                                                                          t.model_file,
+                                                                          t.query_file,  # 1)
+                                                                          parameter_count)
+                output_file = imi_name.split(".imi")[0]
+                command = "imitator " + imi_name + " " + imiporp_name + " -output-prefix " + output_file + " -verbose mute"
+                f.write("running " + command + "\n")
+                start_time = time.clock()
+                with Popen(command, shell=True, stdout=PIPE, preexec_fn=os.setsid) as process:
+                    try:
+                        output = process.communicate(timeout=30)[0]
+                        parameter_vals, total_sum = xml_to_imi.find_maximum_parameter_values(output_file + ".res",
+                                                                                            parameter_count)
+                        f.write("Total sum for maximum parameter valuations: "+str(total_sum)+"\n")
+                        f.write("Imitator Time: " + str(time.clock()-start_time) + "\n")
 
-                except TimeoutExpired:
-                    os.killpg(process.pid, signal.SIGINT)  # send signal to the process group
-                    output = process.communicate()[0]
-                    f.write("Timeout at 20 minutes\n")
+                    except TimeoutExpired:
+                        os.killpg(process.pid, signal.SIGINT)  # send signal to the process group
+                        output = process.communicate()[0]
+                        f.write("Timeout at 20 minutes\n")
 
 
 

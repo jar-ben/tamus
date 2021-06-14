@@ -58,7 +58,7 @@ def generate_analyze(path):
     return results
 
 
-def generate_analyze_mg(path):
+def generate_analyze_mg(path, run_imi_on_mg=False):
     file_names = example_generator.generate_benchmarks(folder=path)
     results = dict()
 
@@ -96,29 +96,33 @@ def generate_analyze_mg(path):
 
         ind = min_mgs_indexes[0]
         mg = mgs[ind]
-        relax_list = [cons for cons in t.clist]
-        for cons in mg:  # create the list that will be removed from the model
-            relax_list.remove(cons)
-        new_templates, parameter_count = t.TA.generate_relaxed_and_parametrized_templates(relax_list, mg)
-        declaraion_of_the_system = t.model.declaration
-        process_template_pair_of_the_system = t.model.system
-        imi_name, imiporp_name = xml_to_imi.create_imitator_on_mg(new_templates,
-                                                                  declaraion_of_the_system,
-                                                                  process_template_pair_of_the_system,
-                                                                  t.model_file,
-                                                                  t.query_file,
-                                                                  parameter_count)
-        output_file = t.query_file.split(".q")[0]
-        command = "imitator " + imi_name + " " + imiporp_name + " -output-prefix " + output_file + " -verbose mute"
-        start_time = time.clock()
-        os.system(command)
-        result["mg_imitator_time"] = time.clock() - start_time
-        print(time.clock(), start_time, result["mg_imitator_time"])
 
-        parameter_vals, total_sum = xml_to_imi.find_maximum_parameter_values(output_file + ".res", parameter_count)
-        result["optimal_cost"] = total_sum
+        result["mg_imitator_time"] = -1
+        result["optimal_cost"] = -1
+        if run_imi_on_mg:
+            relax_list = [cons for cons in t.clist]
+            for cons in mg:  # create the list that will be removed from the model
+                relax_list.remove(cons)
+            new_templates, parameter_count = t.TA.generate_relaxed_and_parametrized_templates(relax_list, mg)
+            declaraion_of_the_system = t.model.declaration
+            process_template_pair_of_the_system = t.model.system
+            imi_name, imiporp_name = xml_to_imi.create_imitator_on_mg(new_templates,
+                                                                      declaraion_of_the_system,
+                                                                      process_template_pair_of_the_system,
+                                                                      t.model_file,
+                                                                      t.query_file,
+                                                                      parameter_count)
+            output_file = t.query_file.split(".q")[0]
+            command = "imitator " + imi_name + " " + imiporp_name + " -output-prefix " + output_file + " -verbose mute"
+            start_time = time.clock()
+            os.system(command)
+            result["mg_imitator_time"] = time.clock() - start_time
+            print(time.clock(), start_time, result["mg_imitator_time"])
 
-        results[tuple(variables)] = result
+            parameter_vals, total_sum = xml_to_imi.find_maximum_parameter_values(output_file + ".res", parameter_count)
+            result["optimal_cost"] = total_sum
+
+            results[tuple(variables)] = result
 
     f = open(path + "results.pkl", "wb")
     pickle.dump(results, f)
@@ -132,7 +136,9 @@ if __name__ == '__main__':
     parser.add_argument("--task", choices=["msr", "mmsr", "mg", "mmg", "amsr", "amg", "amsramg"],
                         help="Choose the computation taks: msr - an MSR, mmsr - a minimum MSR, mg - an MG, mmg - a minimum MG, amsr - all MSRs, amg - all MGs, amsramg - all MSRs and MGs.",
                         default="mmsr")
-
+    parser.add_argument("--run_imitator_on_mg", type=bool,
+                        help="After fnding minimal guarantee, runs imitator on it. This value does not have effect if any task other than mmg is selected.",
+                        default=False)
     args = parser.parse_args()
 
     if args.task == "mmsr":
@@ -161,8 +167,8 @@ if __name__ == '__main__':
         path = 'examples/generator-mg/'
         if not os.path.exists(path):
             os.makedirs(path)
-        # results = generate_analyze_mg(path)
-        results = pickle.load(open("examples/generator-mg/results.pkl", "rb"))
+        results = generate_analyze_mg(path, args.run_imitator_on_mg)
+        # results = pickle.load(open("examples/generator-mg/results.pkl", "rb"))
 
         for M in [6, 12, 18, 24, 30]:
             for p in [1, 2]:
@@ -175,7 +181,7 @@ if __name__ == '__main__':
                            + str(r['stats']['checks']) + " & " \
                            + "{:.2f}".format(r['mmg_time']) + " & " \
                            + str(int(r['optimal_cost'])) + " & " \
-                           + "{:.3f}".format(r['mg_imitator_time']) + " & "
+                           #+ "{:.3f}".format(r['mg_imitator_time']) + " & "
                     row += tableTA + data
                 row = row[:-2] + "\\\\"
                 print(row)
