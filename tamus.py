@@ -292,7 +292,9 @@ class Tamus:
         print ""
         print "=== detailed statistics ===" 
         print "Identified MSRs:", len(self.msres)
-        print "Minimal MSRs:", len([m for m in self.msres if len(m) == min([len(n) for n in self.msres])]) 
+        print "Minimum MSRs:", len([m for m in self.msres if len(m) == min([len(n) for n in self.msres])]) 
+        print "Identified MGs:", len(self.mgs)
+        print "Minimum MGs:", len([m for m in self.mgs if len(m) == min([len(n) for n in self.mgs])]) 
         print "Performed reachability checks:", self.stats["checks"]
         print "Checks with result 'reachable':", self.stats["checks_sufficient"] 
         print "Checks with result 'unreachable':", self.stats["checks_insufficient"] 
