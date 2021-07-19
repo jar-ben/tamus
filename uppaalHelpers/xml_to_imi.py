@@ -1,6 +1,6 @@
 import ta_helper
 from ortools.linear_solver import pywraplp
-
+import argparse
 
 def parse_declaration(declaration_text):
     all_clocks = []
@@ -270,19 +270,37 @@ def fix_constraints_of_zone(zone):  # Takes the lines found from res file and co
             operator = ">"              # only accepts inequalities with c1*var1 + ... <= value
             final_operator = "<="
             decrease_flag = 1
+        elif "= 0" in constraint:
+            lhs = int(constraint.split("=")[0].strip()[3:])
+            fixed_zone.append(([lhs], "<=", 0, [1]))
+            fixed_zone.append(([lhs], "<=", 0, [-1]))
+            break
         else:                           # Again we do not have these in our examples but might need it later
-            operator = "=="
+            operator = "="
             final_operator = "=="
-
-        atomics = constraint.split(operator)    # atomics = [value, "pari+parj+..."]
-
-        lhs = atomics[0]
-        rhs = atomics[1]
+        sides = constraint.split(operator)    # atomics = [value, "pari+parj+..."]
+        lhs = sides[0]
+        rhs = sides[1]
 
         value = int(lhs.strip()) - decrease_flag
         rhs = rhs.split("+")
-        parameters = [int(parameter.strip()[3]) for parameter in rhs]
-        fixed_zone.append((parameters, final_operator, value))
+
+        vars = []
+        coefficients = []
+
+        for mult in rhs:
+            atomics = mult.split("*")
+            coefficient = 1
+            var = -1
+            for atomic in atomics:
+                if "par" in atomic:
+                    var = int(atomic.strip()[3:])
+                else:
+                    coefficient *= int(atomic.strip())
+            vars.append(var)
+            coefficients.append(coefficient)
+
+        fixed_zone.append((vars, final_operator, value, coefficients))
     return fixed_zone
 
 
@@ -300,8 +318,11 @@ def find_maximum_parameter_values(file_name, parameter_count):
 
     for i in range(len(fixed_zone)):
         constraint = solver.RowConstraint(-solver.infinity(), fixed_zone[i][2], '')  # add the constraints
+        for j in range(len(fixed_zone[i][0])):
+            constraint.SetCoefficient(x[fixed_zone[i][0][j]], fixed_zone[i][3][j])  # adjust which parameters to use
         for j in range(parameter_count):
-            constraint.SetCoefficient(x[j], 1 if j in fixed_zone[i][0] else 0)  # adjust which parameters to use
+            if j not in fixed_zone[i][0]:
+                constraint.SetCoefficient(x[j], 0)  # adjust which parameters to use
 
     status = solver.Solve()
 
