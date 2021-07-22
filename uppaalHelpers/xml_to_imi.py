@@ -248,11 +248,17 @@ def read_res_file(file_name):           # in res file reads the part between BEG
             break
         current_zone.append(line)
 
+    total_time = 0
+    for line in res_file:
+        if "Total computation time" in line:      # read until BEGIN CONSTRAINT
+            total_time = line.split(":")[1].strip()
+            break
+
     res_file.close()
-    return feasible_zones
+    return feasible_zones, total_time
 
 
-def fix_constraints_of_zone(zone):  # Takes the lines found from res file and converts them into usable form
+def fix_constraints_of_zone(zone, find_real_valued_delta=False, epsilon=1e-5):  # Takes the lines found from res file and converts them into usable form
     fixed_zone = []
     decrease_flag = 0
     for constraint in zone:
@@ -269,7 +275,7 @@ def fix_constraints_of_zone(zone):  # Takes the lines found from res file and co
         elif ">" in constraint:         # If the operator is > we dec value by 1 since we are using integers and solver
             operator = ">"              # only accepts inequalities with c1*var1 + ... <= value
             final_operator = "<="
-            decrease_flag = 1
+            decrease_flag = epsilon if find_real_valued_delta else 1
         elif "= 0" in constraint:
             lhs = int(constraint.split("=")[0].strip()[3:])
             fixed_zone.append(([lhs], "<=", 0, [1]))
@@ -304,14 +310,17 @@ def fix_constraints_of_zone(zone):  # Takes the lines found from res file and co
     return fixed_zone
 
 
-def find_maximum_parameter_values(file_name, parameter_count):
-    zones = read_res_file(file_name)    # read all zones
-    fixed_zone = fix_constraints_of_zone(zones[0])  # Our examples only have one but might extend it to multiple later
+def find_maximum_parameter_values(file_name, parameter_count, find_real_valued_delta=False):  # TODO: make delta computation choosable in caller functions
+    zones, total_time = read_res_file(file_name)    # read all zones
+    fixed_zone = fix_constraints_of_zone(zones[0], find_real_valued_delta)  # Our examples only have one but might extend it to multiple later
 
     solver = pywraplp.Solver('', pywraplp.Solver.CBC_MIXED_INTEGER_PROGRAMMING)  # create the solver
     x = {}
     for i in range(parameter_count):
-        x[i] = solver.IntVar(0, solver.infinity(), 'x[' + str(i) + ']')  # add constraints par1, par2, ..., parn
+        if find_real_valued_delta:
+            x[i] = solver.NumVar(0, solver.infinity(), 'x[' + str(i) + ']')  # add constraints par1, par2, ..., parn
+        else:
+            x[i] = solver.IntVar(0, solver.infinity(), 'x[' + str(i) + ']')  # add constraints par1, par2, ..., parn
 
     obj_expr = [x[j] for j in range(parameter_count)]   # maximize par1+par2+...+parn
     solver.Maximize(solver.Sum(obj_expr))
@@ -332,4 +341,5 @@ def find_maximum_parameter_values(file_name, parameter_count):
         for i in range(parameter_count):
             parameter_values.append(x[i].solution_value())
             total_sum += x[i].solution_value()
-    return parameter_values, total_sum
+    return parameter_values, total_sum, total_time
+

@@ -114,12 +114,10 @@ def generate_analyze_mg(path, run_imi_on_mg=False):
                                                                       parameter_count)
             output_file = t.query_file.split(".q")[0]
             command = "imitator " + imi_name + " " + imiporp_name + " -output-prefix " + output_file + " -verbose mute"
-            start_time = time.clock()
             os.system(command)
-            result["mg_imitator_time"] = time.clock() - start_time
-            print(time.clock(), start_time, result["mg_imitator_time"])
 
-            parameter_vals, total_sum = xml_to_imi.find_maximum_parameter_values(output_file + ".res", parameter_count)
+            parameter_vals, total_sum, total_time = xml_to_imi.find_maximum_parameter_values(output_file + ".res", parameter_count)
+            result["mg_imitator_time"] = total_time
             result["optimal_cost"] = total_sum
 
             results[tuple(variables)] = result

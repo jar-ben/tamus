@@ -98,8 +98,6 @@ if __name__ == '__main__':
             f.write(fi[1] + "\n")
             f.write("TA: ")
             f.write(fi[2] + "\n")
-            args = argparse.Namespace()
-            args.run_imitator_on_mg = False
             t = tamus.Tamus(fi[0], fi[1], fi[2], args)
             t.task = "mmg"
             t.timelimit = 1000000
@@ -121,7 +119,7 @@ if __name__ == '__main__':
             min_size = min(mgs_size)
             min_mgs_indexes = [i for i in range(len(mgs_size)) if mgs_size[i] == min_size]
             mg = mgs[min_mgs_indexes[0]]
-            f.write("Min MSR size: " + str(len(mg)) + "\n")
+            f.write("Min MG size: " + str(len(mg)) + "\n")
             relax_list = [c for c in t.clist]
 
             if args.run_imitator_on_mg:
@@ -145,10 +143,11 @@ if __name__ == '__main__':
                 with Popen(command, shell=True, stdout=PIPE, preexec_fn=os.setsid) as process:
                     try:
                         output = process.communicate(timeout=30)[0]
-                        parameter_vals, total_sum = xml_to_imi.find_maximum_parameter_values(output_file + ".res",
-                                                                                            parameter_count)
+                        parameter_vals, total_sum, total_time = xml_to_imi.find_maximum_parameter_values(
+                            output_file + ".res", parameter_count)
+
                         f.write("Total sum for maximum parameter valuations: "+str(total_sum)+"\n")
-                        f.write("Imitator Time: " + str(time.clock()-start_time) + "\n")
+                        f.write("Imitator Time: " + total_time + "\n")
 
                     except TimeoutExpired:
                         os.killpg(process.pid, signal.SIGINT)  # send signal to the process group

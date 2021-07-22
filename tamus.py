@@ -227,8 +227,10 @@ class Tamus:
             command = "imitator " + imi_name + " " + imiporp_name + " -output-prefix " + output_file + " -verbose mute"
             print "running " + command
             os.system(command)
-            parameter_vals, total_sum = xml_to_imi.find_maximum_parameter_values(output_file + ".res", parameter_count)
+            parameter_vals, total_sum, total_time = xml_to_imi.find_maximum_parameter_values(output_file + ".res",
+                                                                                             parameter_count)
             print "Total sum for maximum parameter valuations:", total_sum
+            print "Imitator running time for MG:", total_time
 
     def runMMSR(self):
         self.minimumMSR(allMSRs = self.task == "amsr")
