@@ -7,7 +7,6 @@ class Explorer:
         for i in range(dimension):
             self.vars.append(Bool('x' + str(i)))
         self.s = Solver()
-        self.all_msrs = False
         self.blockUps = []
         self.blockDowns = []
 
@@ -17,43 +16,66 @@ class Explorer:
     def block_up(self, N):
         self.blockUps.append(N[:])
         block = [Not(self.vars[n]) for n in N ]
-        if not self.all_msrs:
-            self.s.add(PbLe([(x,1) for x in self.vars], len(N) - 1) )
-        else:
-            self.s.add(Or(block))
+        self.s.add(Or(block))
 
     def block_down(self, N):
         self.blockDowns.append(N[:])
         block = [self.vars[n] for n in self.complement(N) ]
         self.s.add(Or(block))
 
-    def get_unex(self):
+    def get_unex(self, minCard = -1, maxCard = -1):
+        if max(minCard, maxCard) >= 0:
+            self.s.push()
+        if minCard >= 0:
+            self.s.add(PbGe([(x,1) for x in self.vars], minCard))
+        if maxCard >= 0:
+            self.s.add(PbLe([(x,1) for x in self.vars], maxCard))
+        
         check = self.s.check()
-        if check != sat:
-            return None
-        else:
+        if check == sat:
             seed = []
             m = self.s.model()
             for x in m:
                 if is_true(m[x]):
                     seed.append(int(str(x)[1:]))
-        return seed
+            if max(minCard, maxCard) >= 0:
+                self.s.pop()
+            return seed
+        if max(minCard, maxCard) >= 0:
+            self.s.pop()
+        return None
 
     # maximize a given unexplored subset (seed)
-    def maximize(self, seed):
+    def maximize(self, seed, minCard = -1, maxCard = -1):
+        if max(minCard, maxCard) >= 0:
+            self.s.push()
+        if minCard >= 0:
+            self.s.add(PbGe([(x,1) for x in self.vars], minCard))
+        if maxCard >= 0:
+            self.s.add(PbLe([(x,1) for x in self.vars], maxCard))
         for c in self.complement(seed):
             if self.is_unexplored(seed + [c]):
                 seed.append(c)
+        if max(minCard, maxCard) >= 0:
+            self.s.pop()
         return seed
 
     # minimize a given unexplored subset (seed)
-    def minimize(self, seed):
+    def minimize(self, seed, minCard = -1, maxCard = -1):
+        if max(minCard, maxCard) >= 0:
+            self.s.push()
+        if minCard >= 0:
+            self.s.add(PbGe([(x,1) for x in self.vars], minCard))
+        if maxCard >= 0:
+            self.s.add(PbLe([(x,1) for x in self.vars], maxCard))
         candidates = seed[:]
         while len(candidates) > 0:
             c = candidates[-1]
             candidates = candidates[:-1]
             if not self.is_critical(c, seed):
                 seed.remove(c)
+        if max(minCard, maxCard) >= 0:
+            self.s.pop()
         return seed
 
     # checks whether c is minable critical for N, i.e., whether N - {c} is unexplored
@@ -67,10 +89,11 @@ class Explorer:
     def is_conflicting(self, c, N):
         assert c not in N
         Nc = N + [c]
-        for b in self.blockUps:
-            if set(b).issubset(Nc):
-                return True
-        return False
+        return not self.is_unexplored(Nc)
+        #for b in self.blockUps:
+        #    if set(b).issubset(Nc):
+        #        return True
+        #return False
 
     # checks if N is unexplored
     def is_unexplored(self, N):

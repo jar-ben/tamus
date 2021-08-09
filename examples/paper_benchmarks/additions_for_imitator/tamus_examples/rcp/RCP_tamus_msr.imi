@@ -76,7 +76,7 @@ loc node1_N1child: invariant ckN1 >= 0
 
 loc node1_N1almost_root: invariant ckN1 <= 0 
 	when True sync root1 do {} goto node1_N1root;
-end -- node1
+end
 
 
 
@@ -124,7 +124,7 @@ loc node2_N2rec_idle: invariant ckN2 <= 0
 
 loc node2_N2almost_root: invariant ckN2 <= 0 
 	when True sync root2 do {} goto node2_N2root;
-end -- node2
+end 
 
 (************************************************************)
 automaton wire12
@@ -177,7 +177,7 @@ loc wire12_W12rec_req: invariant ckW12y <= 30
 loc wire12_W12rec_ack_idle: invariant ckW12x <= 30 
 	when True sync rec_ack12 do {} goto wire12_W12rec_idle;
 	when True sync snd_idle12 do {} goto wire12_W12rec_ack_idle;
-end -- wire12
+end 
 
 
 (************************************************************)
@@ -231,12 +231,12 @@ loc wire21_W21rec_req: invariant ckW21y <= 6
 loc wire21_W21rec_ack_idle: invariant ckW21x <= 30 
 	when True sync rec_ack21 do {} goto wire21_W21rec_idle;
 	when True sync snd_idle21 do {} goto wire21_W21rec_ack_idle;
-end -- wire2
+end 
 
 
 
 (************************************************************)
-  automaton s1o -- Safety 1 Observer
+  automaton s1o 
 (************************************************************)
 
 synclabs : root1, child2, child1, root2;
@@ -260,7 +260,7 @@ loc s1o_S1o2: invariant True
 
 loc s1o_S1o1: invariant True
 	when True sync child2 do {} goto s1o_S1oEnd;
-end -- s1o
+end 
 
 
 
@@ -303,31 +303,10 @@ init :=
 	(*------------------------------------------------------------*)
 	(* Old parameter constraints *)
 	(*------------------------------------------------------------*)
--- 	& rc_fast_max	= 85 -- 76 .. 100 (* 85 *)
--- 	& rc_fast_min	= 76
--- 	& rc_slow_max	= 159 .. 200 (* 167 *)
--- 	& rc_slow_min	= 159
--- 	& delay		= 30
-	
--- 	& rc_fast_max <= 100
--- 	& rc_slow_max <= 200
 
-	----------------------
-	-- Constraint output by IMITATOR 1
-	----------------------
---       & 2delay + rc_fast_max < rc_slow_min
---       & rc_slow_min <= rc_slow_max
---       & 2delay < rc_fast_min
---       & 0 <= delay
---       & rc_fast_min <= rc_fast_max
 ;
 
 
-(************************************************************)
-(* Property specification *)
-(************************************************************)
-
-property := unreachable loc[s1o] = s1o_S1oEnd;
 
 
 (************************************************************)

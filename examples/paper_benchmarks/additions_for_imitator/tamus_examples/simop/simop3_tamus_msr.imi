@@ -82,7 +82,7 @@ loc PLC_PLC4: invariant PLCclk <= 600
 	when True sync COMin1 do {} goto PLC_PLC4;
 
 
-end -- PLC
+end 
 
 
 (************************************************************)
@@ -151,7 +151,7 @@ loc COM_COM1: invariant True
 loc COM_COM14: invariant True
 	when  tt <= 0  & tt >= 0  sync COMin1 do {} goto COM_COM15;
 
-end -- COM
+end 
 
 
 (************************************************************)
@@ -182,7 +182,7 @@ loc NET_NET1: invariant True
 	when True sync CNreq1 do {NETclk := 0} goto NET_NET5;
 	when True sync CNreq0 do {NETclk := 0} goto NET_NET2;
 
-end -- NET
+end 
 
 
 (************************************************************)
@@ -222,7 +222,7 @@ loc RIO_RIO9: invariant RIOclk <= 70
 loc RIO_RIO8: invariant True
 	when  zz <= 0  & zz >= 0  sync RNrep1 do {} goto RIO_RIO6;
 
-end -- RIO
+end 
 
 (************************************************************)
 automaton ENV
@@ -245,7 +245,7 @@ loc ENV_ENV1: invariant True
 	when True sync SIGin1 do {ENVclk := 0} goto ENV_ENV2;
 	when True sync SIGout0 do {} goto ENV_ENV1;
 
-end -- ENV
+end 
 
 
 
@@ -266,30 +266,18 @@ init :=
 	(*------------------------------------------------------------*)
 	(* Initial clock constraints *)
 	(*------------------------------------------------------------*)
-	& PLCclk>=0 & COMclk>=0 & NETclk>=0 & RIOclk>=0 & ENVclk>=0 
+	&	PLCclk>=0 
+	&	COMclk>=0 
+	&	NETclk>=0 
+	&	RIOclk>=0 
+	&	ENVclk>=0 
 
 	(*------------------------------------------------------------*)
 	(* Parameter constraints *)
 	(*------------------------------------------------------------*)
 
 
---	& 	0 <  NETd
---	& 	NETd < COMd 
---	&	COMd < RIOd 
---	& 	RIOd < PLCmtt
---	& 	PLCmtt < PLCct
---	& 	PLCct < COMct
---	& 	COMct < SIGmrt
 
-	---START PI0---
---	&	PLCct  = 600
---	&	COMct  = 500
---	& 	SIGmrt = 2071
---	&	PLCmtt = 100
---	&	RIOd   = 70
---	&	COMd   = 25
---	&	NETd   = 10
-	---END PI0---
 
 	&	PLCct  > 0
 	&	COMct  > 0
@@ -300,35 +288,19 @@ init :=
 	&	NETd  > 0
 
 
-	& 	tt = 0 & yy = 0 & zz=0 -- & s = 0
+	& 	tt = 0 
+	&	yy = 0 
+	&	zz = 0 
 
---	&	ta = 0 & tb = 0 & tc = 0 & td = 0 & te = 0
---	&	tf = 0 & tg = 0 & th = 0 & ti = 0 
 
-	---START PI0---
--- 	&	PLCct  = 600
--- 	&	COMct  = 500
--- 	& 	SIGmrt = 2071
--- 	&	PLCmtt = 100
--- 	&	RIOd   = 70
--- 	&	COMd   = 25
--- 	&	NETd   = 10
-	---END PI0---
-	& p0>= 0
-	& p1>= 0
-	& p2>= 0
-	& p3>= 0
-	& p4>= 0
-	& p5>= 0
+	& 	p0>= 0
+	& 	p1>= 0
+	& 	p2>= 0
+	& 	p3>= 0
+	& 	p4>= 0
+	& 	p5>= 0
 
 ;
-
-
-(************************************************************)
-(* Property specification *)
-(************************************************************)
-
-property := unreachable loc[ENV] = ENV_ENV5;
 
 
 (************************************************************)

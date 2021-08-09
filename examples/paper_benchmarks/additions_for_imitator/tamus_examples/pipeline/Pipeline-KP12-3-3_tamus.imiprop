@@ -1,0 +1,1 @@
+property := #synth EF(loc[Consumer]=Consumer_consWaiting&loc[Producer]=Producer_prodReady&loc[observer]=observer_finished);
