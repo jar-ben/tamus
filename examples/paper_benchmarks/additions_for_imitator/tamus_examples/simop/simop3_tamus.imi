@@ -346,23 +346,7 @@ init :=
 	(*------------------------------------------------------------*)
 
 
---	& 	0 <  NETd
---	& 	NETd < COMd 
---	&	COMd < RIOd 
---	& 	RIOd < PLCmtt
---	& 	PLCmtt < PLCct
---	& 	PLCct < COMct
---	& 	COMct < SIGmrt
 
-	---START PI0---
---	&	PLCct  = 600
---	&	COMct  = 500
---	& 	SIGmrt = 2071
---	&	PLCmtt = 100
---	&	RIOd   = 70
---	&	COMd   = 25
---	&	NETd   = 10
-	---END PI0---
 
 	&	PLCct  > 0
 	&	COMct  > 0
@@ -373,20 +357,9 @@ init :=
 	&	NETd  > 0
 
 
-	& 	tt = 0 & yy = 0 & zz=0 -- & s = 0
+	& 	tt = 0 & yy = 0 & zz=0 
 
---	&	ta = 0 & tb = 0 & tc = 0 & td = 0 & te = 0
---	&	tf = 0 & tg = 0 & th = 0 & ti = 0 
 
-	---START PI0---
--- 	&	PLCct  = 600
--- 	&	COMct  = 500
--- 	& 	SIGmrt = 2071
--- 	&	PLCmtt = 100
--- 	&	RIOd   = 70
--- 	&	COMd   = 25
--- 	&	NETd   = 10
-	---END PI0---
 	& p0>= 0
 	& p1>= 0
 	& p2>= 0

@@ -283,7 +283,7 @@ end
 
 
 (************************************************************)
-  automaton s1o -- Safety 1 Observer
+  automaton s1o
 (************************************************************)
 
 synclabs : root1, child2, child1, root2;
@@ -397,23 +397,7 @@ init :=
 	(*------------------------------------------------------------*)
 	(* Old parameter constraints *)
 	(*------------------------------------------------------------*)
--- 	& rc_fast_max	= 85 -- 76 .. 100 (* 85 *)
--- 	& rc_fast_min	= 76
--- 	& rc_slow_max	= 159 .. 200 (* 167 *)
--- 	& rc_slow_min	= 159
--- 	& delay		= 30
-	
--- 	& rc_fast_max <= 100
--- 	& rc_slow_max <= 200
 
-	----------------------
-	-- Constraint output by IMITATOR 1
-	----------------------
---       & 2delay + rc_fast_max < rc_slow_min
---       & rc_slow_min <= rc_slow_max
---       & 2delay < rc_fast_min
---       & 0 <= delay
---       & rc_fast_min <= rc_fast_max
 ;
 
 

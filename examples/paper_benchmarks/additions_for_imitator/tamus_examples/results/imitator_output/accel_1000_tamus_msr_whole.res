@@ -25,7 +25,7 @@ Average transitions per IPTA            : 1296.0
 
 BEGIN CONSTRAINT
  p1 >= 2950
-& p2 >= 2900
+& p0 >= 2900
 END CONSTRAINT
 
 ------------------------------------------------------------

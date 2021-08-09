@@ -272,10 +272,11 @@ def fix_constraints_of_zone(zone, find_real_valued_delta=False, epsilon=1e-5):  
         if ">=" in constraint:          # value >(=) pari  + parj + ... ->pari + parj + ...<(=) value
             operator = ">="
             final_operator = "<="
+            decrease_flag = 0
         elif ">" in constraint:         # If the operator is > we dec value by 1 since we are using integers and solver
             operator = ">"              # only accepts inequalities with c1*var1 + ... <= value
             final_operator = "<="
-            decrease_flag = epsilon if find_real_valued_delta else 1
+            decrease_flag = epsilon if find_real_valued_delta else 1  # this is nonzero if equality not included
         elif "= 0" in constraint:
             lhs = int(constraint.split("=")[0].strip()[3:])
             fixed_zone.append(([lhs], "<=", 0, [1]))
@@ -284,11 +285,20 @@ def fix_constraints_of_zone(zone, find_real_valued_delta=False, epsilon=1e-5):  
         else:                           # Again we do not have these in our examples but might need it later
             operator = "="
             final_operator = "=="
-        sides = constraint.split(operator)    # atomics = [value, "pari+parj+..."]
-        lhs = sides[0]
-        rhs = sides[1]
 
-        value = int(lhs.strip()) - decrease_flag
+        sides = constraint.split(operator)    # atomics = [value, "pari+parj+..."] or [value, "pari+parj+..."]
+        if "p" in sides[0]:                   # lhs contains value
+            lhs = sides[1]                    # rhs contains parameters
+            rhs = sides[0]
+            final_operator = ">="
+        else:
+            lhs = sides[0]
+            rhs = sides[1]
+
+        value = int(lhs.strip())
+        if final_operator == ">=":  # we need pars <= val. Hence if it is pars >= val, we make it -pars <= -val
+            value *= -1
+        value -= decrease_flag
         rhs = rhs.split("+")
 
         vars = []
@@ -299,20 +309,35 @@ def fix_constraints_of_zone(zone, find_real_valued_delta=False, epsilon=1e-5):  
             coefficient = 1
             var = -1
             for atomic in atomics:
-                if "par" in atomic:
-                    var = int(atomic.strip()[3:])
+                if "p" in atomic:
+                    var = int(atomic.strip()[1:])
                 else:
                     coefficient *= int(atomic.strip())
             vars.append(var)
+            if final_operator == ">=":  # we need pars <= val. Hence if it is pars >= val, we make it -pars <= -val
+                coefficient *= -1
             coefficients.append(coefficient)
 
+        final_operator = "<="
         fixed_zone.append((vars, final_operator, value, coefficients))
     return fixed_zone
 
 
-def find_maximum_parameter_values(file_name, parameter_count, find_real_valued_delta=False):  # TODO: make delta computation choosable in caller functions
+def find_maximum_parameter_values(file_name, parameter_count, find_real_valued_delta=False, maximize=True):  # TODO: make delta computation choosable in caller functions
     zones, total_time = read_res_file(file_name)    # read all zones
-    fixed_zone = fix_constraints_of_zone(zones[0], find_real_valued_delta)  # Our examples only have one but might extend it to multiple later
+
+    optimum_sums = []
+    optimum_parameters = []
+    for zone in zones:
+        parameter_values, total_sum = solve_milp(zone, parameter_count, find_real_valued_delta, maximize)
+        optimum_sums.append(total_sum)
+        optimum_parameters.append(parameter_values)
+
+    return optimum_parameters[0], optimum_sums[0], total_time
+
+
+def solve_milp(zone, parameter_count, find_real_valued_delta, maximize):
+    fixed_zone = fix_constraints_of_zone(zone, find_real_valued_delta)  # Our examples only have one but might extend it to multiple later
 
     solver = pywraplp.Solver('', pywraplp.Solver.CBC_MIXED_INTEGER_PROGRAMMING)  # create the solver
     x = {}
@@ -323,7 +348,10 @@ def find_maximum_parameter_values(file_name, parameter_count, find_real_valued_d
             x[i] = solver.IntVar(0, solver.infinity(), 'x[' + str(i) + ']')  # add constraints par1, par2, ..., parn
 
     obj_expr = [x[j] for j in range(parameter_count)]   # maximize par1+par2+...+parn
-    solver.Maximize(solver.Sum(obj_expr))
+    if maximize:
+        solver.Maximize(solver.Sum(obj_expr))
+    else:
+        solver.Minimize(solver.Sum(obj_expr))
 
     for i in range(len(fixed_zone)):
         constraint = solver.RowConstraint(-solver.infinity(), fixed_zone[i][2], '')  # add the constraints
@@ -341,5 +369,27 @@ def find_maximum_parameter_values(file_name, parameter_count, find_real_valued_d
         for i in range(parameter_count):
             parameter_values.append(x[i].solution_value())
             total_sum += x[i].solution_value()
-    return parameter_values, total_sum, total_time
+    return parameter_values, total_sum
 
+
+if __name__ == '__main__':
+
+    directory = "examples/paper_benchmarks/additions_for_imitator/tamus_examples/results/imitator_output/"
+    fis = ['accel_1000_tamus_msr_whole.res',
+           'RCP_tamus_msr_whole.res',
+           'JLR13-3tasks-npfp-100-2_tamus_msr_whole.res',
+           'CAS_tamus_msr_whole.res',
+           'coffee_tamus_msr_whole.res',
+           'maler_4_4_tamus_msr_whole.res',
+           'Pipeline-KP12-3-3_tamus_msr_whole.res',
+           'simop3_tamus_msr_whole.res',
+           'fischerHRSV02-2_tamus_msr_whole.res',
+           'WFAS_tamus_msr_whole.res',
+           ]
+    cnts = [2, 1, 1, 2, 2, 5, 1, 6, 1, 1]
+
+    for i in range(len(fis)):
+        name = directory + fis[i]
+        par, s, t = find_maximum_parameter_values(name, cnts[i], find_real_valued_delta=False, maximize=False)
+        print(name)
+        print(s)
