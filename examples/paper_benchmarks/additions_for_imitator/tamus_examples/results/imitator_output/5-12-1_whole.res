@@ -1,7 +1,7 @@
 (************************************************************
  * Result by: IMITATOR 3.1-beta "Cheese Artichoke" (build master/e4be7d7)
  * Model    : 'tamus_examples/generator_examples/5/5-12-1.imi'
- * Generated: Tue Jun 8, 2021 05:18:50
+ * Generated: Tue Aug 10, 2021 05:43:33
  * Command  : imitator tamus_examples/generator_examples/5/5-12-1.imi tamus_examples/generator_examples/5/5-12-1.imiprop
  ************************************************************)
 
@@ -62,21 +62,21 @@ Constraint nature                       : good
 Number of states                        : 14
 Number of transitions                   : 13
 Number of computed states               : 14
-Total computation time                  : 80.524 seconds
-States/second in state space            : 0.1 (14/80.524 seconds)
-Computed states/second                  : 0.1 (14/80.524 seconds)
-Estimated memory                        : 2.757 MiB (i.e., 361407 words of size 8)
+Total computation time                  : 69.484 seconds
+States/second in state space            : 0.2 (14/69.484 seconds)
+Computed states/second                  : 0.2 (14/69.484 seconds)
+Estimated memory                        : 2.758 MiB (i.e., 361560 words of size 8)
 ------------------------------------------------------------
 
 ------------------------------------------------------------
  Statistics: Algorithm counters
 ------------------------------------------------------------
-main algorithm + parsing                : 80.530 seconds
-main algorithm                          : 80.524 seconds
+main algorithm + parsing                : 69.492 seconds
+main algorithm                          : 69.484 seconds
 ------------------------------------------------------------
  Statistics: Parsing counters
 ------------------------------------------------------------
-model parsing and converting            : 0.006 second
+model parsing and converting            : 0.007 second
 ------------------------------------------------------------
  Statistics: State computation counters
 ------------------------------------------------------------
@@ -93,5 +93,5 @@ state space drawing                     : 0.000 second
 ------------------------------------------------------------
  Statistics: Global counter
 ------------------------------------------------------------
-total                                   : 82.257 seconds
+total                                   : 71.016 seconds
 ------------------------------------------------------------

@@ -1,8 +1,8 @@
 (************************************************************
  * Result by: IMITATOR 3.1-beta "Cheese Artichoke" (build master/e4be7d7)
- * Model    : 'RCP_tamus_msr.imi'
- * Generated: Mon Aug 9, 2021 22:08:20
- * Command  : imitator RCP_tamus_msr.imi RCP_tamus.imiprop
+ * Model    : 'tamus_examples/rcp/RCP_tamus_msr.imi'
+ * Generated: Tue Aug 10, 2021 01:53:27
+ * Command  : imitator tamus_examples/rcp/RCP_tamus_msr.imi tamus_examples/rcp/RCP_tamus.imiprop
  ************************************************************)
 
 
@@ -36,9 +36,9 @@ Number of states                        : 48
 Number of transitions                   : 66
 Number of computed states               : 67
 Total computation time                  : 0.018 second
-States/second in state space            : 2578.6 (48/0.018 second)
-Computed states/second                  : 3599.4 (67/0.018 second)
-Estimated memory                        : 4.303 MiB (i.e., 564007 words of size 8)
+States/second in state space            : 2535.7 (48/0.018 second)
+Computed states/second                  : 3539.5 (67/0.018 second)
+Estimated memory                        : 4.303 MiB (i.e., 564020 words of size 8)
 ------------------------------------------------------------
 
 ------------------------------------------------------------

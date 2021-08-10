@@ -1,7 +1,7 @@
 (************************************************************
  * Result by: IMITATOR 3.1-beta "Cheese Artichoke" (build master/e4be7d7)
  * Model    : 'tamus_examples/pipeline/Pipeline-KP12-3-3_tamus_msr.imi'
- * Generated: Tue Jun 8, 2021 02:07:48
+ * Generated: Tue Aug 10, 2021 01:32:52
  * Command  : imitator tamus_examples/pipeline/Pipeline-KP12-3-3_tamus_msr.imi tamus_examples/pipeline/Pipeline-KP12-3-3_tamus.imiprop
  ************************************************************)
 
@@ -35,21 +35,21 @@ Constraint nature                       : good
 Number of states                        : 29
 Number of transitions                   : 41
 Number of computed states               : 42
-Total computation time                  : 0.025 second
-States/second in state space            : 1134.7 (29/0.025 second)
-Computed states/second                  : 1643.4 (42/0.025 second)
-Estimated memory                        : 3.682 MiB (i.e., 482684 words of size 8)
+Total computation time                  : 0.023 second
+States/second in state space            : 1215.6 (29/0.023 second)
+Computed states/second                  : 1760.6 (42/0.023 second)
+Estimated memory                        : 3.683 MiB (i.e., 482824 words of size 8)
 ------------------------------------------------------------
 
 ------------------------------------------------------------
  Statistics: Algorithm counters
 ------------------------------------------------------------
 main algorithm + parsing                : 0.029 second
-main algorithm                          : 0.025 second
+main algorithm                          : 0.023 second
 ------------------------------------------------------------
  Statistics: Parsing counters
 ------------------------------------------------------------
-model parsing and converting            : 0.004 second
+model parsing and converting            : 0.005 second
 ------------------------------------------------------------
  Statistics: State computation counters
 ------------------------------------------------------------

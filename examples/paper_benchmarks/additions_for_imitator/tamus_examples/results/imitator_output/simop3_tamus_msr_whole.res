@@ -1,8 +1,8 @@
 (************************************************************
  * Result by: IMITATOR 3.1-beta "Cheese Artichoke" (build master/e4be7d7)
- * Model    : 'simop3_tamus_msr.imi'
- * Generated: Mon Aug 9, 2021 21:59:55
- * Command  : imitator simop3_tamus_msr.imi simop3_tamus.imiprop
+ * Model    : 'tamus_examples/simop/simop3_tamus_msr.imi'
+ * Generated: Tue Aug 10, 2021 02:33:31
+ * Command  : imitator tamus_examples/simop/simop3_tamus_msr.imi tamus_examples/simop/simop3_tamus.imiprop
  ************************************************************)
 
 
@@ -62,17 +62,17 @@ Constraint nature                       : good
 Number of states                        : 59
 Number of transitions                   : 78
 Number of computed states               : 79
-Total computation time                  : 4.318 seconds
-States/second in state space            : 13.6 (59/4.318 seconds)
-Computed states/second                  : 18.2 (79/4.318 seconds)
-Estimated memory                        : 5.428 MiB (i.e., 711557 words of size 8)
+Total computation time                  : 3.951 seconds
+States/second in state space            : 14.9 (59/3.951 seconds)
+Computed states/second                  : 19.9 (79/3.951 seconds)
+Estimated memory                        : 5.429 MiB (i.e., 711590 words of size 8)
 ------------------------------------------------------------
 
 ------------------------------------------------------------
  Statistics: Algorithm counters
 ------------------------------------------------------------
-main algorithm + parsing                : 4.323 seconds
-main algorithm                          : 4.318 seconds
+main algorithm + parsing                : 3.956 seconds
+main algorithm                          : 3.951 seconds
 ------------------------------------------------------------
  Statistics: Parsing counters
 ------------------------------------------------------------
@@ -93,5 +93,5 @@ state space drawing                     : 0.000 second
 ------------------------------------------------------------
  Statistics: Global counter
 ------------------------------------------------------------
-total                                   : 4.325 seconds
+total                                   : 3.957 seconds
 ------------------------------------------------------------
