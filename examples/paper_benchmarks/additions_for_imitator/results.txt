@@ -1,204 +1,204 @@
 Model: accel/accel_1000_tamus
-Time: 232.00356698
+Time: 184.477543116
 
 Model: accel/accel_1000_tamus
-Time: 1.69434285164
+Time: 1.472438097
 
 Model: accel/accel_1000_tamus
-Time: 1.94237399101
+Time: 1.73005008698
 
 Model: accel/accel_1000_tamus
-Time: 0.95526599884
+Time: 0.880080938339
 
 Model: CAS/CAS_tamus
-Time: 0.869091033936
+Time: 0.809656143188
 
 Model: CAS/CAS_tamus
-Time: 0.0718808174133
+Time: 0.0653030872345
 
 Model: CAS/CAS_tamus
-Time: 0.103496074677
+Time: 0.104809045792
 
 Model: CAS/CAS_tamus
-Time: 0.0211532115936
+Time: 0.022029876709
 
 Model: coffee/coffee_tamus
-Time: 0.0214660167694
+Time: 0.023185968399
 
 Model: coffee/coffee_tamus
-Time: 0.021852016449
+Time: 0.0125398635864
 
 Model: coffee/coffee_tamus
-Time: 0.0099880695343
+Time: 0.00877404212952
 
 Model: coffee/coffee_tamus
-Time: 0.00930094718933
+Time: 0.00778794288635
 
 Model: fischer/fischerHRSV02-2_tamus
-Time: 1200.01233912
+Time: 1200.0088799
 
 Model: fischer/fischerHRSV02-2_tamus
-Time: 0.196151971817
+Time: 0.173300981522
 
 Model: fischer/fischerHRSV02-2_tamus
-Time: 1200.05717802
+Time: 1200.05942893
 
 Model: fischer/fischerHRSV02-2_tamus
-Time: 0.0362808704376
+Time: 0.0325138568878
 
 Model: jlr/JLR13-3tasks-npfp-100-2_tamus
-Time: 1200.09836102
+Time: 1200.09033012
 
 Model: jlr/JLR13-3tasks-npfp-100-2_tamus
-Time: 0.0895040035248
+Time: 0.315791130066
 
 Model: jlr/JLR13-3tasks-npfp-100-2_tamus
-Time: 3.50159811974
+Time: 3.24014520645
 
 Model: jlr/JLR13-3tasks-npfp-100-2_tamus
-Time: 0.115483999252
+Time: 0.102902889252
 
 Model: jobshop/maler_4_4_tamus
-Time: 0.0159990787506
+Time: 1200.06002417
 
 Model: jobshop/maler_4_4_tamus
-Time: 0.0112628936768
+Time: 1200.04345266
 
 Model: jobshop/maler_4_4_tamus
-Time: 0.0122158527374
+Time: 305.163094044
 
 Model: jobshop/maler_4_4_tamus
-Time: 0.0147459506989
+Time: 301.076822042
 
 Model: pipeline/Pipeline-KP12-3-3_tamus
-Time: 1200.05589795
+Time: 1200.05834508
 
 Model: pipeline/Pipeline-KP12-3-3_tamus
-Time: 1200.09317517
+Time: 1200.05901217
 
 Model: pipeline/Pipeline-KP12-3-3_tamus
-Time: 0.0428988933563
+Time: 0.0422449111938
 
 Model: pipeline/Pipeline-KP12-3-3_tamus
-Time: 0.0458190441132
+Time: 0.0385770797729
 
 Model: rcp/RCP_tamus
-Time: 0.0176770687103
+Time: 1200.07277203
 
 Model: rcp/RCP_tamus
-Time: 0.0177919864655
+Time: 34.3784689903
 
 Model: rcp/RCP_tamus
-Time: 0.0143311023712
+Time: 0.0391337871552
 
 Model: rcp/RCP_tamus
-Time: 0.0128960609436
+Time: 0.0347831249237
 
 Model: simop/simop3_tamus
-Time: 0.0143721103668
+Time: 1200.14803004
 
 Model: simop/simop3_tamus
-Time: 0.012050151825
+Time: 1200.1479938
 
 Model: simop/simop3_tamus
-Time: 0.0128719806671
+Time: 3.98044395447
 
 Model: simop/simop3_tamus
-Time: 0.0134069919586
+Time: 0.372189044952
 
 Model: wfas/WFAS_tamus
-Time: 16.5209560394
+Time: 14.6965310574
 
 Model: wfas/WFAS_tamus
-Time: 16.0464169979
+Time: 14.6624541283
 
 Model: wfas/WFAS_tamus
-Time: 0.0272629261017
+Time: 0.0283489227295
 
 Model: wfas/WFAS_tamus
-Time: 0.0257351398468
+Time: 0.0272250175476
 
 Model: generator_examples/3/3-12-1
-Time: 0.156002044678
+Time: 0.0943760871887
 
 Model: generator_examples/3/3-12-1
-Time: 0.0967350006104
+Time: 0.0976850986481
 
 Model: generator_examples/3/3-12-2
-Time: 0.554432153702
+Time: 0.490628957748
 
 Model: generator_examples/3/3-12-2
-Time: 0.231523036957
+Time: 0.169811964035
 
 Model: generator_examples/3/3-18-1
-Time: 66.859951973
+Time: 62.8788368702
 
 Model: generator_examples/3/3-18-1
-Time: 67.6688320637
+Time: 62.0135860443
 
 Model: generator_examples/3/3-18-2
-Time: 1200.02983904
+Time: 1200.03295493
 
 Model: generator_examples/3/3-18-2
-Time: 410.917644024
+Time: 374.486490011
 
 Model: generator_examples/3/3-24-1
-Time: 1200.0331769
+Time: 1200.03441811
 
 Model: generator_examples/3/3-24-1
-Time: 1200.03166413
+Time: 1200.03445101
 
 Model: generator_examples/3/3-24-2
-Time: 1200.05598402
+Time: 1200.04255915
 
 Model: generator_examples/3/3-24-2
-Time: 1200.0411551
+Time: 1200.04227996
 
 Model: generator_examples/3/3-30-1
-Time: 1200.03483796
+Time: 1200.03631997
 
 Model: generator_examples/3/3-30-1
-Time: 1200.03368402
+Time: 1200.03726101
 
 Model: generator_examples/3/3-30-2
-Time: 1200.06177902
+Time: 1200.04807997
 
 Model: generator_examples/3/3-30-2
-Time: 1200.05684185
+Time: 1200.04911304
 
 Model: generator_examples/5/5-12-1
-Time: 82.2796490192
+Time: 71.0380280018
 
 Model: generator_examples/5/5-12-1
-Time: 80.4419190884
+Time: 70.2098219395
 
 Model: generator_examples/5/5-12-2
-Time: 1200.06751585
+Time: 1200.05123496
 
 Model: generator_examples/5/5-12-2
-Time: 531.868960142
+Time: 485.474565029
 
 Model: generator_examples/5/5-18-1
-Time: 1200.04700398
+Time: 1200.04988694
 
 Model: generator_examples/5/5-18-1
-Time: 1200.06310201
+Time: 1200.04875398
 
 Model: generator_examples/5/5-18-2
-Time: 1200.05922699
+Time: 1200.06255603
 
 Model: generator_examples/5/5-18-2
-Time: 1200.06011891
+Time: 1200.06198907
 
 Model: generator_examples/7/7-12-1
-Time: 1200.03919792
+Time: 1200.04217815
 
 Model: generator_examples/7/7-12-1
-Time: 1200.04368901
+Time: 1200.03974295
 
 Model: generator_examples/7/7-12-2
-Time: 1200.04253888
+Time: 1200.04653001
 
 Model: generator_examples/7/7-12-2
-Time: 1200.05156708
+Time: 1200.0435431
 

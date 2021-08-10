@@ -203,11 +203,20 @@ end
 
 
 
-
-
-var init	: region;
-
 init :=
+      loc[job1] = job1_I1
+	& loc[job2] = job2_I2
+	& loc[job3] = job3_I3
+	& loc[job4] = job4_I4
+
+	& m1=0 & m2=0 	& m3=0 & m4=0
+
+
+	& x1=0
+	& x2=0
+	& x3=0
+	& x4=0
+	& s=0
 
 (*	& d11=1
 	& d12=3

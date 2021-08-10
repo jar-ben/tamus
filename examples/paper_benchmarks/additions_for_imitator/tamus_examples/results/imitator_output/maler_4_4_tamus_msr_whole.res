@@ -1,8 +1,8 @@
 (************************************************************
  * Result by: IMITATOR 3.1-beta "Cheese Artichoke" (build master/e4be7d7)
- * Model    : 'maler_4_4_tamus_msr.imi'
- * Generated: Mon Aug 9, 2021 22:17:27
- * Command  : imitator maler_4_4_tamus_msr.imi maler_4_4_tamus.imiprop
+ * Model    : 'tamus_examples/jobshop/maler_4_4_tamus_msr.imi'
+ * Generated: Tue Aug 10, 2021 00:47:51
+ * Command  : imitator tamus_examples/jobshop/maler_4_4_tamus_msr.imi tamus_examples/jobshop/maler_4_4_tamus.imiprop
  ************************************************************)
 
 
@@ -39,21 +39,21 @@ Constraint nature                       : good
 Number of states                        : 17288
 Number of transitions                   : 39631
 Number of computed states               : 39632
-Total computation time                  : 307.920 seconds
-States/second in state space            : 56.1 (17288/307.920 seconds)
-Computed states/second                  : 128.7 (39632/307.920 seconds)
-Estimated memory                        : 56.746 GiB (i.e., 7616438525 words of size 8)
+Total computation time                  : 305.114 seconds
+States/second in state space            : 56.6 (17288/305.114 seconds)
+Computed states/second                  : 129.8 (39632/305.114 seconds)
+Estimated memory                        : 56.746 GiB (i.e., 7616438205 words of size 8)
 ------------------------------------------------------------
 
 ------------------------------------------------------------
  Statistics: Algorithm counters
 ------------------------------------------------------------
-main algorithm + parsing                : 307.925 seconds
-main algorithm                          : 307.920 seconds
+main algorithm + parsing                : 305.118 seconds
+main algorithm                          : 305.114 seconds
 ------------------------------------------------------------
  Statistics: Parsing counters
 ------------------------------------------------------------
-model parsing and converting            : 0.004 second
+model parsing and converting            : 0.003 second
 ------------------------------------------------------------
  Statistics: State computation counters
 ------------------------------------------------------------
@@ -70,5 +70,5 @@ state space drawing                     : 0.000 second
 ------------------------------------------------------------
  Statistics: Global counter
 ------------------------------------------------------------
-total                                   : 307.925 seconds
+total                                   : 305.118 seconds
 ------------------------------------------------------------

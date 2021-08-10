@@ -1,7 +1,7 @@
 (************************************************************
  * Result by: IMITATOR 3.1-beta "Cheese Artichoke" (build master/e4be7d7)
  * Model    : 'tamus_examples/wfas/WFAS_tamus_msr.imi'
- * Generated: Tue Jun 8, 2021 02:08:20
+ * Generated: Tue Aug 10, 2021 02:34:01
  * Command  : imitator tamus_examples/wfas/WFAS_tamus_msr.imi tamus_examples/wfas/WFAS_tamus.imiprop
  ************************************************************)
 
@@ -24,7 +24,7 @@ Average transitions per IPTA            : 7.6
 ------------------------------------------------------------
 
 BEGIN CONSTRAINT
- p0 > 5
+ p3 > 5
 END CONSTRAINT
 
 ------------------------------------------------------------
@@ -36,15 +36,15 @@ Number of states                        : 18
 Number of transitions                   : 19
 Number of computed states               : 20
 Total computation time                  : 0.012 second
-States/second in state space            : 1412.5 (18/0.012 second)
-Computed states/second                  : 1569.4 (20/0.012 second)
-Estimated memory                        : 2.587 MiB (i.e., 339095 words of size 8)
+States/second in state space            : 1489.1 (18/0.012 second)
+Computed states/second                  : 1654.6 (20/0.012 second)
+Estimated memory                        : 2.588 MiB (i.e., 339231 words of size 8)
 ------------------------------------------------------------
 
 ------------------------------------------------------------
  Statistics: Algorithm counters
 ------------------------------------------------------------
-main algorithm + parsing                : 0.016 second
+main algorithm + parsing                : 0.015 second
 main algorithm                          : 0.012 second
 ------------------------------------------------------------
  Statistics: Parsing counters
@@ -66,5 +66,5 @@ state space drawing                     : 0.000 second
 ------------------------------------------------------------
  Statistics: Global counter
 ------------------------------------------------------------
-total                                   : 0.016 second
+total                                   : 0.015 second
 ------------------------------------------------------------

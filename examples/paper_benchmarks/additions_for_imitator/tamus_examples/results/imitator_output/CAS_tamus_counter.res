@@ -1,7 +1,7 @@
 (************************************************************
  * Result by: IMITATOR 3.1-beta "Cheese Artichoke" (build master/e4be7d7)
  * Model    : 'tamus_examples/CAS/CAS_tamus.imi'
- * Generated: Tue Jun 8, 2021 00:27:43
+ * Generated: Mon Aug 9, 2021 23:42:41
  * Command  : imitator tamus_examples/CAS/CAS_tamus.imi tamus_examples/CAS/CAS_tamus_witness.imiprop
  ************************************************************)
 
@@ -55,21 +55,21 @@ Constraint nature                       : good
 Number of states                        : 29
 Number of transitions                   : 38
 Number of computed states               : 72
-Total computation time                  : 0.058 second
-States/second in state space            : 497.3 (29/0.058 second)
-Computed states/second                  : 1234.7 (72/0.058 second)
-Estimated memory                        : 3.520 MiB (i.e., 461392 words of size 8)
+Total computation time                  : 0.048 second
+States/second in state space            : 592.8 (29/0.048 second)
+Computed states/second                  : 1471.9 (72/0.048 second)
+Estimated memory                        : 3.521 MiB (i.e., 461548 words of size 8)
 ------------------------------------------------------------
 
 ------------------------------------------------------------
  Statistics: Algorithm counters
 ------------------------------------------------------------
-main algorithm + parsing                : 0.064 second
-main algorithm                          : 0.058 second
+main algorithm + parsing                : 0.056 second
+main algorithm                          : 0.048 second
 ------------------------------------------------------------
  Statistics: Parsing counters
 ------------------------------------------------------------
-model parsing and converting            : 0.006 second
+model parsing and converting            : 0.007 second
 ------------------------------------------------------------
  Statistics: State computation counters
 ------------------------------------------------------------
@@ -86,5 +86,5 @@ state space drawing                     : 0.000 second
 ------------------------------------------------------------
  Statistics: Global counter
 ------------------------------------------------------------
-total                                   : 0.065 second
+total                                   : 0.056 second
 ------------------------------------------------------------

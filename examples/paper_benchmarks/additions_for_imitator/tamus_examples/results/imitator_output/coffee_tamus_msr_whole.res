@@ -1,7 +1,7 @@
 (************************************************************
  * Result by: IMITATOR 3.1-beta "Cheese Artichoke" (build master/e4be7d7)
  * Model    : 'tamus_examples/coffee/coffee_tamus_msr.imi'
- * Generated: Tue Jun 8, 2021 00:27:43
+ * Generated: Mon Aug 9, 2021 23:42:42
  * Command  : imitator tamus_examples/coffee/coffee_tamus_msr.imi tamus_examples/coffee/coffee_tamus.imiprop
  ************************************************************)
 
@@ -37,9 +37,9 @@ Number of states                        : 6
 Number of transitions                   : 7
 Number of computed states               : 8
 Total computation time                  : 0.001 second
-States/second in state space            : 4037.5 (6/0.001 second)
-Computed states/second                  : 5383.3 (8/0.001 second)
-Estimated memory                        : 1.976 MiB (i.e., 259021 words of size 8)
+States/second in state space            : 3720.0 (6/0.001 second)
+Computed states/second                  : 4960.0 (8/0.001 second)
+Estimated memory                        : 1.977 MiB (i.e., 259155 words of size 8)
 ------------------------------------------------------------
 
 ------------------------------------------------------------

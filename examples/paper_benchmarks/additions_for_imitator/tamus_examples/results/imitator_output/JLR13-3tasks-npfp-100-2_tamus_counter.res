@@ -1,7 +1,7 @@
 (************************************************************
  * Result by: IMITATOR 3.1-beta "Cheese Artichoke" (build master/e4be7d7)
  * Model    : 'tamus_examples/jlr/JLR13-3tasks-npfp-100-2_tamus.imi'
- * Generated: Tue Jun 8, 2021 01:27:44
+ * Generated: Tue Aug 10, 2021 00:42:42
  * Command  : imitator tamus_examples/jlr/JLR13-3tasks-npfp-100-2_tamus.imi tamus_examples/jlr/JLR13-3tasks-npfp-100-2_tamus_witness.imiprop
  ************************************************************)
 
@@ -70,21 +70,21 @@ Constraint nature                       : good
 Number of states                        : 3
 Number of transitions                   : 2
 Number of computed states               : 3
-Total computation time                  : 0.012 second
-States/second in state space            : 249.6 (3/0.012 second)
-Computed states/second                  : 249.6 (3/0.012 second)
-Estimated memory                        : 3.710 MiB (i.e., 486361 words of size 8)
+Total computation time                  : 0.011 second
+States/second in state space            : 263.8 (3/0.011 second)
+Computed states/second                  : 263.8 (3/0.011 second)
+Estimated memory                        : 3.711 MiB (i.e., 486425 words of size 8)
 ------------------------------------------------------------
 
 ------------------------------------------------------------
  Statistics: Algorithm counters
 ------------------------------------------------------------
-main algorithm + parsing                : 0.050 second
-main algorithm                          : 0.012 second
+main algorithm + parsing                : 0.301 second
+main algorithm                          : 0.011 second
 ------------------------------------------------------------
  Statistics: Parsing counters
 ------------------------------------------------------------
-model parsing and converting            : 0.037 second
+model parsing and converting            : 0.290 second
 ------------------------------------------------------------
  Statistics: State computation counters
 ------------------------------------------------------------
@@ -101,5 +101,5 @@ state space drawing                     : 0.000 second
 ------------------------------------------------------------
  Statistics: Global counter
 ------------------------------------------------------------
-total                                   : 0.050 second
+total                                   : 0.302 second
 ------------------------------------------------------------

@@ -1,7 +1,7 @@
 (************************************************************
  * Result by: IMITATOR 3.1-beta "Cheese Artichoke" (build master/e4be7d7)
  * Model    : 'tamus_examples/jlr/JLR13-3tasks-npfp-100-2_tamus_msr.imi'
- * Generated: Tue Jun 8, 2021 01:27:47
+ * Generated: Tue Aug 10, 2021 00:42:46
  * Command  : imitator tamus_examples/jlr/JLR13-3tasks-npfp-100-2_tamus_msr.imi tamus_examples/jlr/JLR13-3tasks-npfp-100-2_tamus_witness.imiprop
  ************************************************************)
 
@@ -35,17 +35,17 @@ Constraint nature                       : good
 Number of states                        : 92
 Number of transitions                   : 107
 Number of computed states               : 108
-Total computation time                  : 0.099 second
-States/second in state space            : 922.8 (92/0.099 second)
-Computed states/second                  : 1083.3 (108/0.099 second)
-Estimated memory                        : 4.837 MiB (i.e., 634035 words of size 8)
+Total computation time                  : 0.084 second
+States/second in state space            : 1083.1 (92/0.084 second)
+Computed states/second                  : 1271.5 (108/0.084 second)
+Estimated memory                        : 4.838 MiB (i.e., 634146 words of size 8)
 ------------------------------------------------------------
 
 ------------------------------------------------------------
  Statistics: Algorithm counters
 ------------------------------------------------------------
-main algorithm + parsing                : 0.103 second
-main algorithm                          : 0.099 second
+main algorithm + parsing                : 0.088 second
+main algorithm                          : 0.084 second
 ------------------------------------------------------------
  Statistics: Parsing counters
 ------------------------------------------------------------
@@ -66,5 +66,5 @@ state space drawing                     : 0.000 second
 ------------------------------------------------------------
  Statistics: Global counter
 ------------------------------------------------------------
-total                                   : 0.104 second
+total                                   : 0.088 second
 ------------------------------------------------------------

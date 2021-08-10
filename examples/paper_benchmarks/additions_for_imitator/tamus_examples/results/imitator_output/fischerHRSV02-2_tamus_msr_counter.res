@@ -1,7 +1,7 @@
 (************************************************************
  * Result by: IMITATOR 3.1-beta "Cheese Artichoke" (build master/e4be7d7)
  * Model    : 'tamus_examples/fischer/fischerHRSV02-2_tamus_msr.imi'
- * Generated: Tue Jun 8, 2021 01:07:43
+ * Generated: Tue Aug 10, 2021 00:22:42
  * Command  : imitator tamus_examples/fischer/fischerHRSV02-2_tamus_msr.imi tamus_examples/fischer/fischerHRSV02-2_tamus_witness.imiprop
  ************************************************************)
 
@@ -35,21 +35,21 @@ Constraint nature                       : good
 Number of states                        : 20
 Number of transitions                   : 24
 Number of computed states               : 25
-Total computation time                  : 0.010 second
-States/second in state space            : 1949.2 (20/0.010 second)
-Computed states/second                  : 2436.6 (25/0.010 second)
-Estimated memory                        : 2.599 MiB (i.e., 340787 words of size 8)
+Total computation time                  : 0.006 second
+States/second in state space            : 2945.9 (20/0.006 second)
+Computed states/second                  : 3682.4 (25/0.006 second)
+Estimated memory                        : 2.601 MiB (i.e., 340951 words of size 8)
 ------------------------------------------------------------
 
 ------------------------------------------------------------
  Statistics: Algorithm counters
 ------------------------------------------------------------
-main algorithm + parsing                : 0.012 second
-main algorithm                          : 0.010 second
+main algorithm + parsing                : 0.008 second
+main algorithm                          : 0.006 second
 ------------------------------------------------------------
  Statistics: Parsing counters
 ------------------------------------------------------------
-model parsing and converting            : 0.002 second
+model parsing and converting            : 0.001 second
 ------------------------------------------------------------
  Statistics: State computation counters
 ------------------------------------------------------------
@@ -66,5 +66,5 @@ state space drawing                     : 0.000 second
 ------------------------------------------------------------
  Statistics: Global counter
 ------------------------------------------------------------
-total                                   : 0.013 second
+total                                   : 0.008 second
 ------------------------------------------------------------

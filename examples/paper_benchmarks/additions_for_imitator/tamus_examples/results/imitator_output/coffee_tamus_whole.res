@@ -1,7 +1,7 @@
 (************************************************************
  * Result by: IMITATOR 3.1-beta "Cheese Artichoke" (build master/e4be7d7)
  * Model    : 'tamus_examples/coffee/coffee_tamus.imi'
- * Generated: Tue Jun 8, 2021 00:27:43
+ * Generated: Mon Aug 9, 2021 23:42:41
  * Command  : imitator tamus_examples/coffee/coffee_tamus.imi tamus_examples/coffee/coffee_tamus.imiprop
  ************************************************************)
 
@@ -50,20 +50,20 @@ Number of states                        : 6
 Number of transitions                   : 7
 Number of computed states               : 8
 Total computation time                  : 0.010 second
-States/second in state space            : 560.3 (6/0.010 second)
-Computed states/second                  : 747.1 (8/0.010 second)
-Estimated memory                        : 2.135 MiB (i.e., 279886 words of size 8)
+States/second in state space            : 573.5 (6/0.010 second)
+Computed states/second                  : 764.6 (8/0.010 second)
+Estimated memory                        : 2.136 MiB (i.e., 280029 words of size 8)
 ------------------------------------------------------------
 
 ------------------------------------------------------------
  Statistics: Algorithm counters
 ------------------------------------------------------------
-main algorithm + parsing                : 0.013 second
+main algorithm + parsing                : 0.015 second
 main algorithm                          : 0.010 second
 ------------------------------------------------------------
  Statistics: Parsing counters
 ------------------------------------------------------------
-model parsing and converting            : 0.002 second
+model parsing and converting            : 0.005 second
 ------------------------------------------------------------
  Statistics: State computation counters
 ------------------------------------------------------------
@@ -80,5 +80,5 @@ state space drawing                     : 0.000 second
 ------------------------------------------------------------
  Statistics: Global counter
 ------------------------------------------------------------
-total                                   : 0.014 second
+total                                   : 0.016 second
 ------------------------------------------------------------
