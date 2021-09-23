@@ -114,8 +114,24 @@ class Tamus:
             if sufficient:
                 N = core
                 trace_for_N = trace
+        self.stats["shrinks"] += 1
+        self.stats["shrinks_time"] += time.clock() - start_time
+        return N, trace_for_N
+    
+    # takes an unexplored u-seed N and returns an unexplored MSR N' of N such that N' \subseteq N
+    def shrinkShadow(self, N, trace_for_N):
+        start_time = time.clock()
+        toCheck = N[:]
+        for c in toCheck:
+            if (c not in N) or self.explorer.is_critical(c, N): continue # c is minable conflicting for N
+            copy = N[:]
+            copy.remove(c)
+            sufficient, core, trace = self.is_sufficient(copy)
+            if sufficient:
+                N = core
+                trace_for_N = trace
             else:
-                self.explorer.block_down(copy)
+                self.explorer.shadow_block_down(copy)
         self.stats["shrinks"] += 1
         self.stats["shrinks_time"] += time.clock() - start_time
         return N, trace_for_N
@@ -135,16 +151,33 @@ class Tamus:
         self.stats["grows_time"] += time.clock() - start_time
         return N
 
+    # takes an insufficient reduction N and returns a maximal insufficient reduction N' \supseteq N
+    def growShadow(self, N):
+        start_time = time.clock()
+        toCheck = self.complement(N)
+        for c in toCheck:
+            if self.explorer.is_conflicting(c, N): continue # c is minable conflicting for N
+            copy = N[:]
+            copy.append(c)
+            sufficient, core, trace = self.is_sufficient(copy)
+            if not sufficient:
+                N = copy
+            else:
+                self.explorer.shadow_block_up(core[:], trace)
+        self.stats["grows"] += 1
+        self.stats["grows_time"] += time.clock() - start_time
+        return N
+
     def markMSR(self, N, trace):
         print "Found MSR: {}".format([self.clist[c] for c in N])
         self.explorer.block_up(N)
-        if self.task not in ["amsramg", "growshrink", "shrinkgrow", "marco"]: self.explorer.block_down(N)
+        if self.task not in ["amsramg", "growshrink", "shrinkgrow", "marco", "sba", "eba"]: self.explorer.block_down(N)
         self.msres.append(N)
         self.traces.append(trace)
 
     def markCoMG(self, N):
         print "Found MG: {}".format([self.clist[c] for c in self.complement(N)])
-        if self.task not in ["amsramg", "growshrink", "shrinkgrow", "marco"]: self.explorer.block_up(N)
+        if self.task not in ["amsramg", "growshrink", "shrinkgrow", "marco", "sba", "eba"]: self.explorer.block_up(N)
         self.explorer.block_down(N)
         self.mgs.append(self.complement(N))
 
@@ -158,168 +191,84 @@ class Tamus:
             pass
         elif t == "mg":
             pass
-        elif t == "growshrink":
-            self.growShrink()
-        elif t == "shrinkgrow":
-            self.shrinkGrow()
+        elif t in ["sba", "maxsba"]:
+            self.SBA(allMGs = t == "sba")
+        elif t in ["eba","mineba"]:
+            self.EBA(allMSRs = t == "eba")
         elif t == "marco":
             self.marco()
         else:
             assert False
         print "MSRs:", len(self.msres)
         print "MGs:", len(self.mgs)
-
-    def updateSQueue(self, N, sQueue):
-        toRemove = []
-        for U in sQueue:
-            if len(set(N) - set(U[0])) == 0:
-                toRemove.append(U)
-        for U in toRemove:
-            sQueue.remove(U)
-
-    def growGS(self, N, sQueue):
-        start_time = time.clock()
-        toCheck = self.complement(N)
-        for c in toCheck:
-            if self.explorer.is_conflicting(c, N): continue # c is minable conflicting for N
-            copy = N[:]
-            copy.append(c)
-            sufficient, core, trace = self.is_sufficient(copy)
-            if not sufficient:
-                N = copy
-            else:
-                self.updateSQueue(core, sQueue)
-                sQueue.append((core, trace))
-                self.explorer.block_up(core)
-        self.stats["grows"] += 1
-        self.stats["grows_time"] += time.clock() - start_time
-        return N
-
-    def shrinkGS(self, N, trace, sQueue):
-        start_time = time.clock()
-        toCheck = N[:]
-        gQueue = []
-        trace_for_N = trace
-        for c in toCheck:
-            if (c not in N) or self.explorer.is_critical(c, N): continue # c is minable conflicting for N
-            copy = N[:]
-            copy.remove(c)
-            sufficient, core, trace = self.is_sufficient(copy[:])
-            if sufficient:
-                N = core
-                trace_for_N = trace
-            else:
-                gQueue.append(copy[:])
-        self.markMSR(N, trace_for_N)
-        self.updateSQueue(N, sQueue)
-        while len(gQueue) > 0:
-            toGrow = gQueue.pop()
-            assert self.explorer.is_unexplored(toGrow)
-            if self.explorer.is_unexplored(toGrow) and len(toGrow) > 0:
-                self.markCoMG(self.growGS(toGrow, sQueue))
-                #self.markCoMG(self.grow(toGrow))
-
-        self.stats["shrinks"] += 1
-        self.stats["shrinks_time"] += time.clock() - start_time
-        return N, trace_for_N
-
-    def growShrink(self):
-        start_time = time.clock()
-        seed = self.explorer.get_unex()
-        sQueue = []
-        while seed is not None:
-            seed = self.explorer.maximize(seed[:])
-            sufficient, core, trace = self.is_sufficient(seed)
-            if sufficient:
-                self.shrinkGS(core, trace, sQueue)
-            else:
-                self.markCoMG(seed)
-            while len(sQueue) > 0:
-                toShrink, trace = sQueue.pop()
-                self.shrinkGS(toShrink, trace, sQueue)
-
-            seed = self.explorer.get_unex()
-            if time.clock() - start_time > self.timelimit:
-                self.stats["timeout"] = True
-                print("User-defined timelimit of {} seconds exceeded. Aborting MMG extraction.".format(self.timelimit))
-                break
         print "checks:", self.stats["checks"]
-    
-    def updateGQueue(self, N, gQueue):
-        toRemove = []
-        for U in gQueue:
-            if len(set(U) - set(N)) == 0:
-                toRemove.append(U)
-        for U in toRemove:
-            gQueue.remove(U)
 
-    def shrinkSG(self, N, trace, gQueue):
-        start_time = time.clock()
-        toCheck = N[:]
-        trace_for_N = trace
-        for c in toCheck:
-            if (c not in N) or self.explorer.is_critical(c, N): continue # c is minable conflicting for N
-            copy = N[:]
-            copy.remove(c)
-            sufficient, core, trace = self.is_sufficient(copy[:])
-            if sufficient:
-                N = core
-                trace_for_N = trace
-            else:
-                gQueue.append(copy[:])
-        self.markMSR(N, trace_for_N)
-        self.stats["shrinks"] += 1
-        self.stats["shrinks_time"] += time.clock() - start_time
+        uMSR = set()
+        iMSR = set(self.complement([]))
+        for m in self.msres:
+            uMSR.update(m)
+            iMSR.intersection_update(m)
+        print "union of MSRs:", len(uMSR)
+        print "intersection of MSRs:", len(iMSR)
+        
+        uMG = set()
+        iMG = set(self.complement([]))
+        for m in self.mgs:
+            uMG.update(m)
+            iMG.intersection_update(m)
+        print "union of MGs:", len(uMG)
+        print "intersection of MGs:", len(iMG)
 
-    def growSG(self, N, gQueue):
-        start_time = time.clock()
-        toCheck = self.complement(N)
-        sQueue = []
-        for c in toCheck:
-            if self.explorer.is_conflicting(c, N): continue # c is minable conflicting for N
-            copy = N[:]
-            copy.append(c)
-            sufficient, core, trace = self.is_sufficient(copy)
-            if not sufficient:
-                N = copy
-            else:
-                sQueue.append((core, trace))
-        self.stats["grows"] += 1
-        self.stats["grows_time"] += time.clock() - start_time
-        self.markCoMG(N)
-        self.updateGQueue(N, gQueue)
-        while len(sQueue) > 0:
-            toShrink, trace = sQueue.pop()
-            assert self.explorer.is_unexplored(toShrink)
-            self.shrinkSG(toShrink, trace, gQueue)
-
-        self.stats["shrinks"] += 1
-        self.stats["shrinks_time"] += time.clock() - start_time
-        return N
-
-    def shrinkGrow(self):
+    def EBA(self, allMSRs = True):
         start_time = time.clock()
         seed = self.explorer.get_unex()
-        gQueue = []
+        current_max = -1
         while seed is not None:
             seed = self.explorer.minimize(seed[:])
-            sufficient, core, trace = self.is_sufficient(seed)
-            if sufficient:
-                self.markMSR(core, trace)
+            sufficient, trace = None, None
+            sSufficient, sTrace = self.explorer.is_shadow_sufficient(seed)
+            if sSufficient:
+                sufficient, trace = True, sTrace
             else:
-                self.growSG(seed, gQueue)
-            while len(gQueue) > 0:
-                toGrow = gQueue.pop()
-                self.growSG(toGrow, gQueue)
-
-            seed = self.explorer.get_unex()
+                sufficient, _, trace = self.is_sufficient(seed)
+            if sufficient:
+                self.markMSR(seed[:], trace)
+                if not allMSRs:
+                    current_max = len(seed)
+            else:
+                coMG = self.growShadow(seed)
+                self.markCoMG(coMG)
+            seed = self.explorer.get_unex(maxCard = current_max)
             if time.clock() - start_time > self.timelimit:
                 self.stats["timeout"] = True
                 print("User-defined timelimit of {} seconds exceeded. Aborting MMG extraction.".format(self.timelimit))
                 break
-        print "checks:", self.stats["checks"]
-
-
+    
+    def SBA(self, allMGs = True):
+        start_time = time.clock()
+        seed = self.explorer.get_unex()
+        current_min = -1
+        while seed is not None:
+            seed = self.explorer.maximize(seed[:])
+            sufficient, core, trace = None, None, None
+            sInsufficient = self.explorer.is_shadow_insufficient(seed)
+            if sInsufficient:
+                sufficient = False
+            else:
+                sufficient, core, trace = self.is_sufficient(seed)
+            if sufficient:
+                msr, trace = self.shrinkShadow(core, trace)
+                self.markMSR(msr, trace)
+            else:
+                self.markCoMG(seed)
+                if not allMGs:
+                    current_min = len(seed)
+            seed = self.explorer.get_unex(minCard = current_min)
+            if time.clock() - start_time > self.timelimit:
+                self.stats["timeout"] = True
+                print("User-defined timelimit of {} seconds exceeded. Aborting MMG extraction.".format(self.timelimit))
+                break
+    
     def marco(self):
         start_time = time.clock()
         seed = self.explorer.get_unex()
@@ -492,7 +441,7 @@ if __name__ == '__main__':
     parser.add_argument("template_name", help="Name of template")
     parser.add_argument("--verbose", "-v", action="count", help = "Use the flag to increase the verbosity of the outputs. The flag can be used repeatedly.")    
     parser.add_argument("--msr-timelimit", type=int, help = "Sets up timelimit for MSR enumeration. Note that the computation is not terminated exactly after the timelimit, but once the last identified MSR exceeds the timelimit. We recommend you to use UNIX timeout when using our tool, if you want to timeout the whole computation. ")
-    parser.add_argument("--task", choices=["msr", "mmsr", "mg", "mmg", "amsr", "amg", "amsramg", "growshrink", "shrinkgrow", "marco"], help = "Choose the computation taks: msr - an MSR, mmsr - a minimum MSR, mg - an MG, mmg - a minimum MG, amsr - all MSRs, amg - all MGs, amsramg - all MSRs and MGs.", default = "mmsr")
+    parser.add_argument("--task", choices=["msr", "mmsr", "mg", "mmg", "amsr", "amg", "amsramg", "eba", "sba", "marco", "maxsba", "mineba"], help = "Choose the computation taks: msr - an MSR, mmsr - a minimum MSR, mg - an MG, mmg - a minimum MG, amsr - all MSRs, amg - all MGs, amsramg - all MSRs and MGs.", default = "mmsr")
     parser.add_argument("--run_imitator_on_mg", action='store_true', help="After fnding minimal guarantee, runs imitator on it. This value does not have effect if any task other than mmg is selected.")
     args = parser.parse_args()
 

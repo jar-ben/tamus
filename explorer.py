@@ -9,9 +9,17 @@ class Explorer:
         self.s = Solver()
         self.blockUps = []
         self.blockDowns = []
+        self.shadowBlockUps = []
+        self.shadowBlockDowns = []
 
     def complement(self, N):
         return [i for i in range(self.dimension) if i not in N]
+
+    def shadow_block_up(self, N, trace = None):
+        self.shadowBlockUps.append({"set": N[:], "trace": trace})
+
+    def shadow_block_down(self, N):
+        self.shadowBlockDowns.append(N[:])
 
     def block_up(self, N):
         self.blockUps.append(N[:])
@@ -83,17 +91,34 @@ class Explorer:
         assert c in N
         Nc = N[:]
         Nc.remove(c)
-        return not self.is_unexplored(Nc)
+        return (not self.is_unexplored(Nc)) or (not self.is_shadow_unexplored(Nc))
 
     # checks whether c is minable conflicting for N, i.e., whether N \cup {c} is unexplored
     def is_conflicting(self, c, N):
         assert c not in N
         Nc = N + [c]
-        return not self.is_unexplored(Nc)
-        #for b in self.blockUps:
-        #    if set(b).issubset(Nc):
-        #        return True
-        #return False
+        return (not self.is_unexplored(Nc)) or (not self.is_shadow_unexplored(Nc))
+
+    def is_shadow_sufficient(self, N):
+        for B in self.shadowBlockUps:
+            if len(set(B["set"]) - set(N)) == 0:
+                return (True, B["trace"])
+        return (False, None)
+
+    def is_shadow_insufficient(self, N):
+        for B in self.shadowBlockDowns:
+            if len(set(N) - set(B)) == 0:
+                return True
+        return False
+    
+    def is_shadow_unexplored(self, N):
+        for B in self.shadowBlockUps:
+            if len(set(B["set"]) - set(N)) == 0:
+                return False
+        for B in self.shadowBlockDowns:
+            if len(set(N) - set(B)) == 0:
+                return False
+        return True
 
     # checks if N is unexplored
     def is_unexplored(self, N):
