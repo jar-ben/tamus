@@ -80,7 +80,9 @@ class Explorer:
         while len(candidates) > 0:
             c = candidates[-1]
             candidates = candidates[:-1]
-            if not self.is_critical(c, seed):
+            Nc = seed[:]
+            Nc.remove(c)
+            if self.is_unexplored(Nc):
                 seed.remove(c)
         if max(minCard, maxCard) >= 0:
             self.s.pop()
