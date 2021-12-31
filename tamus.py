@@ -63,11 +63,26 @@ class Tamus:
         self.stats["grows"] = 0
         self.stats["grows_time"] = 0
         self.stats["timeout"] = False
+        self.stats["shrinksPaths"] = 0
+        self.stats["shrinksPaths_time"] = 0
 
         self.timelimit = 1000000 #time limit for the MSR enumeration
         self.start_time = time.clock()
     def complement(self, N):
         return [i for i in range(self.dimension) if i not in N]
+
+    def corePathAnalysis(self, N, trace):
+        start_time = time.clock()
+        toCheck = N[:]
+        for c in toCheck:
+            if self.explorer.is_critical(c, N): continue # c is minable conflicting for N
+            N.remove(c)
+            if not path_analysis.is_realizable(self.TA, trace, [self.clist[d] for d in N]):
+                N.append(c)
+        self.stats["shrinksPaths"] += 1
+        self.stats["shrinksPaths_time"] += time.clock() - start_time
+        return N
+
 
     # returs true iff N is a sufficient reduction
     def check(self, N):
@@ -84,6 +99,8 @@ class Tamus:
                 assert c in self.clist
                 core.append(self.clist.index(c))
             N = core
+            if self.usePathAnalysis:
+                N = self.corePathAnalysis(N, trace)
         else: core = N
         return res == 1, core, trace
 
@@ -115,7 +132,7 @@ class Tamus:
                 N = core
                 trace_for_N = trace
         self.stats["shrinks"] += 1
-        self.stats["shrinks_time"] += time.clock() - start_time
+        self.stats["shrinks_time"] += (time.clock() - start_time)
         return N, trace_for_N
     
     # takes an unexplored u-seed N and returns an unexplored MSR N' of N such that N' \subseteq N
@@ -133,7 +150,7 @@ class Tamus:
             else:
                 self.explorer.shadow_block_down(copy)
         self.stats["shrinks"] += 1
-        self.stats["shrinks_time"] += time.clock() - start_time
+        self.stats["shrinks_time"] += (time.clock() - start_time)
         return N, trace_for_N
 
     # takes an insufficient reduction N and returns a maximal insufficient reduction N' \supseteq N
@@ -370,7 +387,6 @@ class Tamus:
         for i in min_msres_indexes:
             delays, parameters = path_analysis.find_parameters(self.TA,traces[i],msres[i])
             print "{} delays:{} parameters{}".format(constraints[i], delays, parameters)
-            # print path_analysis.is_realizable(self.TA, traces[i], msres[i])
         print "Elapsed time in seconds after LP:", (time.clock() - self.start_time)
 
     #finds a minimum minimal sufficient reduction
@@ -427,6 +443,8 @@ class Tamus:
         print "Average time of 'unreachable' check:", self.stats["checks_insufficient_time"]/ self.stats["checks_insufficient"]
         print "Shrinks:", self.stats["shrinks"]  
         print "Total time spent by shrinks:", self.stats["shrinks_time"]  
+        print "Path analyses:", self.stats["shrinksPaths"]  
+        print "Total time spent by path analyses:", self.stats["shrinksPaths_time"]  
         print "Grows:", self.stats["grows"]
         print "Total time spent by grows:", self.stats["grows_time"]
 
@@ -444,6 +462,7 @@ if __name__ == '__main__':
     parser.add_argument("--msr-timelimit", type=int, help = "Sets up timelimit for MSR enumeration. Note that the computation is not terminated exactly after the timelimit, but once the last identified MSR exceeds the timelimit. We recommend you to use UNIX timeout when using our tool, if you want to timeout the whole computation. ")
     parser.add_argument("--task", choices=["msr", "mmsr", "mg", "mmg", "amsr", "amg", "amsramg", "eba", "sba", "marco", "maxsba", "mineba"], help = "Choose the computation taks: msr - an MSR, mmsr - a minimum MSR, mg - an MG, mmg - a minimum MG, amsr - all MSRs, amg - all MGs, amsramg - all MSRs and MGs.", default = "mmsr")
     parser.add_argument("--run_imitator_on_mg", action='store_true', help="After fnding minimal guarantee, runs imitator on it. This value does not have effect if any task other than mmg is selected.")
+    parser.add_argument("--path-analysis", action='store_true', help = "Use path analysis to further shrink reduction cores.")
     args = parser.parse_args()
 
     #run the computation
@@ -454,6 +473,7 @@ if __name__ == '__main__':
     t.timelimit = args.msr_timelimit if args.msr_timelimit != None else 1000000 
     t.verbosity = args.verbose if args.verbose != None else 0
     t.task = args.task
+    t.usePathAnalysis = args.path_analysis
     print "Model: ", model, ", query: ", query_file
     print "dimension:", t.dimension
     print "is the target location reachable?", t.is_sufficient([])[0]
