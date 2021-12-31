@@ -370,6 +370,7 @@ class Tamus:
         for i in min_msres_indexes:
             delays, parameters = path_analysis.find_parameters(self.TA,traces[i],msres[i])
             print "{} delays:{} parameters{}".format(constraints[i], delays, parameters)
+            # print path_analysis.is_realizable(self.TA, traces[i], msres[i])
         print "Elapsed time in seconds after LP:", (time.clock() - self.start_time)
 
     #finds a minimum minimal sufficient reduction
