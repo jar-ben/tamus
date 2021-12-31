@@ -261,6 +261,27 @@ class Tamus:
                 print("User-defined timelimit of {} seconds exceeded. Aborting MMG extraction.".format(self.timelimit))
                 break
     
+    def SBAcorePath(self, N, trace, msr):
+        #shrunk = self.corePathAnalysis(N, trace)
+        #msr, msr_trace = self.shrinkShadow(shrunk, trace)
+        #self.markMSR(msr[:], msr_trace[:])
+        cores = 0 
+        for c in msr:
+            seed = N[:]
+            seed.remove(c)
+            seed = self.explorer.get_unex_subset(N)
+            if seed is None:
+                break
+            if not (self.explorer.is_unexplored and self.explorer.is_shadow_unexplored): continue
+            if path_analysis.is_realizable(self.TA, trace, [self.clist[d] for d in seed]):
+                seed = self.corePathAnalysis(seed, trace)
+                msr, msr_trace = self.shrinkShadow(seed, trace)
+                self.markMSR(msr[:], msr_trace[:])
+                cores += 1
+
+        print "cores", cores
+        
+
     def SBA(self, allMGs = True):
         start_time = time.clock()
         seed = self.explorer.get_unex()
@@ -276,6 +297,8 @@ class Tamus:
             if sufficient:
                 msr, trace = self.shrinkShadow(core, trace)
                 self.markMSR(msr, trace)
+                if self.useMultiplePathCores:
+                    self.SBAcorePath(seed, trace[:], msr[:])
             else:
                 self.markCoMG(seed)
                 if not allMGs:
@@ -463,6 +486,7 @@ if __name__ == '__main__':
     parser.add_argument("--task", choices=["msr", "mmsr", "mg", "mmg", "amsr", "amg", "amsramg", "eba", "sba", "marco", "maxsba", "mineba"], help = "Choose the computation taks: msr - an MSR, mmsr - a minimum MSR, mg - an MG, mmg - a minimum MG, amsr - all MSRs, amg - all MGs, amsramg - all MSRs and MGs.", default = "mmsr")
     parser.add_argument("--run_imitator_on_mg", action='store_true', help="After fnding minimal guarantee, runs imitator on it. This value does not have effect if any task other than mmg is selected.")
     parser.add_argument("--path-analysis", action='store_true', help = "Use path analysis to further shrink reduction cores.")
+    parser.add_argument("--multiple-path-cores", action='store_true', help = "Extract multiple MUSes from a single witness path.")
     args = parser.parse_args()
 
     #run the computation
@@ -474,6 +498,7 @@ if __name__ == '__main__':
     t.verbosity = args.verbose if args.verbose != None else 0
     t.task = args.task
     t.usePathAnalysis = args.path_analysis
+    t.useMultiplePathCores = args.multiple_path_cores
     print "Model: ", model, ", query: ", query_file
     print "dimension:", t.dimension
     print "is the target location reachable?", t.is_sufficient([])[0]
