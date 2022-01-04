@@ -85,7 +85,7 @@ class Tamus:
 
 
     # returs true iff N is a sufficient reduction
-    def check(self, N):
+    def check(self, N, pathAnalysis = True):
         relax_set = [self.clist[c] for c in N]
         new_templates = self.TA.generate_relaxed_templates(relax_set)
         # Set the TA to template in self.model, store it to file named new_model
@@ -99,17 +99,17 @@ class Tamus:
                 assert c in self.clist
                 core.append(self.clist.index(c))
             N = core
-            if self.usePathAnalysis:
+            if self.usePathAnalysis and pathAnalysis:
                 N = self.corePathAnalysis(N, trace)
         else: core = N
         return res == 1, core, trace
 
     # a wrapper for the method check(self, N)
     # returs true iff N is a sufficient reduction
-    def is_sufficient(self, N):        
+    def is_sufficient(self, N, pathAnalysis = True):        
         start_time = time.clock()
         self.stats["checks"] += 1
-        sufficient, core, trace = self.check(N)
+        sufficient, core, trace = self.check(N, pathAnalysis)
         if sufficient: 
             self.stats["checks_sufficient"] += 1
             self.stats["checks_sufficient_time"] += time.clock() - start_time
@@ -210,6 +210,8 @@ class Tamus:
             pass
         elif t in ["sba", "maxsba"]:
             self.SBA(allMGs = t == "sba")
+        elif t in ["pasba", "maxpasba"]:
+            self.SBAcorePath(t == "pasba")
         elif t in ["eba","mineba"]:
             self.EBA(allMSRs = t == "eba")
         elif t == "marco":
@@ -261,25 +263,47 @@ class Tamus:
                 print("User-defined timelimit of {} seconds exceeded. Aborting MMG extraction.".format(self.timelimit))
                 break
     
-    def SBAcorePath(self, N, trace, msr):
-        #shrunk = self.corePathAnalysis(N, trace)
-        #msr, msr_trace = self.shrinkShadow(shrunk, trace)
-        #self.markMSR(msr[:], msr_trace[:])
-        cores = 0 
-        for c in msr:
-            seed = N[:]
-            seed.remove(c)
-            seed = self.explorer.get_unex_subset(N)
-            if seed is None:
-                break
-            if not (self.explorer.is_unexplored and self.explorer.is_shadow_unexplored): continue
-            if path_analysis.is_realizable(self.TA, trace, [self.clist[d] for d in seed]):
-                seed = self.corePathAnalysis(seed, trace)
-                msr, msr_trace = self.shrinkShadow(seed, trace)
-                self.markMSR(msr[:], msr_trace[:])
-                cores += 1
+    def TBA(self, N, trace, msr):        
+        exp = Explorer(self.dimension)
+        exp.block_up(msr)
+        seed = exp.get_unex_subset(N)
+        while seed is not None:
+            if self.explorer.is_shadow_insufficient(seed):
+                exp.block_down(seed)
+            elif path_analysis.is_realizable(self.TA, trace, [self.clist[d] for d in seed]):
+                msr, trace = self.shrinkShadow(N, trace)
+                self.markMSR(msr, trace)
+            else:
+                exp.block_down(seed)
+            seed = exp.get_unex_subset(N)
 
-        print "cores", cores
+
+    def SBAcorePath(self, allMGs = True):
+        start_time = time.clock()
+        seed = self.explorer.get_unex()
+        current_min = -1
+        while seed is not None:
+            seed = self.explorer.maximize(seed[:])
+            sufficient, core, trace = None, None, None
+            sInsufficient = self.explorer.is_shadow_insufficient(seed)
+            if sInsufficient:
+                sufficient = False
+            else:
+                sufficient, core, trace = self.is_sufficient(seed, pathAnalysis = False)
+            if sufficient:
+                N = self.corePathAnalysis(core, trace)
+                msr, trace = self.shrinkShadow(N, trace)
+                self.markMSR(msr, trace)
+                self.TBA(N, trace, msr)
+            else:
+                self.markCoMG(seed)
+                if not allMGs:
+                    current_min = len(seed)
+            seed = self.explorer.get_unex(minCard = current_min)
+            if time.clock() - start_time > self.timelimit:
+                self.stats["timeout"] = True
+                print("User-defined timelimit of {} seconds exceeded. Aborting MMG extraction.".format(self.timelimit))
+                break
         
 
     def SBA(self, allMGs = True):
@@ -297,8 +321,6 @@ class Tamus:
             if sufficient:
                 msr, trace = self.shrinkShadow(core, trace)
                 self.markMSR(msr, trace)
-                if self.useMultiplePathCores:
-                    self.SBAcorePath(seed, trace[:], msr[:])
             else:
                 self.markCoMG(seed)
                 if not allMGs:
@@ -483,7 +505,7 @@ if __name__ == '__main__':
     parser.add_argument("template_name", help="Name of template")
     parser.add_argument("--verbose", "-v", action="count", help = "Use the flag to increase the verbosity of the outputs. The flag can be used repeatedly.")    
     parser.add_argument("--msr-timelimit", type=int, help = "Sets up timelimit for MSR enumeration. Note that the computation is not terminated exactly after the timelimit, but once the last identified MSR exceeds the timelimit. We recommend you to use UNIX timeout when using our tool, if you want to timeout the whole computation. ")
-    parser.add_argument("--task", choices=["msr", "mmsr", "mg", "mmg", "amsr", "amg", "amsramg", "eba", "sba", "marco", "maxsba", "mineba"], help = "Choose the computation taks: msr - an MSR, mmsr - a minimum MSR, mg - an MG, mmg - a minimum MG, amsr - all MSRs, amg - all MGs, amsramg - all MSRs and MGs.", default = "mmsr")
+    parser.add_argument("--task", choices=["pasba", "maxpasba", "msr", "mmsr", "mg", "mmg", "amsr", "amg", "amsramg", "eba", "sba", "marco", "maxsba", "mineba"], help = "Choose the computation taks: msr - an MSR, mmsr - a minimum MSR, mg - an MG, mmg - a minimum MG, amsr - all MSRs, amg - all MGs, amsramg - all MSRs and MGs.", default = "mmsr")
     parser.add_argument("--run_imitator_on_mg", action='store_true', help="After fnding minimal guarantee, runs imitator on it. This value does not have effect if any task other than mmg is selected.")
     parser.add_argument("--path-analysis", action='store_true', help = "Use path analysis to further shrink reduction cores.")
     parser.add_argument("--multiple-path-cores", action='store_true', help = "Extract multiple MUSes from a single witness path.")
