@@ -216,6 +216,8 @@ class Tamus:
             self.EBA(allMSRs = t == "eba")
         elif t == "marco":
             self.marco()
+        elif t == "remus":            
+            self.remus(subset = [i for i in range(self.dimension)], crits = [False for _ in range(self.dimension)], depth = 0)
         else:
             assert False
         print "MSRs:", len(self.msres)
@@ -340,6 +342,45 @@ class Tamus:
                 print("User-defined timelimit of {} seconds exceeded. Aborting MMG extraction.".format(self.timelimit))
                 break
     
+    def remus(self, subset, crits, depth = 0):
+        def extendMSR(s, m):
+            dimRed = 0.6
+            origSize = len(s)
+            for c in s:
+                if c not in m:
+                    m.append(c)
+                    if len(m) >= origSize * dimRed:
+                        break
+            return m
+
+        start_time = time.clock()
+        seed = self.explorer.get_unex_subset(subset)
+        streak = 0
+        while seed is not None:
+            sufficient, core, trace = self.is_sufficient(seed)
+            if sufficient:
+                streak = 0
+                msr, trace = self.shrink(core, trace)
+                self.markMSR(msr, trace)
+                recSubset = extendMSR(seed[:], msr[:])
+                self.remus(recSubset, crits, depth + 1)
+            else:
+                streak += 1
+                self.explorer.block_down(seed)
+                if streak > 10 and depth > 0:
+                    return
+                critAll = [i for i in range(self.dimension) if ((i in subset) and not(i in seed))]
+                if len(critAll) > 1:
+                    for c in critAll:
+                        recSubset = subset[:]
+                        recSubset.remove(c)
+                        self.remus(recSubset, crits, depth + 1)
+            seed = self.explorer.get_unex_subset(subset)
+            if time.clock() - start_time > self.timelimit:
+                self.stats["timeout"] = True
+                print("User-defined timelimit of {} seconds exceeded. Aborting MMG extraction.".format(self.timelimit))
+                break
+
     def marco(self):
         start_time = time.clock()
         seed = self.explorer.get_unex()
@@ -514,7 +555,7 @@ if __name__ == '__main__':
     parser.add_argument("template_name", help="Name of template")
     parser.add_argument("--verbose", "-v", action="count", help = "Use the flag to increase the verbosity of the outputs. The flag can be used repeatedly.")    
     parser.add_argument("--msr-timelimit", type=int, help = "Sets up timelimit for MSR enumeration. Note that the computation is not terminated exactly after the timelimit, but once the last identified MSR exceeds the timelimit. We recommend you to use UNIX timeout when using our tool, if you want to timeout the whole computation. ")
-    parser.add_argument("--task", choices=["pasba", "maxpasba", "msr", "mmsr", "mg", "mmg", "amsr", "amg", "amsramg", "eba", "sba", "marco", "maxsba", "mineba"], help = "Choose the computation taks: msr - an MSR, mmsr - a minimum MSR, mg - an MG, mmg - a minimum MG, amsr - all MSRs, amg - all MGs, amsramg - all MSRs and MGs.", default = "mmsr")
+    parser.add_argument("--task", choices=["pasba", "maxpasba", "msr", "mmsr", "mg", "mmg", "amsr", "amg", "amsramg", "eba", "sba", "marco", "remus", "maxsba", "mineba"], help = "Choose the computation taks: msr - an MSR, mmsr - a minimum MSR, mg - an MG, mmg - a minimum MG, amsr - all MSRs, amg - all MGs, amsramg - all MSRs and MGs.", default = "mmsr")
     parser.add_argument("--run_imitator_on_mg", action='store_true', help="After fnding minimal guarantee, runs imitator on it. This value does not have effect if any task other than mmg is selected.")
     parser.add_argument("--path-analysis", action='store_true', help = "Use path analysis to further shrink reduction cores.")
     parser.add_argument("--multiple-path-cores", action='store_true', help = "Extract multiple MUSes from a single witness path.")
