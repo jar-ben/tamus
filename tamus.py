@@ -238,6 +238,15 @@ class Tamus:
         print "union of MGs:", len(uMG)
         print "intersection of MGs:", len(iMG)
 
+        #minimum MSRs
+        MMSRcard = min([len(M) for M in self.msres]) #minimum MSR cardinality
+        AMMSR = [M for M in self.msres if len(M) == MMSRcard]
+        print "minimum MSR cardinality:", MMSRcard
+        print "number of MMSRs:", len(AMMSR)
+        unionOfAMMSR = set(sum(AMMSR, []))
+        actualConstraints = [self.clist[c] for c in unionOfAMMSR]
+        print "union of AMMSRs:", actualConstraints
+
     def EBA(self, allMSRs = True):
         start_time = time.clock()
         seed = self.explorer.get_unex()
