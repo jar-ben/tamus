@@ -186,14 +186,14 @@ class Tamus:
         return N
 
     def markMSR(self, N, trace):
-        print "Found MSR: {}".format([self.clist[c] for c in N])
+        # print "Found MSR: {}".format([self.clist[c] for c in N])
         self.explorer.block_up(N)
         if self.task not in ["amsramg", "growshrink", "shrinkgrow", "marco", "sba", "eba"]: self.explorer.block_down(N)
         self.msres.append(N)
         self.traces.append(trace)
 
     def markCoMG(self, N):
-        print "Found MG: {}".format([self.clist[c] for c in self.complement(N)])
+        # print "Found MG: {}".format([self.clist[c] for c in self.complement(N)])
         if self.task not in ["amsramg", "growshrink", "shrinkgrow", "marco", "sba", "eba"]: self.explorer.block_up(N)
         self.explorer.block_down(N)
         self.mgs.append(self.complement(N))
@@ -273,11 +273,9 @@ class Tamus:
             AMMSR = [[self.clist[c] for c in MMSR] for MMSR in AMMSR]
             for MMSR in AMMSR:
                 zero_parameters = [actualConstraints.index(constr) for constr in actualConstraints if constr not in MMSR]
-                print zero_parameters
                 start_time = time.clock()
                 parameter_vals, total_sum, total_time = xml_to_imi.find_maximum_parameter_values(output_file + ".res", parameter_count, maximize=False, zero_parameters=zero_parameters)
                 total_lp_time += time.clock() - start_time
-                print parameter_vals, total_sum
                 if total_sum < min_valuation:
                     min_valuation = total_sum
                     min_parameters = parameter_vals
@@ -312,7 +310,6 @@ class Tamus:
                 parameter_vals, total_sum, total_time = xml_to_imi.find_maximum_parameter_values(output_file + ".res",
                                                                                                  parameter_count,
                                                                                                  maximize=False)
-                print parameter_vals, total_sum
                 total_lp_time += time.clock() - start_time
                 if total_sum < min_valuation:
                     min_valuation = total_sum
