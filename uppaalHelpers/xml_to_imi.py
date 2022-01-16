@@ -326,13 +326,13 @@ def fix_constraints_of_zone(zone, find_real_valued_delta=False, epsilon=1e-5):  
     return fixed_zone
 
 
-def find_maximum_parameter_values(file_name, parameter_count, find_real_valued_delta=False, maximize=True):  # TODO: make delta computation choosable in caller functions
+def find_maximum_parameter_values(file_name, parameter_count, find_real_valued_delta=False, maximize=True, zero_parameters=[]):  # TODO: make delta computation choosable in caller functions
     zones, total_time = read_res_file(file_name)    # read all zones
 
     optimum_sums = []
     optimum_parameters = []
     for zone in zones:
-        parameter_values, total_sum = solve_milp(zone, parameter_count, find_real_valued_delta, maximize)
+        parameter_values, total_sum = solve_milp(zone, parameter_count, find_real_valued_delta, maximize, zero_parameters)
         optimum_sums.append(total_sum)
         optimum_parameters.append(parameter_values)
     if maximize:
@@ -345,13 +345,15 @@ def find_maximum_parameter_values(file_name, parameter_count, find_real_valued_d
         return min_parameters, minimum_sum, total_time
 
 
-def solve_milp(zone, parameter_count, find_real_valued_delta, maximize):
+def solve_milp(zone, parameter_count, find_real_valued_delta, maximize, zero_parameters=[]):
     fixed_zone = fix_constraints_of_zone(zone, find_real_valued_delta)  # Our examples only have one but might extend it to multiple later
 
     solver = pywraplp.Solver('', pywraplp.Solver.CBC_MIXED_INTEGER_PROGRAMMING)  # create the solver
     x = {}
     for i in range(parameter_count):
-        if find_real_valued_delta:
+        if i in zero_parameters:
+            x[i] = solver.IntVar(0, 0, 'x[' + str(i) + ']')
+        elif find_real_valued_delta:
             x[i] = solver.NumVar(0, solver.infinity(), 'x[' + str(i) + ']')  # add constraints par1, par2, ..., parn
         else:
             x[i] = solver.IntVar(0, solver.infinity(), 'x[' + str(i) + ']')  # add constraints par1, par2, ..., parn

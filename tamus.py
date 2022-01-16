@@ -263,15 +263,38 @@ class Tamus:
         command = "imitator " + imi_name + " " + imiporp_name + " -output-prefix " + output_file + " -verbose mute > /dev/null"
         print "\nrunning " + command
         os.system(command)
-        parameter_vals, total_sum, total_time = xml_to_imi.find_maximum_parameter_values(output_file + ".res", parameter_count, maximize=False)
-        print "Running union of mmsrs, min parameter sum:", total_sum
-        print "Running union of mmsrs, parameter values:", parameter_vals
-        print "Running union of mmsrs, cumulative time:", total_time, "\n"
+
+        total_lp_time = 0.
         if AMMSR is not None:
-            AMMSR = [[self.clist[c] for c in MMSR] for MMSR in AMMSR]
             min_valuation = sys.maxint
             min_parameters = []
             cumulative_time = 0
+
+            AMMSR = [[self.clist[c] for c in MMSR] for MMSR in AMMSR]
+            for MMSR in AMMSR:
+                zero_parameters = [actualConstraints.index(constr) for constr in actualConstraints if constr not in MMSR]
+                print zero_parameters
+                start_time = time.clock()
+                parameter_vals, total_sum, total_time = xml_to_imi.find_maximum_parameter_values(output_file + ".res", parameter_count, maximize=False, zero_parameters=zero_parameters)
+                total_lp_time += time.clock() - start_time
+                print parameter_vals, total_sum
+                if total_sum < min_valuation:
+                    min_valuation = total_sum
+                    min_parameters = parameter_vals
+                cumulative_time += float(total_time.split(" ")[0].strip())
+        else:
+            start_time = time.clock()
+            min_parameters, min_valuation, cumulative_time = xml_to_imi.find_maximum_parameter_values(output_file + ".res", parameter_count, maximize=False)
+            total_lp_time += time.clock() - start_time
+        print "Running union of mmsrs, lp time:", total_lp_time
+        print "Running union of mmsrs, min parameter sum:", min_valuation
+        print "Running union of mmsrs, parameter values:", min_parameters
+        print "Running union of mmsrs, cumulative time:", cumulative_time, "\n"
+        if AMMSR is not None:
+            min_valuation = sys.maxint
+            min_parameters = []
+            cumulative_time = 0
+            total_lp_time = 0.
             for MMSR in AMMSR:
                 new_templates, parameter_count = self.TA.generate_relaxed_and_parametrized_templates([],
                                                                                                      MMSR)
@@ -285,13 +308,17 @@ class Tamus:
                 command = "imitator " + imi_name + " " + imiporp_name + " -output-prefix " + output_file + " -verbose mute > /dev/null"
                 print "running " + command
                 os.system(command)
+                start_time = time.clock()
                 parameter_vals, total_sum, total_time = xml_to_imi.find_maximum_parameter_values(output_file + ".res",
                                                                                                  parameter_count,
                                                                                                  maximize=False)
+                print parameter_vals, total_sum
+                total_lp_time += time.clock() - start_time
                 if total_sum < min_valuation:
                     min_valuation = total_sum
                     min_parameters = parameter_vals
                 cumulative_time += float(total_time.split(" ")[0].strip())
+            print "Running every mmsr, lp time:", total_lp_time
             print "Running every mmsr, min parameter sum:", min_valuation
             print "Running every mmsr, parameter values:", min_parameters
             print "Running every mmsr cumulative time:", cumulative_time, "\n"

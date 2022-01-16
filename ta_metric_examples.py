@@ -54,6 +54,8 @@ if __name__ == '__main__':
     parser.add_argument("--eba", action='store_true')
     parser.add_argument("--sba", action='store_true')
     parser.add_argument("--maxsba", action='store_true')
+    parser.add_argument("--marco", action='store_true')
+    parser.add_argument("--remus", action='store_true')
     parser.add_argument("--mineba", action='store_true')
     parser.add_argument("--path-analysis", action='store_true')
     parser.add_argument("--run_imitator_on_msr", action='store_true',
@@ -85,6 +87,10 @@ if __name__ == '__main__':
         task_results(fis, "eba", args.path_analysis)
     if args.sba:
         task_results(fis, "sba", args.path_analysis)
+    if args.remus:
+        task_results(fis, "remus", args.path_analysis)
+    if args.marco:
+        task_results(fis, "marco", args.path_analysis)
     if args.maxsba:
         task_results(fis, "maxsba", args.path_analysis)
     if args.mineba:

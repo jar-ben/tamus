@@ -61,6 +61,8 @@ if __name__ == '__main__':
     parser.add_argument("--pasba", action='store_true')
     parser.add_argument("--maxsba", action='store_true')
     parser.add_argument("--mineba", action='store_true')
+    parser.add_argument("--marco", action='store_true')
+    parser.add_argument("--remus", action='store_true')
     parser.add_argument("--path-analysis", action='store_true')
     parser.add_argument("--run_imitator_on_msr", action='store_true',
                         help="After finding minimal msrs, runs imitator on them and their union.")
@@ -68,6 +70,10 @@ if __name__ == '__main__':
 
     if args.eba:
         task_results("examples/generator-eba-path-analysis/", "eba", args.path_analysis)
+    if args.remus:
+        task_results("examples/generator-remus-analysis/", "remus", args.path_analysis)
+    if args.marco:
+        task_results("examples/generator-marco-analysis/", "marco", args.path_analysis)
     if args.sba:
         task_results("examples/generator-sba-path-analysis/", "sba", args.path_analysis)
     if args.maxsba:
