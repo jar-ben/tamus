@@ -80,15 +80,15 @@ def fix_assignments(assignments):
     return assignments
 
 
-def create_imitator_on_mg(new_templates, declaration, system, model_name, query_name, parameter_count):
+def create_imitator(new_templates, declaration, system, model_name, query_name, parameter_count, reach=False, name_addition=""):
     # create the model
     model, templates = ta_helper.get_templates(model_name)
 
     create_the_new_templates(templates, new_templates)
 
     # create the file names for imitator
-    imi_file_name = ".".join([query_name.split(".q")[0], "imi"])
-    imiprop_file_name = ".".join([query_name.split(".q")[0], "imiprop"])
+    imi_file_name = ".".join([query_name.split(".q")[0]+name_addition, "imi"])
+    imiprop_file_name = ".".join([query_name.split(".q")[0]+name_addition, "imiprop"])
     """imi_file_name = ".".join([query_name.split(".q")[0]+"_single_param", "imi"]) 
     imiprop_file_name = ".".join([query_name.split(".q")[0]+"_single_param", "imiprop"])"""
     imi_file = open(imi_file_name, "w+")
@@ -214,7 +214,10 @@ def create_imitator_on_mg(new_templates, declaration, system, model_name, query_
 
     #       property := #synth AGnot(loc[loc1] = End1 & loc[loc2] = End2)
     property_file = open(imiprop_file_name, "w+")
-    property_file.write("property := #synth AGnot(" + "&".join(new_query) + ");")
+    if reach:
+        property_file.write("property := #synth EF(" + "&".join(new_query) + ");")
+    else:
+        property_file.write("property := #synth AGnot(" + "&".join(new_query) + ");")
     property_file.close()
     imi_file.close()
     return imi_file_name, imiprop_file_name
@@ -310,7 +313,7 @@ def fix_constraints_of_zone(zone, find_real_valued_delta=False, epsilon=1e-5):  
             var = -1
             for atomic in atomics:
                 if "p" in atomic:
-                    var = int(atomic.strip()[1:])
+                    var = int(atomic.strip()[3:])
                 else:
                     coefficient *= int(atomic.strip())
             vars.append(var)
@@ -332,8 +335,14 @@ def find_maximum_parameter_values(file_name, parameter_count, find_real_valued_d
         parameter_values, total_sum = solve_milp(zone, parameter_count, find_real_valued_delta, maximize)
         optimum_sums.append(total_sum)
         optimum_parameters.append(parameter_values)
-
-    return optimum_parameters[0], optimum_sums[0], total_time
+    if maximize:
+        maximum_sum = max(optimum_sums)
+        max_parameters = optimum_parameters[optimum_sums.find(maximum_sum)]
+        return max_parameters, maximum_sum, total_time
+    else:
+        minimum_sum = max(optimum_sums)
+        min_parameters = optimum_parameters[optimum_sums.find(minimum_sum)]
+        return min_parameters, minimum_sum, total_time
 
 
 def solve_milp(zone, parameter_count, find_real_valued_delta, maximize):

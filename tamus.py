@@ -248,6 +248,53 @@ class Tamus:
         unionOfAMMSR = set(sum(AMMSR, []))
         actualConstraints = [self.clist[c] for c in unionOfAMMSR]
         print "union of AMMSRs:", actualConstraints
+        if self.args.run_imitator_on_msr:
+            self.run_imitator_on_uammsr(actualConstraints, AMMSR)
+
+    def run_imitator_on_uammsr(self, actualConstraints, AMMSR=None):
+        new_templates, parameter_count = self.TA.generate_relaxed_and_parametrized_templates([], actualConstraints)
+        imi_name, imiporp_name = xml_to_imi.create_imitator(new_templates,
+                                                            self.model.declaration,
+                                                            self.model.system,
+                                                            self.model_file,
+                                                            self.query_file,
+                                                            parameter_count, reach=True, name_addition="_v2")
+        output_file = self.query_file.split(".q")[0]+"_v2"
+        command = "imitator " + imi_name + " " + imiporp_name + " -output-prefix " + output_file + " -verbose mute > /dev/null"
+        print "\nrunning " + command
+        os.system(command)
+        parameter_vals, total_sum, total_time = xml_to_imi.find_maximum_parameter_values(output_file + ".res", parameter_count, maximize=False)
+        print "Running union of mmsrs, min parameter sum:", total_sum
+        print "Running union of mmsrs, parameter values:", parameter_vals
+        print "Running union of mmsrs, cumulative time:", total_time, "\n"
+        if AMMSR is not None:
+            AMMSR = [[self.clist[c] for c in MMSR] for MMSR in AMMSR]
+            min_valuation = sys.maxint
+            min_parameters = []
+            cumulative_time = 0
+            for MMSR in AMMSR:
+                new_templates, parameter_count = self.TA.generate_relaxed_and_parametrized_templates([],
+                                                                                                     MMSR)
+                imi_name, imiporp_name = xml_to_imi.create_imitator(new_templates,
+                                                                    self.model.declaration,
+                                                                    self.model.system,
+                                                                    self.model_file,
+                                                                    self.query_file,
+                                                                    parameter_count, reach=True, name_addition="_v3")
+                output_file = self.query_file.split(".q")[0] + "_v3"
+                command = "imitator " + imi_name + " " + imiporp_name + " -output-prefix " + output_file + " -verbose mute > /dev/null"
+                print "running " + command
+                os.system(command)
+                parameter_vals, total_sum, total_time = xml_to_imi.find_maximum_parameter_values(output_file + ".res",
+                                                                                                 parameter_count,
+                                                                                                 maximize=False)
+                if total_sum < min_valuation:
+                    min_valuation = total_sum
+                    min_parameters = parameter_vals
+                cumulative_time += float(total_time.split(" ")[0].strip())
+            print "Running every mmsr, min parameter sum:", min_valuation
+            print "Running every mmsr, parameter values:", min_parameters
+            print "Running every mmsr cumulative time:", cumulative_time, "\n"
 
     def EBA(self, allMSRs = True):
         start_time = time.clock()
@@ -557,6 +604,7 @@ if __name__ == '__main__':
     parser.add_argument("--msr-timelimit", type=int, help = "Sets up timelimit for MSR enumeration. Note that the computation is not terminated exactly after the timelimit, but once the last identified MSR exceeds the timelimit. We recommend you to use UNIX timeout when using our tool, if you want to timeout the whole computation. ")
     parser.add_argument("--task", choices=["pasba", "maxpasba", "msr", "mmsr", "mg", "mmg", "amsr", "amg", "amsramg", "eba", "sba", "marco", "remus", "maxsba", "mineba"], help = "Choose the computation taks: msr - an MSR, mmsr - a minimum MSR, mg - an MG, mmg - a minimum MG, amsr - all MSRs, amg - all MGs, amsramg - all MSRs and MGs.", default = "mmsr")
     parser.add_argument("--run_imitator_on_mg", action='store_true', help="After fnding minimal guarantee, runs imitator on it. This value does not have effect if any task other than mmg is selected.")
+    parser.add_argument("--run_imitator_on_msr", action='store_true', help="After finding minimal msrs, runs imitator on them and their union.")
     parser.add_argument("--path-analysis", action='store_true', help = "Use path analysis to further shrink reduction cores.")
     parser.add_argument("--multiple-path-cores", action='store_true', help = "Extract multiple MUSes from a single witness path.")
     args = parser.parse_args()
