@@ -337,11 +337,11 @@ def find_maximum_parameter_values(file_name, parameter_count, find_real_valued_d
         optimum_parameters.append(parameter_values)
     if maximize:
         maximum_sum = max(optimum_sums)
-        max_parameters = optimum_parameters[optimum_sums.find(maximum_sum)]
+        max_parameters = optimum_parameters[optimum_sums.index(maximum_sum)]
         return max_parameters, maximum_sum, total_time
     else:
-        minimum_sum = max(optimum_sums)
-        min_parameters = optimum_parameters[optimum_sums.find(minimum_sum)]
+        minimum_sum = min(optimum_sums)
+        min_parameters = optimum_parameters[optimum_sums.index(minimum_sum)]
         return min_parameters, minimum_sum, total_time
 
 
