@@ -246,6 +246,11 @@ class Tamus:
         print "minimum MSR cardinality:", MMSRcard
         print "number of MMSRs:", len(AMMSR)
         unionOfAMMSR = set(sum(AMMSR, []))
+        print "union ", unionOfAMMSR
+        partition = self.partition_MMSRs(AMMSR, unionOfAMMSR, len(AMMSR)/4)
+        print "AMMSRs", AMMSR
+        print "Partition", partition
+
         actualConstraints = [self.clist[c] for c in unionOfAMMSR]
         print "union of AMMSRs:", actualConstraints
         if self.args.run_imitator_on_msr:
@@ -319,6 +324,40 @@ class Tamus:
             print "Running every mmsr, min parameter sum:", min_valuation
             print "Running every mmsr, parameter values:", min_parameters
             print "Running every mmsr cumulative time:", cumulative_time, "\n"
+
+    def partition_MMSRs(self, AMMSR, unionOfAMMSR, n):
+        """Partition the given MMSRs into n constraint sets such that each MSR is included in a constraint set."""
+        allC=list(unionOfAMMSR)
+        B_AMMSR = [0]*len(AMMSR)
+        B_size = [0]*len(AMMSR)
+        for mi in range(len(AMMSR)):
+            for c in AMMSR[mi]:
+                B_AMMSR[mi] = B_AMMSR[mi] | 1 << allC.index(c)
+            B_size[mi] = bin(B_AMMSR[mi]).count("1")
+
+        # sort according to B_size
+        B_size, B_AMMSR = (list(t) for t in zip(*sorted(zip(B_size, B_AMMSR))))
+        while len(B_size) > n:
+            smax = len(unionOfAMMSR)
+            si=1
+            for i in range(1,len(B_AMMSR)):
+                tmp = B_AMMSR[0] | B_AMMSR[i]
+                tmp_size = bin(tmp).count("1")
+                if tmp_size < smax:
+                    si = i
+                    smax = tmp_size
+            # merge B_AMMSR[0] with B_AMMSR[si]
+            B_AMMSR[si] = B_AMMSR[si] | B_AMMSR[0]
+            B_size[si] = smax
+            B_AMMSR.pop(0)
+            B_size.pop(0)
+            B_size, B_AMMSR = (list(t) for t in zip(*sorted(zip(B_size, B_AMMSR))))
+
+        # To constraint indexes:
+        partition = [[] for _ in range(n)]
+        for i in range(len(B_AMMSR)):
+            partition[i] = [t for t in allC if 1 << allC.index(t) & B_AMMSR[i]]
+        return partition
 
     def EBA(self, allMSRs = True):
         start_time = time.clock()
