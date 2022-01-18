@@ -7,7 +7,7 @@ import pickle
 from uppaalHelpers import example_generator
 
 
-def task_results(path, task, path_analysis, run_imitator=False):
+def task_results(path, task, path_analysis, run_imitator=False, every_mmsr=False, partition=False):
     if not os.path.exists(path):
         os.makedirs(path)
     file_names = example_generator.generate_benchmarks(folder=path)
@@ -23,6 +23,10 @@ def task_results(path, task, path_analysis, run_imitator=False):
             cmd += "--path-analysis "
         if run_imitator:
             cmd += "--run_imitator_on_msr "
+        if every_mmsr:
+            cmd += "--run_imitator_on_every_mmsr "
+        if partition:
+            cmd += "--run_imitator_on_partition "
         cmd += path + filename + ".xml " + path + filename + ".q " + "TA"
         print "\n\n\n"
         print cmd
@@ -66,6 +70,11 @@ if __name__ == '__main__':
     parser.add_argument("--path-analysis", action='store_true')
     parser.add_argument("--run_imitator_on_msr", action='store_true',
                         help="After finding minimal msrs, runs imitator on them and their union.")
+    parser.add_argument("--run_imitator_on_every_mmsr", action='store_true',
+                        help="After finding minimal msrs, runs imitator on them and their union.")
+    parser.add_argument("--run_imitator_on_partition", action='store_true',
+                        help="After finding minimal msrs, runs imitator on them and their union.")
+
     args = parser.parse_args()
 
     if args.eba:
@@ -79,6 +88,9 @@ if __name__ == '__main__':
     if args.maxsba:
         task_results("examples/generator-maxsba/", "maxsba", args.path_analysis)
     if args.mineba:
-        task_results("examples/generator-mineba/", "mineba", args.path_analysis, args.run_imitator_on_msr)
+        task_results("examples/generator-mineba/", "mineba", args.path_analysis,
+                     args.run_imitator_on_msr,
+                     args.run_imitator_on_every_mmsr,
+                     args.run_imitator_on_partition)
     if args.pasba:
         task_results("examples/generator-pasba-path-analysis/", "pasba", args.path_analysis)

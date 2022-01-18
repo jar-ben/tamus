@@ -6,7 +6,7 @@ import os
 import pickle
 
 
-def task_results(file_names, task, path_analysis, run_imitator=False):
+def task_results(file_names, task, path_analysis, run_imitator=False, every_mmsr=False, partition=False):
     timelimit = 1200
     results = dict()
     for filename, query_name, ta in file_names:
@@ -17,6 +17,10 @@ def task_results(file_names, task, path_analysis, run_imitator=False):
             cmd += "--path-analysis "
         if run_imitator:
             cmd += "--run_imitator_on_msr "
+        if every_mmsr:
+            cmd += "--run_imitator_on_every_mmsr "
+        if partition:
+            cmd += "--run_imitator_on_partition "
         cmd += filename + " " + query_name + " " + ta
         print "\n\n\n"
         print cmd
@@ -53,6 +57,7 @@ if __name__ == '__main__':
         "TAMUS - a tool for relaxing reachability properties in Time Automatas based on Minimal Sufficinet Reductions (MRS) and linear programming.")
     parser.add_argument("--eba", action='store_true')
     parser.add_argument("--sba", action='store_true')
+    parser.add_argument("--pasba", action='store_true')
     parser.add_argument("--maxsba", action='store_true')
     parser.add_argument("--marco", action='store_true')
     parser.add_argument("--remus", action='store_true')
@@ -60,6 +65,11 @@ if __name__ == '__main__':
     parser.add_argument("--path-analysis", action='store_true')
     parser.add_argument("--run_imitator_on_msr", action='store_true',
                         help="After finding minimal msrs, runs imitator on them and their union.")
+    parser.add_argument("--run_imitator_on_every_mmsr", action='store_true',
+                        help="After finding minimal msrs, runs imitator on them and their union.")
+    parser.add_argument("--run_imitator_on_partition", action='store_true',
+                        help="After finding minimal msrs, runs imitator on them and their union.")
+
     args = parser.parse_args()
 
     fis = [("examples/paper_benchmarks/literature_benchmarks/accel/accel_1000-uppaal_fixed_mutated.xml",
@@ -87,6 +97,8 @@ if __name__ == '__main__':
         task_results(fis, "eba", args.path_analysis)
     if args.sba:
         task_results(fis, "sba", args.path_analysis)
+    if args.pasba:
+        task_results(fis, "pasba", args.path_analysis)
     if args.remus:
         task_results(fis, "remus", args.path_analysis)
     if args.marco:
@@ -94,4 +106,7 @@ if __name__ == '__main__':
     if args.maxsba:
         task_results(fis, "maxsba", args.path_analysis)
     if args.mineba:
-        task_results(fis, "mineba", args.path_analysis, args.run_imitator_on_msr)
+        task_results(fis, "mineba", args.path_analysis,
+                     args.run_imitator_on_msr,
+                     args.run_imitator_on_every_mmsr,
+                     args.run_imitator_on_partition)

@@ -186,14 +186,14 @@ class Tamus:
         return N
 
     def markMSR(self, N, trace):
-        # print "Found MSR: {}".format([self.clist[c] for c in N])
+        print "Found MSR: {}".format([self.clist[c] for c in N])
         self.explorer.block_up(N)
         if self.task not in ["amsramg", "growshrink", "shrinkgrow", "marco", "sba", "eba"]: self.explorer.block_down(N)
         self.msres.append(N)
         self.traces.append(trace)
 
     def markCoMG(self, N):
-        # print "Found MG: {}".format([self.clist[c] for c in self.complement(N)])
+        print "Found MG: {}".format([self.clist[c] for c in self.complement(N)])
         if self.task not in ["amsramg", "growshrink", "shrinkgrow", "marco", "sba", "eba"]: self.explorer.block_up(N)
         self.explorer.block_down(N)
         self.mgs.append(self.complement(N))
@@ -247,7 +247,11 @@ class Tamus:
         print "number of MMSRs:", len(AMMSR)
         unionOfAMMSR = set(sum(AMMSR, []))
         print "union ", unionOfAMMSR
-        partition = self.partition_MMSRs(AMMSR, unionOfAMMSR, len(AMMSR)/4)
+        n = 4
+        if len(AMMSR) > n:
+            partition = self.partition_MMSRs(AMMSR, unionOfAMMSR, len(AMMSR)/n)
+        else:
+            partition = self.partition_MMSRs(AMMSR, unionOfAMMSR, 1)
         print "AMMSRs", AMMSR
         print "Partition", partition
 
@@ -255,8 +259,30 @@ class Tamus:
         print "union of AMMSRs:", actualConstraints
         if self.args.run_imitator_on_msr:
             self.run_imitator_on_uammsr(actualConstraints, AMMSR)
+        if self.args.run_imitator_on_every_mmsr:
+            self.run_imitator_on_every_mmsr(AMMSR)
+        if self.args.run_imitator_on_partition:
+            self.run_imitator_on_partition(partition)
 
-    def run_imitator_on_uammsr(self, actualConstraints, AMMSR=None):
+    def run_imitator_on_partition(self, partition):
+        min_valuation = sys.maxint
+        min_parameters = []
+        cumulative_time = 0
+        total_lp_time = 0.
+        partition = [[self.clist[c] for c in p] for p in partition]
+        for p in partition:
+            lp, val, par, ctime = self.run_imitator_on_uammsr(p, print_statistics=False)  # TODO: add using the mmsrs in partition
+            total_lp_time += lp
+            cumulative_time += ctime
+            if val < min_valuation:
+                min_valuation = val
+                min_parameters = par
+        print "Running partition of mmsrs, lp time:", total_lp_time
+        print "Running partition of mmsrs, min parameter sum:", min_valuation
+        print "Running partition of mmsrs, parameter values:", min_parameters
+        print "Running partition of mmsrs, cumulative time:", cumulative_time, "\n"
+
+    def run_imitator_on_uammsr(self, actualConstraints, AMMSR=None, print_statistics=True):
         new_templates, parameter_count = self.TA.generate_relaxed_and_parametrized_templates([], actualConstraints)
         imi_name, imiporp_name = xml_to_imi.create_imitator(new_templates,
                                                             self.model.declaration,
@@ -277,56 +303,65 @@ class Tamus:
 
             AMMSR = [[self.clist[c] for c in MMSR] for MMSR in AMMSR]
             for MMSR in AMMSR:
+                print MMSR
                 zero_parameters = [actualConstraints.index(constr) for constr in actualConstraints if constr not in MMSR]
+                print zero_parameters
                 start_time = time.clock()
                 parameter_vals, total_sum, total_time = xml_to_imi.find_maximum_parameter_values(output_file + ".res", parameter_count, maximize=False, zero_parameters=zero_parameters)
+                print parameter_vals
                 total_lp_time += time.clock() - start_time
                 if total_sum < min_valuation:
                     min_valuation = total_sum
                     min_parameters = parameter_vals
-                cumulative_time += float(total_time.split(" ")[0].strip())
+                cumulative_time = float(total_time.split(" ")[0].strip())
         else:
             start_time = time.clock()
             min_parameters, min_valuation, cumulative_time = xml_to_imi.find_maximum_parameter_values(output_file + ".res", parameter_count, maximize=False)
             total_lp_time += time.clock() - start_time
-        print "Running union of mmsrs, lp time:", total_lp_time
-        print "Running union of mmsrs, min parameter sum:", min_valuation
-        print "Running union of mmsrs, parameter values:", min_parameters
-        print "Running union of mmsrs, cumulative time:", cumulative_time, "\n"
-        if AMMSR is not None:
-            min_valuation = sys.maxint
-            min_parameters = []
-            cumulative_time = 0
-            total_lp_time = 0.
-            for MMSR in AMMSR:
-                new_templates, parameter_count = self.TA.generate_relaxed_and_parametrized_templates([],
-                                                                                                     MMSR)
-                imi_name, imiporp_name = xml_to_imi.create_imitator(new_templates,
+            cumulative_time = float(cumulative_time.split(" ")[0].strip())
+        if print_statistics:
+            print "Running union of mmsrs, lp time:", total_lp_time
+            print "Running union of mmsrs, min parameter sum:", min_valuation
+            print "Running union of mmsrs, parameter values:", min_parameters
+            print "Running union of mmsrs, cumulative time:", cumulative_time, "\n"
+        return total_lp_time, min_valuation, min_parameters, cumulative_time
+
+    def run_imitator_on_every_mmsr(self, AMMSR):
+        AMMSR = [[self.clist[c] for c in MMSR] for MMSR in AMMSR]
+        min_valuation = sys.maxint
+        min_parameters = []
+        cumulative_time = 0
+        total_lp_time = 0.
+        for MMSR in AMMSR:
+            new_templates, parameter_count = self.TA.generate_relaxed_and_parametrized_templates([],MMSR)
+            imi_name, imiporp_name = xml_to_imi.create_imitator(new_templates,
                                                                     self.model.declaration,
                                                                     self.model.system,
                                                                     self.model_file,
                                                                     self.query_file,
                                                                     parameter_count, reach=True, name_addition="_v3")
-                output_file = self.query_file.split(".q")[0] + "_v3"
-                command = "imitator " + imi_name + " " + imiporp_name + " -output-prefix " + output_file + " -verbose mute > /dev/null"
-                print "running " + command
-                os.system(command)
-                start_time = time.clock()
-                parameter_vals, total_sum, total_time = xml_to_imi.find_maximum_parameter_values(output_file + ".res",
+            output_file = self.query_file.split(".q")[0] + "_v3"
+            command = "imitator " + imi_name + " " + imiporp_name + " -output-prefix " + output_file + " -verbose mute > /dev/null"
+            print "running " + command
+            os.system(command)
+            start_time = time.clock()
+            parameter_vals, total_sum, total_time = xml_to_imi.find_maximum_parameter_values(output_file + ".res",
                                                                                                  parameter_count,
                                                                                                  maximize=False)
-                total_lp_time += time.clock() - start_time
-                if total_sum < min_valuation:
-                    min_valuation = total_sum
-                    min_parameters = parameter_vals
-                cumulative_time += float(total_time.split(" ")[0].strip())
-            print "Running every mmsr, lp time:", total_lp_time
-            print "Running every mmsr, min parameter sum:", min_valuation
-            print "Running every mmsr, parameter values:", min_parameters
-            print "Running every mmsr cumulative time:", cumulative_time, "\n"
+            total_lp_time += time.clock() - start_time
+            if total_sum < min_valuation:
+                min_valuation = total_sum
+                min_parameters = parameter_vals
+            cumulative_time += float(total_time.split(" ")[0].strip())
+        print "Running every mmsr, lp time:", total_lp_time
+        print "Running every mmsr, min parameter sum:", min_valuation
+        print "Running every mmsr, parameter values:", min_parameters
+        print "Running every mmsr cumulative time:", cumulative_time, "\n"
 
     def partition_MMSRs(self, AMMSR, unionOfAMMSR, n):
         """Partition the given MMSRs into n constraint sets such that each MSR is included in a constraint set."""
+        if len(AMMSR) == 1:
+            return AMMSR
         allC=list(unionOfAMMSR)
         B_AMMSR = [0]*len(AMMSR)
         B_size = [0]*len(AMMSR)
@@ -668,6 +703,8 @@ if __name__ == '__main__':
     parser.add_argument("--task", choices=["pasba", "maxpasba", "msr", "mmsr", "mg", "mmg", "amsr", "amg", "amsramg", "eba", "sba", "marco", "remus", "maxsba", "mineba"], help = "Choose the computation taks: msr - an MSR, mmsr - a minimum MSR, mg - an MG, mmg - a minimum MG, amsr - all MSRs, amg - all MGs, amsramg - all MSRs and MGs.", default = "mmsr")
     parser.add_argument("--run_imitator_on_mg", action='store_true', help="After fnding minimal guarantee, runs imitator on it. This value does not have effect if any task other than mmg is selected.")
     parser.add_argument("--run_imitator_on_msr", action='store_true', help="After finding minimal msrs, runs imitator on them and their union.")
+    parser.add_argument("--run_imitator_on_every_mmsr", action='store_true', help="After finding minimal msrs, runs imitator on them and their union.")
+    parser.add_argument("--run_imitator_on_partition", action='store_true', help="After finding minimal msrs, runs imitator on them and their union.")
     parser.add_argument("--path-analysis", action='store_true', help = "Use path analysis to further shrink reduction cores.")
     parser.add_argument("--multiple-path-cores", action='store_true', help = "Extract multiple MUSes from a single witness path.")
     args = parser.parse_args()

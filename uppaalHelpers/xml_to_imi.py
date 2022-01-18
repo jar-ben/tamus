@@ -333,8 +333,9 @@ def find_maximum_parameter_values(file_name, parameter_count, find_real_valued_d
     optimum_parameters = []
     for zone in zones:
         parameter_values, total_sum = solve_milp(zone, parameter_count, find_real_valued_delta, maximize, zero_parameters)
-        optimum_sums.append(total_sum)
-        optimum_parameters.append(parameter_values)
+        if len(parameter_values) is not 0:
+            optimum_sums.append(total_sum)
+            optimum_parameters.append(parameter_values)
     if maximize:
         maximum_sum = max(optimum_sums)
         max_parameters = optimum_parameters[optimum_sums.index(maximum_sum)]
