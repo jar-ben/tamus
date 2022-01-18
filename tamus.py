@@ -303,12 +303,9 @@ class Tamus:
 
             AMMSR = [[self.clist[c] for c in MMSR] for MMSR in AMMSR]
             for MMSR in AMMSR:
-                print MMSR
                 zero_parameters = [actualConstraints.index(constr) for constr in actualConstraints if constr not in MMSR]
-                print zero_parameters
                 start_time = time.clock()
                 parameter_vals, total_sum, total_time = xml_to_imi.find_maximum_parameter_values(output_file + ".res", parameter_count, maximize=False, zero_parameters=zero_parameters)
-                print parameter_vals
                 total_lp_time += time.clock() - start_time
                 if total_sum < min_valuation:
                     min_valuation = total_sum
