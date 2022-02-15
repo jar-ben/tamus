@@ -27,7 +27,6 @@ The option `--task` is used to choose the computation task; the available option
 - `--task amsr` identifies all minimal sufficient reductions,
 - `--task mmg` identifies a minimum minimal guarantee,
 - `--task amg` identifies all minimal guarantees
-- `--task amg` identifies all minimal guarantees
 
 ## Copyright Note
 This tool has been developed by Jaroslav Bendik, Ahmet Sencan, Ebru Aydin Gol, and Ivana Cerna. We distribute it under the GPL-3.0 License (see the LICENSE file). 
