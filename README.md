@@ -16,15 +16,17 @@ Tamus requires several external libraries to be installed.
 
 ## Running Tamus
 ```
-python2 ./tamus.py --task <task> <input_model_file> <input_query_file> TA
+python2 ./tamus.py --task <task> <input_model_file> <input_query_file> <template_name>
 ```
 The input model and query files are in the xml-uppaal compliant format. See the examples in the folder ./examples/. 
+The template name can be either "All" or the name of one of the templates from the input model. When "All" is chosen, computation will be done on all templates.
 For instance, run `python2 tamus.py --task mmsr examples/example_TA.xml examples/example_TA.q TA`. 
 The option `--task` is used to choose the computation task; the available options are the following:
 
 - `--task mmsr` identifies a minimum minimal sufficient reduction
 - `--task amsr` identifies all minimal sufficient reductions,
 - `--task mmg` identifies a minimum minimal guarantee,
+- `--task amg` identifies all minimal guarantees
 - `--task amg` identifies all minimal guarantees
 
 ## Copyright Note
