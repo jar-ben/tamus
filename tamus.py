@@ -63,14 +63,29 @@ class Tamus:
         self.stats["grows"] = 0
         self.stats["grows_time"] = 0
         self.stats["timeout"] = False
+        self.stats["shrinksPaths"] = 0
+        self.stats["shrinksPaths_time"] = 0
 
         self.timelimit = 1000000 #time limit for the MSR enumeration
         self.start_time = time.clock()
     def complement(self, N):
         return [i for i in range(self.dimension) if i not in N]
 
+    def corePathAnalysis(self, N, trace):
+        start_time = time.clock()
+        toCheck = N[:]
+        for c in toCheck:
+            if self.explorer.is_critical(c, N): continue # c is minable conflicting for N
+            N.remove(c)
+            if not path_analysis.is_realizable(self.TA, trace, [self.clist[d] for d in N]):
+                N.append(c)
+        self.stats["shrinksPaths"] += 1
+        self.stats["shrinksPaths_time"] += time.clock() - start_time
+        return N
+
+
     # returs true iff N is a sufficient reduction
-    def check(self, N):
+    def check(self, N, pathAnalysis = True):
         relax_set = [self.clist[c] for c in N]
         new_templates = self.TA.generate_relaxed_templates(relax_set)
         # Set the TA to template in self.model, store it to file named new_model
@@ -84,15 +99,17 @@ class Tamus:
                 assert c in self.clist
                 core.append(self.clist.index(c))
             N = core
+            if self.usePathAnalysis and pathAnalysis:
+                N = self.corePathAnalysis(N, trace)
         else: core = N
         return res == 1, core, trace
 
     # a wrapper for the method check(self, N)
     # returs true iff N is a sufficient reduction
-    def is_sufficient(self, N):        
+    def is_sufficient(self, N, pathAnalysis = True):        
         start_time = time.clock()
         self.stats["checks"] += 1
-        sufficient, core, trace = self.check(N)
+        sufficient, core, trace = self.check(N, pathAnalysis)
         if sufficient: 
             self.stats["checks_sufficient"] += 1
             self.stats["checks_sufficient_time"] += time.clock() - start_time
@@ -115,7 +132,7 @@ class Tamus:
                 N = core
                 trace_for_N = trace
         self.stats["shrinks"] += 1
-        self.stats["shrinks_time"] += time.clock() - start_time
+        self.stats["shrinks_time"] += (time.clock() - start_time)
         return N, trace_for_N
     
     # takes an unexplored u-seed N and returns an unexplored MSR N' of N such that N' \subseteq N
@@ -133,7 +150,7 @@ class Tamus:
             else:
                 self.explorer.shadow_block_down(copy)
         self.stats["shrinks"] += 1
-        self.stats["shrinks_time"] += time.clock() - start_time
+        self.stats["shrinks_time"] += (time.clock() - start_time)
         return N, trace_for_N
 
     # takes an insufficient reduction N and returns a maximal insufficient reduction N' \supseteq N
@@ -193,10 +210,14 @@ class Tamus:
             pass
         elif t in ["sba", "maxsba"]:
             self.SBA(allMGs = t == "sba")
+        elif t in ["pasba", "maxpasba"]:
+            self.SBAcorePath(t == "pasba")
         elif t in ["eba","mineba"]:
             self.EBA(allMSRs = t == "eba")
         elif t == "marco":
             self.marco()
+        elif t == "remus":            
+            self.remus(subset = [i for i in range(self.dimension)], crits = [False for _ in range(self.dimension)], depth = 0)
         else:
             assert False
         print "MSRs:", len(self.msres)
@@ -218,6 +239,157 @@ class Tamus:
             iMG.intersection_update(m)
         print "union of MGs:", len(uMG)
         print "intersection of MGs:", len(iMG)
+
+        #minimum MSRs
+        MMSRcard = min([len(M) for M in self.msres]) #minimum MSR cardinality
+        AMMSR = [M for M in self.msres if len(M) == MMSRcard]
+        print "minimum MSR cardinality:", MMSRcard
+        print "number of MMSRs:", len(AMMSR)
+        unionOfAMMSR = set(sum(AMMSR, []))
+        print "union ", unionOfAMMSR
+        n = 4
+        if len(AMMSR) > n:
+            partition = self.partition_MMSRs(AMMSR, unionOfAMMSR, len(AMMSR)/n)
+        else:
+            partition = self.partition_MMSRs(AMMSR, unionOfAMMSR, 1)
+        print "AMMSRs", AMMSR
+        print "Partition", partition
+
+        actualConstraints = [self.clist[c] for c in unionOfAMMSR]
+        print "union of AMMSRs:", actualConstraints
+        if self.args.run_imitator_on_msr:
+            self.run_imitator_on_uammsr(actualConstraints, AMMSR)
+        if self.args.run_imitator_on_every_mmsr:
+            self.run_imitator_on_every_mmsr(AMMSR)
+        if self.args.run_imitator_on_partition:
+            self.run_imitator_on_partition(partition)
+
+    def run_imitator_on_partition(self, partition):
+        min_valuation = sys.maxint
+        min_parameters = []
+        cumulative_time = 0
+        total_lp_time = 0.
+        partition = [[self.clist[c] for c in p] for p in partition]
+        for p in partition:
+            lp, val, par, ctime = self.run_imitator_on_uammsr(p, print_statistics=False)  # TODO: add using the mmsrs in partition
+            total_lp_time += lp
+            cumulative_time += ctime
+            if val < min_valuation:
+                min_valuation = val
+                min_parameters = par
+        print "Running partition of mmsrs, lp time:", total_lp_time
+        print "Running partition of mmsrs, min parameter sum:", min_valuation
+        print "Running partition of mmsrs, parameter values:", min_parameters
+        print "Running partition of mmsrs, cumulative time:", cumulative_time, "\n"
+
+    def run_imitator_on_uammsr(self, actualConstraints, AMMSR=None, print_statistics=True):
+        new_templates, parameter_count = self.TA.generate_relaxed_and_parametrized_templates([], actualConstraints)
+        imi_name, imiporp_name = xml_to_imi.create_imitator(new_templates,
+                                                            self.model.declaration,
+                                                            self.model.system,
+                                                            self.model_file,
+                                                            self.query_file,
+                                                            parameter_count, reach=True, name_addition="_v2")
+        output_file = self.query_file.split(".q")[0]+"_v2"
+        command = "imitator " + imi_name + " " + imiporp_name + " -output-prefix " + output_file + " -verbose mute > /dev/null"
+        print "\nrunning " + command
+        os.system(command)
+
+        total_lp_time = 0.
+        if AMMSR is not None:
+            min_valuation = sys.maxint
+            min_parameters = []
+            cumulative_time = 0
+
+            AMMSR = [[self.clist[c] for c in MMSR] for MMSR in AMMSR]
+            for MMSR in AMMSR:
+                zero_parameters = [actualConstraints.index(constr) for constr in actualConstraints if constr not in MMSR]
+                start_time = time.clock()
+                parameter_vals, total_sum, total_time = xml_to_imi.find_maximum_parameter_values(output_file + ".res", parameter_count, maximize=False, zero_parameters=zero_parameters)
+                total_lp_time += time.clock() - start_time
+                if total_sum < min_valuation:
+                    min_valuation = total_sum
+                    min_parameters = parameter_vals
+                cumulative_time = float(total_time.split(" ")[0].strip())
+        else:
+            start_time = time.clock()
+            min_parameters, min_valuation, cumulative_time = xml_to_imi.find_maximum_parameter_values(output_file + ".res", parameter_count, maximize=False)
+            total_lp_time += time.clock() - start_time
+            cumulative_time = float(cumulative_time.split(" ")[0].strip())
+        if print_statistics:
+            print "Running union of mmsrs, lp time:", total_lp_time
+            print "Running union of mmsrs, min parameter sum:", min_valuation
+            print "Running union of mmsrs, parameter values:", min_parameters
+            print "Running union of mmsrs, cumulative time:", cumulative_time, "\n"
+        return total_lp_time, min_valuation, min_parameters, cumulative_time
+
+    def run_imitator_on_every_mmsr(self, AMMSR):
+        AMMSR = [[self.clist[c] for c in MMSR] for MMSR in AMMSR]
+        min_valuation = sys.maxint
+        min_parameters = []
+        cumulative_time = 0
+        total_lp_time = 0.
+        for MMSR in AMMSR:
+            new_templates, parameter_count = self.TA.generate_relaxed_and_parametrized_templates([],MMSR)
+            imi_name, imiporp_name = xml_to_imi.create_imitator(new_templates,
+                                                                    self.model.declaration,
+                                                                    self.model.system,
+                                                                    self.model_file,
+                                                                    self.query_file,
+                                                                    parameter_count, reach=True, name_addition="_v3")
+            output_file = self.query_file.split(".q")[0] + "_v3"
+            command = "imitator " + imi_name + " " + imiporp_name + " -output-prefix " + output_file + " -verbose mute > /dev/null"
+            print "running " + command
+            os.system(command)
+            start_time = time.clock()
+            parameter_vals, total_sum, total_time = xml_to_imi.find_maximum_parameter_values(output_file + ".res",
+                                                                                                 parameter_count,
+                                                                                                 maximize=False)
+            total_lp_time += time.clock() - start_time
+            if total_sum < min_valuation:
+                min_valuation = total_sum
+                min_parameters = parameter_vals
+            cumulative_time += float(total_time.split(" ")[0].strip())
+        print "Running every mmsr, lp time:", total_lp_time
+        print "Running every mmsr, min parameter sum:", min_valuation
+        print "Running every mmsr, parameter values:", min_parameters
+        print "Running every mmsr cumulative time:", cumulative_time, "\n"
+
+    def partition_MMSRs(self, AMMSR, unionOfAMMSR, n):
+        """Partition the given MMSRs into n constraint sets such that each MSR is included in a constraint set."""
+        if len(AMMSR) == 1:
+            return AMMSR
+        allC=list(unionOfAMMSR)
+        B_AMMSR = [0]*len(AMMSR)
+        B_size = [0]*len(AMMSR)
+        for mi in range(len(AMMSR)):
+            for c in AMMSR[mi]:
+                B_AMMSR[mi] = B_AMMSR[mi] | 1 << allC.index(c)
+            B_size[mi] = bin(B_AMMSR[mi]).count("1")
+
+        # sort according to B_size
+        B_size, B_AMMSR = (list(t) for t in zip(*sorted(zip(B_size, B_AMMSR))))
+        while len(B_size) > n:
+            smax = len(unionOfAMMSR)
+            si=1
+            for i in range(1,len(B_AMMSR)):
+                tmp = B_AMMSR[0] | B_AMMSR[i]
+                tmp_size = bin(tmp).count("1")
+                if tmp_size < smax:
+                    si = i
+                    smax = tmp_size
+            # merge B_AMMSR[0] with B_AMMSR[si]
+            B_AMMSR[si] = B_AMMSR[si] | B_AMMSR[0]
+            B_size[si] = smax
+            B_AMMSR.pop(0)
+            B_size.pop(0)
+            B_size, B_AMMSR = (list(t) for t in zip(*sorted(zip(B_size, B_AMMSR))))
+
+        # To constraint indexes:
+        partition = [[] for _ in range(n)]
+        for i in range(len(B_AMMSR)):
+            partition[i] = [t for t in allC if 1 << allC.index(t) & B_AMMSR[i]]
+        return partition
 
     def EBA(self, allMSRs = True):
         start_time = time.clock()
@@ -244,6 +416,49 @@ class Tamus:
                 print("User-defined timelimit of {} seconds exceeded. Aborting MMG extraction.".format(self.timelimit))
                 break
     
+    def TBA(self, N, trace, msr):        
+        exp = Explorer(self.dimension)
+        exp.block_up(msr)
+        seed = exp.get_unex_subset(N)
+        while seed is not None:
+            if self.explorer.is_shadow_insufficient(seed):
+                exp.block_down(seed)
+            elif path_analysis.is_realizable(self.TA, trace, [self.clist[d] for d in seed]):
+                msr, trace = self.shrinkShadow(N, trace)
+                self.markMSR(msr, trace)
+            else:
+                exp.block_down(seed)
+            seed = exp.get_unex_subset(N)
+
+
+    def SBAcorePath(self, allMGs = True):
+        start_time = time.clock()
+        seed = self.explorer.get_unex()
+        current_min = -1
+        while seed is not None:
+            seed = self.explorer.maximize(seed[:])
+            sufficient, core, trace = None, None, None
+            sInsufficient = self.explorer.is_shadow_insufficient(seed)
+            if sInsufficient:
+                sufficient = False
+            else:
+                sufficient, core, trace = self.is_sufficient(seed, pathAnalysis = False)
+            if sufficient:
+                N = self.corePathAnalysis(core, trace)
+                msr, trace = self.shrinkShadow(N, trace)
+                self.markMSR(msr, trace)
+                self.TBA(N, trace, msr)
+            else:
+                self.markCoMG(seed)
+                if not allMGs:
+                    current_min = len(seed)
+            seed = self.explorer.get_unex(minCard = current_min)
+            if time.clock() - start_time > self.timelimit:
+                self.stats["timeout"] = True
+                print("User-defined timelimit of {} seconds exceeded. Aborting MMG extraction.".format(self.timelimit))
+                break
+        
+
     def SBA(self, allMGs = True):
         start_time = time.clock()
         seed = self.explorer.get_unex()
@@ -269,6 +484,45 @@ class Tamus:
                 print("User-defined timelimit of {} seconds exceeded. Aborting MMG extraction.".format(self.timelimit))
                 break
     
+    def remus(self, subset, crits, depth = 0):
+        def extendMSR(s, m):
+            dimRed = 0.6
+            origSize = len(s)
+            for c in s:
+                if c not in m:
+                    m.append(c)
+                    if len(m) >= origSize * dimRed:
+                        break
+            return m
+
+        start_time = time.clock()
+        seed = self.explorer.get_unex_subset(subset)
+        streak = 0
+        while seed is not None:
+            sufficient, core, trace = self.is_sufficient(seed)
+            if sufficient:
+                streak = 0
+                msr, trace = self.shrink(core, trace)
+                self.markMSR(msr, trace)
+                recSubset = extendMSR(seed[:], msr[:])
+                self.remus(recSubset, crits, depth + 1)
+            else:
+                streak += 1
+                self.explorer.block_down(seed)
+                if streak > 10 and depth > 0:
+                    return
+                critAll = [i for i in range(self.dimension) if ((i in subset) and not(i in seed))]
+                if len(critAll) > 1:
+                    for c in critAll:
+                        recSubset = subset[:]
+                        recSubset.remove(c)
+                        self.remus(recSubset, crits, depth + 1)
+            seed = self.explorer.get_unex_subset(subset)
+            if time.clock() - start_time > self.timelimit:
+                self.stats["timeout"] = True
+                print("User-defined timelimit of {} seconds exceeded. Aborting MMG extraction.".format(self.timelimit))
+                break
+
     def marco(self):
         start_time = time.clock()
         seed = self.explorer.get_unex()
@@ -426,6 +680,8 @@ class Tamus:
         print "Average time of 'unreachable' check:", self.stats["checks_insufficient_time"]/ self.stats["checks_insufficient"]
         print "Shrinks:", self.stats["shrinks"]  
         print "Total time spent by shrinks:", self.stats["shrinks_time"]  
+        print "Path analyses:", self.stats["shrinksPaths"]  
+        print "Total time spent by path analyses:", self.stats["shrinksPaths_time"]  
         print "Grows:", self.stats["grows"]
         print "Total time spent by grows:", self.stats["grows_time"]
 
@@ -441,8 +697,13 @@ if __name__ == '__main__':
     parser.add_argument("template_name", help="Name of template")
     parser.add_argument("--verbose", "-v", action="count", help = "Use the flag to increase the verbosity of the outputs. The flag can be used repeatedly.")    
     parser.add_argument("--msr-timelimit", type=int, help = "Sets up timelimit for MSR enumeration. Note that the computation is not terminated exactly after the timelimit, but once the last identified MSR exceeds the timelimit. We recommend you to use UNIX timeout when using our tool, if you want to timeout the whole computation. ")
-    parser.add_argument("--task", choices=["msr", "mmsr", "mg", "mmg", "amsr", "amg", "amsramg", "eba", "sba", "marco", "maxsba", "mineba"], help = "Choose the computation taks: msr - an MSR, mmsr - a minimum MSR, mg - an MG, mmg - a minimum MG, amsr - all MSRs, amg - all MGs, amsramg - all MSRs and MGs.", default = "mmsr")
+    parser.add_argument("--task", choices=["pasba", "maxpasba", "msr", "mmsr", "mg", "mmg", "amsr", "amg", "amsramg", "eba", "sba", "marco", "remus", "maxsba", "mineba"], help = "Choose the computation taks: msr - an MSR, mmsr - a minimum MSR, mg - an MG, mmg - a minimum MG, amsr - all MSRs, amg - all MGs, amsramg - all MSRs and MGs.", default = "mmsr")
     parser.add_argument("--run_imitator_on_mg", action='store_true', help="After fnding minimal guarantee, runs imitator on it. This value does not have effect if any task other than mmg is selected.")
+    parser.add_argument("--run_imitator_on_msr", action='store_true', help="After finding minimal msrs, runs imitator on them and their union.")
+    parser.add_argument("--run_imitator_on_every_mmsr", action='store_true', help="After finding minimal msrs, runs imitator on them and their union.")
+    parser.add_argument("--run_imitator_on_partition", action='store_true', help="After finding minimal msrs, runs imitator on them and their union.")
+    parser.add_argument("--path-analysis", action='store_true', help = "Use path analysis to further shrink reduction cores.")
+    parser.add_argument("--multiple-path-cores", action='store_true', help = "Extract multiple MUSes from a single witness path.")
     args = parser.parse_args()
 
     #run the computation
@@ -453,6 +714,8 @@ if __name__ == '__main__':
     t.timelimit = args.msr_timelimit if args.msr_timelimit != None else 1000000 
     t.verbosity = args.verbose if args.verbose != None else 0
     t.task = args.task
+    t.usePathAnalysis = args.path_analysis
+    t.useMultiplePathCores = args.multiple_path_cores
     print "Model: ", model, ", query: ", query_file
     print "dimension:", t.dimension
     print "is the target location reachable?", t.is_sufficient([])[0]

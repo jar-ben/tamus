@@ -31,6 +31,24 @@ class Explorer:
         block = [self.vars[n] for n in self.complement(N) ]
         self.s.add(Or(block))
 
+    #gets a maximal unexplored subset of N
+    def get_unex_subset(self, N):
+        assumptions = [Not(self.vars[c]) for c in self.complement(N)] 
+        check = self.s.check(assumptions)
+        if check == sat:
+            seed = []
+            m = self.s.model()
+            for x in m:
+                if is_true(m[x]):
+                    seed.append(int(str(x)[1:]))
+            #maximize
+            for c in N:
+                if c in seed: continue
+                if self.is_unexplored(seed + [c]):
+                    seed.append(c)
+            return seed
+        return None
+    
     def get_unex(self, minCard = -1, maxCard = -1):
         if max(minCard, maxCard) >= 0:
             self.s.push()

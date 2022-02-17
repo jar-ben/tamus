@@ -248,22 +248,19 @@ class TimedAutomata:
             constraint_to_parameter[(c[1], parsed_inequality)] = i
         return constraint_to_parameter
 
-    def _parametrize_constraint(self, constraint, parametrize_set, parameter_count):
+    def _parametrize_constraint(self, constraint, parametrize_set, parameter_values_set):
         """Returns a s string by adding parameter to each constraint"""
         constraint_list = constraint.split('&&')
         c_par = []
         for c in constraint_list:
             if c in parametrize_set:
                 if "<" in c:
-                    c_par.append(c + "+par" + str(parameter_count))
-                    #c_par.append(c + "+par0")  # + str(parameter_count))
+                    c_par.append(c + "+par" + str(parameter_values_set[parametrize_set.index(c)]))
                 elif ">" in c:
-                    c_par.append(c + "-par" + str(parameter_count))
-                    #c_par.append(c + "-par0")  # + str(parameter_count))
-                parameter_count += 1
+                    c_par.append(c + "-par" + str(parameter_values_set[parametrize_set.index(c)]))
             else:
                 c_par.append(c)
-        return '&&'.join(c_par), parameter_count
+        return '&&'.join(c_par)
 
     def generate_relaxed_and_parametrized_templates(self, relax_set, parametrize_set):
         """Removes the constraints from the relaxed set and returns the resulting template."""
@@ -280,12 +277,18 @@ class TimedAutomata:
         parameter_count = 0
         transition_par_set = {}
         location_par_set = {}
+        transition_par_values = {}
+        location_par_values = {}
         for cid in parametrize_set:
             constraint, l_t = self.constraint_registry[cid]
             if len(l_t) == 4:  # A constraint along a transition.
                 transition_par_set.setdefault(l_t, []).append(constraint)  # Insert or append
+                transition_par_values.setdefault(l_t, []).append(parameter_count)
+                parameter_count += 1
             else:
                 location_par_set.setdefault(l_t, []).append(constraint)
+                location_par_values.setdefault(l_t, []).append(parameter_count)
+                parameter_count += 1
 
         new_templates = []
         for template in self.templates:
@@ -304,10 +307,12 @@ class TimedAutomata:
                                                     t.source.name.value,
                                                     t.target.name.value,
                                                     t.synchronisation.value), [])
+                t_par_values = transition_par_values.get((new_template.name,
+                                                          t.source.name.value,
+                                                          t.target.name.value,
+                                                          t.synchronisation.value), [])
                 if t_par_set:
-                    t.guard.value, parameter_count = self._parametrize_constraint(t.guard.value,
-                                                                                  t_par_set,
-                                                                                  parameter_count)
+                    t.guard.value = self._parametrize_constraint(t.guard.value, t_par_set, t_par_values)
 
             # Go through the locations, relax invariants according to the location_relax_set.
             for l in new_template.locations:
@@ -316,8 +321,8 @@ class TimedAutomata:
                     l.invariant.value = self._relax_constraint(l.invariant.value, l_relax_set)
 
                 l_par_set = location_par_set.get((new_template.name, l.name.value), [])
+                l_par_values = location_par_values.get((new_template.name, l.name.value), [])
                 if l_par_set:
-                    l.invariant.value, parameter_count = self._parametrize_constraint(l.invariant.value,
-                                                                                      l_par_set, parameter_count)
+                    l.invariant.value = self._parametrize_constraint(l.invariant.value, l_par_set, l_par_values)
 
         return new_templates, parameter_count
