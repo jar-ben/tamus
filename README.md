@@ -26,7 +26,14 @@ The option `--task` is used to choose the computation task; the available option
 - `--task mmsr` identifies a minimum minimal sufficient reduction
 - `--task amsr` identifies all minimal sufficient reductions,
 - `--task mmg` identifies a minimum minimal guarantee,
-- `--task amg` identifies all minimal guarantees
+- `--task amg` identifies all minimal guarantees,
+- `--task pasba` identifies all minimal guarantees and all minimal sufficient reductions with path analysis,
+- `--task sba` identifies all minimal guarantees and all minimal sufficient reductions without path analysis,
+- `--task marco` identifies all minimal guarantees and all minimal sufficient reductions,
+- `--task remus` identifies all minimal guarantees and all minimal sufficient reductions,
+- `--task eba` identifies all minimal guarantees and all minimal sufficient reductions,
+- `--task mineba` identifies all minimum minimal sufficient reductions,
+- `--task maxsba` identifies all minimum minimal guarantees
 
 ## Copyright Note
 This tool has been developed by Jaroslav Bendik, Ahmet Sencan, Ebru Aydin Gol, and Ivana Cerna. We distribute it under the GPL-3.0 License (see the LICENSE file). 
