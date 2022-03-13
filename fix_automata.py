@@ -55,7 +55,8 @@ def fix_automata(file_path, clocks, parameters, discrete_variables, n=1):
                     else:
                         atomic = c.split('=')
 
-                    clock, threshold, _ = find_atomics(atomic[0], atomic[1], clocks + discrete_variables, parameters, n)
+                    clock, threshold, _ = find_atomics(
+                        atomic[0], atomic[1], clocks + discrete_variables, parameters, n)
 
                     c1 = clock + ' ' + '&lt;=' + ' ' + threshold
                     c2 = clock + ' ' + '&gt;=' + ' ' + threshold

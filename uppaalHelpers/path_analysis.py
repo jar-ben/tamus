@@ -11,7 +11,8 @@ def is_realizable(ta, path, msr=[]):
     # for the first location
     compute_clocks(path, ta, clocks)
     clocks = sorted(clocks)
-    result, delays, _ = construct_path_lp(path, clocks, ta, msr, remove_msr=True)
+    result, delays, _ = construct_path_lp(
+        path, clocks, ta, msr, remove_msr=True)
     return result
 
 
@@ -74,7 +75,8 @@ def construct_path_lp(path, clocks, ta, msr, remove_msr=False):
         for c in ta.parsed_invariants[path[i]]:
             # The constraint is not in the MSR
             if constraint_to_parameter.get((path[i], c)) is None:
-                a, b = compute_constraint(clock_to_delay, c, number_of_variables, -1)
+                a, b = compute_constraint(
+                    clock_to_delay, c, number_of_variables, -1)
             elif not remove_msr:  # The constraint is in the MSR, parametrize it.
                 a, b = compute_constraint(clock_to_delay, c, number_of_variables,
                                           constraint_to_parameter[(path[i], c)] + length_of_path)
@@ -86,8 +88,10 @@ def construct_path_lp(path, clocks, ta, msr, remove_msr=False):
 
         # Add constraints for the guards.
         for c in ta.parsed_guards[path[i + 1]]:
-            if constraint_to_parameter.get((path[i + 1], c)) is None:  # The constraint is not in the MSR
-                a, b = compute_constraint(clock_to_delay, c, number_of_variables, -1)
+            # The constraint is not in the MSR
+            if constraint_to_parameter.get((path[i + 1], c)) is None:
+                a, b = compute_constraint(
+                    clock_to_delay, c, number_of_variables, -1)
             elif not remove_msr:  # The constraint is in the MSR, parametrize it.
                 a, b = compute_constraint(clock_to_delay, c, number_of_variables,
                                           constraint_to_parameter[(path[i + 1], c)] + length_of_path)
@@ -104,8 +108,10 @@ def construct_path_lp(path, clocks, ta, msr, remove_msr=False):
         # Add constraints for the invariant.
         # Entering path[i+1]:
         for c in ta.parsed_invariants[path[i + 2]]:
-            if constraint_to_parameter.get((path[i + 2], c)) is None:  # The constraint is not in the MSR
-                a, b = compute_constraint(clock_to_delay, c, number_of_variables, -1)
+            # The constraint is not in the MSR
+            if constraint_to_parameter.get((path[i + 2], c)) is None:
+                a, b = compute_constraint(
+                    clock_to_delay, c, number_of_variables, -1)
             elif not remove_msr:  # The constraint is in the MSR, parametrize it.
                 a, b = compute_constraint(clock_to_delay, c, number_of_variables,
                                           constraint_to_parameter[(path[i + 2], c)] + length_of_path)
@@ -119,8 +125,6 @@ def construct_path_lp(path, clocks, ta, msr, remove_msr=False):
         for x in clocks:
             clock_to_delay[x].append(i / 2 + 1)
 
-
-
     # Construct solver
     if remove_msr:
         solver = pywraplp.Solver('', pywraplp.Solver.GLOP_LINEAR_PROGRAMMING)
@@ -132,7 +136,8 @@ def construct_path_lp(path, clocks, ta, msr, remove_msr=False):
         solver.Minimize(0)  # no actual cost is defined
 
     else:
-        solver = pywraplp.Solver('', pywraplp.Solver.CBC_MIXED_INTEGER_PROGRAMMING)
+        solver = pywraplp.Solver(
+            '', pywraplp.Solver.CBC_MIXED_INTEGER_PROGRAMMING)
         # Create variables for solver
         x = {}
         for j in range(length_of_path):

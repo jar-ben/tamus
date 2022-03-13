@@ -1,5 +1,6 @@
 from z3 import *
 
+
 class Explorer:
     def __init__(self, dimension):
         self.dimension = dimension
@@ -15,7 +16,7 @@ class Explorer:
     def complement(self, N):
         return [i for i in range(self.dimension) if i not in N]
 
-    def shadow_block_up(self, N, trace = None):
+    def shadow_block_up(self, N, trace=None):
         self.shadowBlockUps.append({"set": N[:], "trace": trace})
 
     def shadow_block_down(self, N):
@@ -23,17 +24,17 @@ class Explorer:
 
     def block_up(self, N):
         self.blockUps.append(N[:])
-        block = [Not(self.vars[n]) for n in N ]
+        block = [Not(self.vars[n]) for n in N]
         self.s.add(Or(block))
 
     def block_down(self, N):
         self.blockDowns.append(N[:])
-        block = [self.vars[n] for n in self.complement(N) ]
+        block = [self.vars[n] for n in self.complement(N)]
         self.s.add(Or(block))
 
-    #gets a maximal unexplored subset of N
+    # gets a maximal unexplored subset of N
     def get_unex_subset(self, N):
-        assumptions = [Not(self.vars[c]) for c in self.complement(N)] 
+        assumptions = [Not(self.vars[c]) for c in self.complement(N)]
         check = self.s.check(assumptions)
         if check == sat:
             seed = []
@@ -41,22 +42,23 @@ class Explorer:
             for x in m:
                 if is_true(m[x]):
                     seed.append(int(str(x)[1:]))
-            #maximize
+            # maximize
             for c in N:
-                if c in seed: continue
+                if c in seed:
+                    continue
                 if self.is_unexplored(seed + [c]):
                     seed.append(c)
             return seed
         return None
-    
-    def get_unex(self, minCard = -1, maxCard = -1):
+
+    def get_unex(self, minCard=-1, maxCard=-1):
         if max(minCard, maxCard) >= 0:
             self.s.push()
         if minCard >= 0:
-            self.s.add(PbGe([(x,1) for x in self.vars], minCard))
+            self.s.add(PbGe([(x, 1) for x in self.vars], minCard))
         if maxCard >= 0:
-            self.s.add(PbLe([(x,1) for x in self.vars], maxCard))
-        
+            self.s.add(PbLe([(x, 1) for x in self.vars], maxCard))
+
         check = self.s.check()
         if check == sat:
             seed = []
@@ -72,13 +74,13 @@ class Explorer:
         return None
 
     # maximize a given unexplored subset (seed)
-    def maximize(self, seed, minCard = -1, maxCard = -1):
+    def maximize(self, seed, minCard=-1, maxCard=-1):
         if max(minCard, maxCard) >= 0:
             self.s.push()
         if minCard >= 0:
-            self.s.add(PbGe([(x,1) for x in self.vars], minCard))
+            self.s.add(PbGe([(x, 1) for x in self.vars], minCard))
         if maxCard >= 0:
-            self.s.add(PbLe([(x,1) for x in self.vars], maxCard))
+            self.s.add(PbLe([(x, 1) for x in self.vars], maxCard))
         for c in self.complement(seed):
             if self.is_unexplored(seed + [c]):
                 seed.append(c)
@@ -87,13 +89,13 @@ class Explorer:
         return seed
 
     # minimize a given unexplored subset (seed)
-    def minimize(self, seed, minCard = -1, maxCard = -1):
+    def minimize(self, seed, minCard=-1, maxCard=-1):
         if max(minCard, maxCard) >= 0:
             self.s.push()
         if minCard >= 0:
-            self.s.add(PbGe([(x,1) for x in self.vars], minCard))
+            self.s.add(PbGe([(x, 1) for x in self.vars], minCard))
         if maxCard >= 0:
-            self.s.add(PbLe([(x,1) for x in self.vars], maxCard))
+            self.s.add(PbLe([(x, 1) for x in self.vars], maxCard))
         candidates = seed[:]
         while len(candidates) > 0:
             c = candidates[-1]
@@ -130,7 +132,7 @@ class Explorer:
             if len(set(N) - set(B)) == 0:
                 return True
         return False
-    
+
     def is_shadow_unexplored(self, N):
         for B in self.shadowBlockUps:
             if len(set(B["set"]) - set(N)) == 0:
@@ -142,5 +144,6 @@ class Explorer:
 
     # checks if N is unexplored
     def is_unexplored(self, N):
-        assumptions = [self.vars[c] for c in N] + [Not(self.vars[c]) for c in self.complement(N)]
+        assumptions = [self.vars[c] for c in N] + \
+            [Not(self.vars[c]) for c in self.complement(N)]
         return (self.s.check(assumptions) == sat)

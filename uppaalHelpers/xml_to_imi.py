@@ -1,6 +1,9 @@
-import ta_helper
-from ortools.linear_solver import pywraplp
 import argparse
+
+from ortools.linear_solver import pywraplp
+
+from . import ta_helper
+
 
 def parse_declaration(declaration_text):
     all_clocks = []
@@ -12,15 +15,18 @@ def parse_declaration(declaration_text):
         first_word = space_splitted[0].strip()
 
         if first_word == "clock":            # if the declaration is for clocks
-            remaining_part = " ".join(space_splitted[1:]).split(";")[0]  # get the part before semicolon, clocks
+            remaining_part = " ".join(space_splitted[1:]).split(
+                ";")[0]  # get the part before semicolon, clocks
             line_clocks = remaining_part.split(",")
             all_clocks += [clck.strip() for clck in line_clocks]
         if first_word == "int":            # if the declaration is for clocks
-            remaining_part = " ".join(space_splitted[1:]).split(";")[0]  # get the part before semicolon, clocks
+            remaining_part = " ".join(space_splitted[1:]).split(
+                ";")[0]  # get the part before semicolon, clocks
             line_clocks = remaining_part.split(",")
             all_discrete += [clck.strip() for clck in line_clocks]
         if first_word == "const":            # if the declaration is for clocks
-            remaining_part = " ".join(space_splitted[1:]).split(";")[0]  # get the part before semicolon, clocks
+            remaining_part = " ".join(space_splitted[1:]).split(
+                ";")[0]  # get the part before semicolon, clocks
             line_clocks = remaining_part.split(",")
             all_parameters += [clck.strip() for clck in line_clocks]
     return all_clocks, all_discrete, all_parameters
@@ -37,16 +43,21 @@ def parse_system(system_text):
         elif len(line) == 0:
             continue
         else:
-            statement_part = line.split(";")[0]   # get the part before semicolon
+            # get the part before semicolon
+            statement_part = line.split(";")[0]
             space_splitted_statement = statement_part.split(" ")
-            if space_splitted_statement[0].strip() == "system":    # if the line contains system description
-                processes = " ".join(space_splitted_statement[1:]).split(",")  # get the processes
-                all_processes = [process.strip() for process in processes]     # remove the extra spaces and create list
+            # if the line contains system description
+            if space_splitted_statement[0].strip() == "system":
+                processes = " ".join(space_splitted_statement[1:]).split(
+                    ",")  # get the processes
+                # remove the extra spaces and create list
+                all_processes = [process.strip() for process in processes]
 
             else:       # else there is a process declearation
                 equal_sign_splitted = statement_part.split("=")
                 # dict[process] = template, [:-2] is used to remove () part at the end
-                process_template_dictionary[equal_sign_splitted[0].strip()] = equal_sign_splitted[1].strip()[:-2]
+                process_template_dictionary[equal_sign_splitted[0].strip(
+                )] = equal_sign_splitted[1].strip()[:-2]
 
     return all_processes, process_template_dictionary
 
@@ -59,7 +70,8 @@ def fix_constraints(constraints):
         if constraints == "":
             constraints = "True"
         else:
-            constraints = constraints.split("&&")  # else replace && ith & and == with =
+            # else replace && ith & and == with =
+            constraints = constraints.split("&&")
             new_constraints = []
             for constraint in constraints:
                 if "==" in constraint:
@@ -76,7 +88,8 @@ def fix_assignments(assignments):
     else:
         assignments = assignments.strip()
         if assignments != "":
-            assignments = ":=".join(assignments.split("="))  # if there are assignments, just replace = with :=
+            # if there are assignments, just replace = with :=
+            assignments = ":=".join(assignments.split("="))
     return assignments
 
 
@@ -88,27 +101,33 @@ def create_imitator(new_templates, declaration, system, model_name, query_name, 
 
     # create the file names for imitator
     imi_file_name = ".".join([query_name.split(".q")[0]+name_addition, "imi"])
-    imiprop_file_name = ".".join([query_name.split(".q")[0]+name_addition, "imiprop"])
+    imiprop_file_name = ".".join(
+        [query_name.split(".q")[0]+name_addition, "imiprop"])
     """imi_file_name = ".".join([query_name.split(".q")[0]+"_single_param", "imi"]) 
     imiprop_file_name = ".".join([query_name.split(".q")[0]+"_single_param", "imiprop"])"""
     imi_file = open(imi_file_name, "w+")
 
     clocks, discretes, _ = parse_declaration(declaration)
 
-    _, process_template_dictionary = parse_system(system)  # in order to convert process name to template name
-                                                           # currrently tamus does not support ntas with multiple processes
-    initial_locations = []                                 # that has the same template, it is trivial to change it
-                                                           # However for the benchmarks we have every process has its
-    imi_file.write("var\n\t")                              # own template. In the future support can be added
+    # in order to convert process name to template name
+    _, process_template_dictionary = parse_system(system)
+    # currrently tamus does not support ntas with multiple processes
+    # that has the same template, it is trivial to change it
+    initial_locations = []
+    # However for the benchmarks we have every process has its
+    # own template. In the future support can be added
+    imi_file.write("var\n\t")
     if len(clocks) > 0:
         imi_file.write(", ".join(clocks))                   # var
         imi_file.write("\n\t: clock;\n\t")                  # x, y, z :clock;
     if len(discretes) > 0:
-        discrete_variables = [var.split("=")[0] for var in discretes]   # t, u, v :discrete;
+        discrete_variables = [var.split("=")[0]
+                              for var in discretes]   # t, u, v :discrete;
         imi_file.write(", ".join(discrete_variables))
         imi_file.write("\n\t: discrete;\n")
     if parameter_count > 0:
-        parameters = ["par"+str(i) for i in range(parameter_count)]       # p1, p2, p3 :parameter;
+        # p1, p2, p3 :parameter;
+        parameters = ["par"+str(i) for i in range(parameter_count)]
         imi_file.write("\t" + ", ".join(parameters))
         imi_file.write("\n\t: parameter;\n")
     """if len(parameters) > 0:
@@ -118,7 +137,8 @@ def create_imitator(new_templates, declaration, system, model_name, query_name, 
     for template in new_templates:
         location_transition_dictionary = {}
         location_invariant_list = []
-        initial_locations.append((template.name, template.initlocation.name.value))
+        initial_locations.append(
+            (template.name, template.initlocation.name.value))
 
         #                   Reading locations                           #
         for location in template.locations:
@@ -127,14 +147,17 @@ def create_imitator(new_templates, declaration, system, model_name, query_name, 
             location_invariant = location.invariant.value
             location_invariant = fix_constraints(location_invariant)
 
-            location_invariant_list.append((location_id, location_name, location_invariant))
-            location_transition_dictionary[location_id.strip()] = []                # we will append transition to here
+            location_invariant_list.append(
+                (location_id, location_name, location_invariant))
+            # we will append transition to here
+            location_transition_dictionary[location_id.strip()] = []
 
         #                               Reading  transitions                        #
         syncs = set()
 
         for transiton in template.transitions:
-            sync = transiton.synchronisation.value.strip()  # find all the synchronizations in the template
+            # find all the synchronizations in the template
+            sync = transiton.synchronisation.value.strip()
             if len(sync) != 0:
                 if sync[-1] == "!" or sync[-1] == "?":
                     sync = sync[:-1]
@@ -145,12 +168,15 @@ def create_imitator(new_templates, declaration, system, model_name, query_name, 
 
             guard = transiton.guard.value
             assignment = transiton.assignment.value
-            source = transiton.source.id        # Obwerve that we keep id for source and name for target, since
-            target = transiton.target.name.value  # we assign transitions to source ids and use target names for print
+            # Obwerve that we keep id for source and name for target, since
+            source = transiton.source.id
+            # we assign transitions to source ids and use target names for print
+            target = transiton.target.name.value
             #                       fix the guard               #
             guard = fix_constraints(guard)
             assignment = fix_assignments(assignment)
-            location_transition_dictionary[source.strip()].append((guard, sync, assignment, target))
+            location_transition_dictionary[source.strip()].append(
+                (guard, sync, assignment, target))
 
         #                           Writing to a imi file                       #
 
@@ -158,27 +184,32 @@ def create_imitator(new_templates, declaration, system, model_name, query_name, 
 
         imi_file.write("\nautomaton " + template.name + "\n")
 
-        imi_file.write("\nsynclabs: ")      # write synchronizations    synclabs: b1, b2;
+        # write synchronizations    synclabs: b1, b2;
+        imi_file.write("\nsynclabs: ")
         if len(syncs) > 0:
             imi_file.write(", ".join(syncs))
         imi_file.write(";\n\t")
 
         for location in location_invariant_list:
-            imi_file.write("\nloc " + location[1] + ": invariant " + location[2] + "\n")    # loc loc1: invraiant inv1
+            # loc loc1: invraiant inv1
+            imi_file.write(
+                "\nloc " + location[1] + ": invariant " + location[2] + "\n")
 
             for transition in location_transition_dictionary[location[0].strip()]:
                 if "!=" in transition[0]:
                     atomics = transition[0].split("!=")
                     not_equals = ["<".join(atomics), ">".join(atomics)]
                     for i in range(2):
-                        imi_file.write("\twhen  " + not_equals[i] + " ")          # when guard sync b1 do {update] goto loc2
+                        # when guard sync b1 do {update] goto loc2
+                        imi_file.write("\twhen  " + not_equals[i] + " ")
                         if transition[1] != "":
                             imi_file.write("sync " + transition[1] + " ")
                         if transition[2] != "":
                             imi_file.write("do {" + transition[2] + "} ")
                         imi_file.write("goto " + transition[3] + ";\n")
                 else:
-                    imi_file.write("\twhen  " + transition[0] + " ")  # when guard sync b1 do {update] goto loc2
+                    # when guard sync b1 do {update] goto loc2
+                    imi_file.write("\twhen  " + transition[0] + " ")
                     if transition[1] != "":
                         imi_file.write("sync " + transition[1] + " ")
                     if transition[2] != "":
@@ -190,7 +221,8 @@ def create_imitator(new_templates, declaration, system, model_name, query_name, 
     #                  writing the initial locations, clock values, parameter constraints                    #
     imi_file.write("\n\n\ninit:=\n")
     for template_name, template_location in initial_locations:                      # init:=
-        imi_file.write("\t& loc["+template_name+"] = " + template_location + "\n")
+        imi_file.write("\t& loc["+template_name+"] = " +
+                       template_location + "\n")
     if len(clocks) > 0:                                                             # &x = 0
         for clock in clocks:
             imi_file.write("\t& " + clock + " = 0\n")
@@ -215,9 +247,11 @@ def create_imitator(new_templates, declaration, system, model_name, query_name, 
     #       property := #synth AGnot(loc[loc1] = End1 & loc[loc2] = End2)
     property_file = open(imiprop_file_name, "w+")
     if reach:
-        property_file.write("property := #synth EF(" + "&".join(new_query) + ");")
+        property_file.write(
+            "property := #synth EF(" + "&".join(new_query) + ");")
     else:
-        property_file.write("property := #synth AGnot(" + "&".join(new_query) + ");")
+        property_file.write(
+            "property := #synth AGnot(" + "&".join(new_query) + ");")
     property_file.close()
     imi_file.close()
     return imi_file_name, imiprop_file_name
@@ -233,7 +267,8 @@ def create_the_new_templates(templates, new_templates):
             new_templates.append(template)
 
 
-def read_res_file(file_name):           # in res file reads the part between BEGIN CONSTRAINT AND END CONSTRAINT
+# in res file reads the part between BEGIN CONSTRAINT AND END CONSTRAINT
+def read_res_file(file_name):
     res_file = open(file_name, "r")
     feasible_zones = []
     for line in res_file:
@@ -261,7 +296,8 @@ def read_res_file(file_name):           # in res file reads the part between BEG
     return feasible_zones, total_time
 
 
-def fix_constraints_of_zone(zone, find_real_valued_delta=False, epsilon=1e-5):  # Takes the lines found from res file and converts them into usable form
+# Takes the lines found from res file and converts them into usable form
+def fix_constraints_of_zone(zone, find_real_valued_delta=False, epsilon=1e-5):
     fixed_zone = []
     decrease_flag = 0
     for constraint in zone:
@@ -279,7 +315,8 @@ def fix_constraints_of_zone(zone, find_real_valued_delta=False, epsilon=1e-5):  
         elif ">" in constraint:         # If the operator is > we dec value by 1 since we are using integers and solver
             operator = ">"              # only accepts inequalities with c1*var1 + ... <= value
             final_operator = "<="
-            decrease_flag = epsilon if find_real_valued_delta else 1  # this is nonzero if equality not included
+            # this is nonzero if equality not included
+            decrease_flag = epsilon if find_real_valued_delta else 1
         elif "= 0" in constraint:
             lhs = int(constraint.split("=")[0].strip()[3:])
             fixed_zone.append(([lhs], "<=", 0, [1]))
@@ -289,7 +326,8 @@ def fix_constraints_of_zone(zone, find_real_valued_delta=False, epsilon=1e-5):  
             operator = "="
             final_operator = "=="
 
-        sides = constraint.split(operator)    # atomics = [value, "pari+parj+..."] or [value, "pari+parj+..."]
+        # atomics = [value, "pari+parj+..."] or [value, "pari+parj+..."]
+        sides = constraint.split(operator)
         if "p" in sides[0]:                   # lhs contains value
             lhs = sides[1]                    # rhs contains parameters
             rhs = sides[0]
@@ -326,14 +364,16 @@ def fix_constraints_of_zone(zone, find_real_valued_delta=False, epsilon=1e-5):  
     return fixed_zone
 
 
-def find_maximum_parameter_values(file_name, parameter_count, find_real_valued_delta=False, maximize=True, zero_parameters=[]):  # TODO: make delta computation choosable in caller functions
+# TODO: make delta computation choosable in caller functions
+def find_maximum_parameter_values(file_name, parameter_count, find_real_valued_delta=False, maximize=True, zero_parameters=[]):
     zones, total_time = read_res_file(file_name)    # read all zones
 
     optimum_sums = []
     optimum_parameters = []
     for zone in zones:
-        parameter_values, total_sum = solve_milp(zone, parameter_count, find_real_valued_delta, maximize, zero_parameters)
-        if len(parameter_values) is not 0:
+        parameter_values, total_sum = solve_milp(
+            zone, parameter_count, find_real_valued_delta, maximize, zero_parameters)
+        if len(parameter_values) != 0:
             optimum_sums.append(total_sum)
             optimum_parameters.append(parameter_values)
     if maximize:
@@ -347,31 +387,41 @@ def find_maximum_parameter_values(file_name, parameter_count, find_real_valued_d
 
 
 def solve_milp(zone, parameter_count, find_real_valued_delta, maximize, zero_parameters=[]):
-    fixed_zone = fix_constraints_of_zone(zone, find_real_valued_delta)  # Our examples only have one but might extend it to multiple later
+    # Our examples only have one but might extend it to multiple later
+    fixed_zone = fix_constraints_of_zone(zone, find_real_valued_delta)
 
-    solver = pywraplp.Solver('', pywraplp.Solver.CBC_MIXED_INTEGER_PROGRAMMING)  # create the solver
+    solver = pywraplp.Solver(
+        '', pywraplp.Solver.CBC_MIXED_INTEGER_PROGRAMMING)  # create the solver
     x = {}
     for i in range(parameter_count):
         if i in zero_parameters:
             x[i] = solver.IntVar(0, 0, 'x[' + str(i) + ']')
         elif find_real_valued_delta:
-            x[i] = solver.NumVar(0, solver.infinity(), 'x[' + str(i) + ']')  # add constraints par1, par2, ..., parn
+            # add constraints par1, par2, ..., parn
+            x[i] = solver.NumVar(0, solver.infinity(), 'x[' + str(i) + ']')
         else:
-            x[i] = solver.IntVar(0, solver.infinity(), 'x[' + str(i) + ']')  # add constraints par1, par2, ..., parn
+            # add constraints par1, par2, ..., parn
+            x[i] = solver.IntVar(0, solver.infinity(), 'x[' + str(i) + ']')
 
-    obj_expr = [x[j] for j in range(parameter_count)]   # maximize par1+par2+...+parn
+    # maximize par1+par2+...+parn
+    obj_expr = [x[j] for j in range(parameter_count)]
     if maximize:
         solver.Maximize(solver.Sum(obj_expr))
     else:
         solver.Minimize(solver.Sum(obj_expr))
 
     for i in range(len(fixed_zone)):
-        constraint = solver.RowConstraint(-solver.infinity(), fixed_zone[i][2], '')  # add the constraints
+        # add the constraints
+        constraint = solver.RowConstraint(-solver.infinity(),
+                                          fixed_zone[i][2], '')
         for j in range(len(fixed_zone[i][0])):
-            constraint.SetCoefficient(x[fixed_zone[i][0][j]], fixed_zone[i][3][j])  # adjust which parameters to use
+            # adjust which parameters to use
+            constraint.SetCoefficient(
+                x[fixed_zone[i][0][j]], fixed_zone[i][3][j])
         for j in range(parameter_count):
             if j not in fixed_zone[i][0]:
-                constraint.SetCoefficient(x[j], 0)  # adjust which parameters to use
+                # adjust which parameters to use
+                constraint.SetCoefficient(x[j], 0)
 
     status = solver.Solve()
 
@@ -402,6 +452,7 @@ if __name__ == '__main__':
 
     for i in range(len(fis)):
         name = directory + fis[i]
-        par, s, t = find_maximum_parameter_values(name, cnts[i], find_real_valued_delta=False, maximize=False)
+        par, s, t = find_maximum_parameter_values(
+            name, cnts[i], find_real_valued_delta=False, maximize=False)
         print(name)
         print(s)

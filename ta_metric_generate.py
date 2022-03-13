@@ -1,7 +1,7 @@
 import time
 import argparse
 import signal
-from subprocess32 import Popen, PIPE, TimeoutExpired
+from subprocess import Popen, PIPE, TimeoutExpired
 import os
 import pickle
 from uppaalHelpers import example_generator
@@ -28,22 +28,25 @@ def task_results(path, task, path_analysis, run_imitator=False, every_mmsr=False
         if partition:
             cmd += "--run_imitator_on_partition "
         cmd += path + filename + ".xml " + path + filename + ".q " + "TA"
-        print "\n\n\n"
-        print cmd
+        print("\n\n\n")
+        print(cmd)
         with Popen(cmd, shell=True, stdout=PIPE, preexec_fn=os.setsid) as process:
             try:
                 output = process.communicate(timeout=timelimit)[0]
             except TimeoutExpired:
-                os.killpg(process.pid, signal.SIGTERM)  # send signal to the process group
-        print ""
-        print output
-        print filename
+                # send signal to the process group
+                os.killpg(process.pid, signal.SIGTERM)
+        print("")
+        print(output)
+        print(filename)
         time_passed = time.time() - start_time
-        print time_passed
+        print(time_passed)
         result["time_passed"] = time_passed
-        result["checks"] = find_from_output(output, "Performed reachability checks:")
+        result["checks"] = find_from_output(
+            output, "Performed reachability checks:")
         result["union of MSRs"] = find_from_output(output, "union of MSRs:")
-        result["intersection of MSRs"] = find_from_output(output, "intersection of MSRs")
+        result["intersection of MSRs"] = find_from_output(
+            output, "intersection of MSRs")
         results[filename] = result
     f = open(path + task + "_path_analysis_generate_results.pkl", "wb")
     pickle.dump(results, f)
@@ -78,19 +81,25 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.eba:
-        task_results("examples/generator-eba-path-analysis/", "eba", args.path_analysis)
+        task_results("examples/generator-eba-path-analysis/",
+                     "eba", args.path_analysis)
     if args.remus:
-        task_results("examples/generator-remus-analysis/", "remus", args.path_analysis)
+        task_results("examples/generator-remus-analysis/",
+                     "remus", args.path_analysis)
     if args.marco:
-        task_results("examples/generator-marco-analysis/", "marco", args.path_analysis)
+        task_results("examples/generator-marco-analysis/",
+                     "marco", args.path_analysis)
     if args.sba:
-        task_results("examples/generator-sba-path-analysis/", "sba", args.path_analysis)
+        task_results("examples/generator-sba-path-analysis/",
+                     "sba", args.path_analysis)
     if args.maxsba:
-        task_results("examples/generator-maxsba/", "maxsba", args.path_analysis)
+        task_results("examples/generator-maxsba/",
+                     "maxsba", args.path_analysis)
     if args.mineba:
         task_results("examples/generator-mineba/", "mineba", args.path_analysis,
                      args.run_imitator_on_msr,
                      args.run_imitator_on_every_mmsr,
                      args.run_imitator_on_partition)
     if args.pasba:
-        task_results("examples/generator-pasba-path-analysis/", "pasba", args.path_analysis)
+        task_results("examples/generator-pasba-path-analysis/",
+                     "pasba", args.path_analysis)
