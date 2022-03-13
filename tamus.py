@@ -736,6 +736,8 @@ class Tamus:
 
 if __name__ == '__main__':
 
+    print("PATH:", os.getenv("PATH"))
+
     # define command line arguments
     parser = argparse.ArgumentParser(
         "TAMUS - a tool for relaxing reachability properties in Time Automatas based on Minimal Sufficinet Reductions (MRS) and linear programming.")

@@ -53,7 +53,7 @@ def construct_path_lp(path, clocks, ta, msr, remove_msr=False):
         remove_msr=False: Parametrize the constraints in the MSR and solve an MILP
         remove_msr=True:  Remove the constraints in the MSR and solve an LP
     """
-    length_of_path = len(path) / 2
+    length_of_path = len(path) // 2
 
     number_of_variables = length_of_path
     if not remove_msr:
@@ -123,7 +123,7 @@ def construct_path_lp(path, clocks, ta, msr, remove_msr=False):
 
         # Add delay variable to all clocks
         for x in clocks:
-            clock_to_delay[x].append(i / 2 + 1)
+            clock_to_delay[x].append(i // 2 + 1)
 
     # Construct solver
     if remove_msr:

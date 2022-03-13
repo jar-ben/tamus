@@ -100,7 +100,7 @@ def benchmark_generation_helper(ci, cc, t, lp, kl, ku):
     kl and ku are used in threshold computation."""
 
     # half of it is used for lower bounds, half of it is used for upper bounds.
-    cch = cc / 2
+    cch = cc // 2
     lower_bounds = []
     upper_bounds = []
 

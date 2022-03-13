@@ -118,6 +118,7 @@ def verifyWithTrace(modelfilename, queryfilename, template_name, verifyta='verif
         stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 
     (stdoutdata, stderrdata) = proc.communicate()
+    stdoutdata, stderrdata = stdoutdata.decode(), stderrdata.decode()
     errlines = stderrdata.split('\n')
 
     # Construct the trace
