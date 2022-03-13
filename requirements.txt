@@ -1,0 +1,7 @@
+absl-py==1.0.0
+networkx==2.7.1
+numpy==1.22.3
+ortools==9.3.10459
+protobuf==3.19.4
+six==1.16.0
+z3-solver==4.8.14.0
