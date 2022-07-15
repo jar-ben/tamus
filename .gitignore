@@ -1,4 +1,9 @@
+# Virtual Environment
+venv/
+# Pycaches
+*/__pycache__/
+*.pyc
+# Others
 *.o
 must
 .gitignore.swp
-

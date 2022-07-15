@@ -1,16 +1,13 @@
-import time
-import tamus
-from uppaalHelpers import path_analysis
+
 import argparse
-
-from subprocess32 import Popen, PIPE, TimeoutExpired
-
-from uppaalHelpers import xml_to_imi
-
 import os
-
 import signal
+import time
+from subprocess import PIPE, Popen, TimeoutExpired
 
+from uppaalHelpers import path_analysis, xml_to_imi
+
+from . import tamus
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -45,9 +42,10 @@ if __name__ == '__main__':
             "examples/paper_benchmarks/literature_benchmarks/wfas/WFAS-BBLS15-uppaal.q", "controller")]
 
     if args.task == "mmsr":
-        f = open("examples/paper_benchmarks/literature_benchmarks_msr_results.txt", "w")
+        f = open(
+            "examples/paper_benchmarks/literature_benchmarks_msr_results.txt", "w")
         for fi in fis:
-            print fi[0]
+            print(fi[0])
             f.write("Model: ")
             f.write(fi[0] + "\n")
             f.write("Query: ")
@@ -60,24 +58,29 @@ if __name__ == '__main__':
 
             t.timelimit = 1000000
             t.verbosity = 0
-            f.write("is the target location reachable?" + str(t.is_sufficient([])[0]) + "\n")
+            f.write("is the target location reachable?" +
+                    str(t.is_sufficient([])[0]) + "\n")
             start_time = time.clock()
             try:
                 t.run()
             except:
                 f.write("excexption" + "\n")
-            f.write("MSR computation time: " + str(time.clock()-start_time) + "\n")
-            f.write("Constraint count: " + str(len(t.TA.constraint_registry)) + "\n")
+            f.write("MSR computation time: " +
+                    str(time.clock()-start_time) + "\n")
+            f.write("Constraint count: " +
+                    str(len(t.TA.constraint_registry)) + "\n")
             f.write('Number of checks ' + str(t.stats['checks']) + "\n")
 
             start_time = time.clock()
             msres, constraints, traces = t.get_MSRes()
             msres_size = [len(m) for m in msres]
             min_size = min(msres_size)
-            min_msres_indexes = [i for i in range(len(msres_size)) if msres_size[i] == min_size]
+            min_msres_indexes = [i for i in range(
+                len(msres_size)) if msres_size[i] == min_size]
             # MILP analysis for one of them.
             ind = min_msres_indexes[0]
-            delays, parameters = path_analysis.find_parameters(t.TA, traces[ind], msres[ind])
+            delays, parameters = path_analysis.find_parameters(
+                t.TA, traces[ind], msres[ind])
             milp_time = time.clock() - start_time
             sum_param = sum(parameters)
             if not ("coffee" in fi[0] or "CAS" in fi[0]):
@@ -89,9 +92,10 @@ if __name__ == '__main__':
             print("")
             f.write("\n")
     else:
-        f = open("examples/paper_benchmarks/literature_benchmarks_mg_results.txt", "w")
+        f = open(
+            "examples/paper_benchmarks/literature_benchmarks_mg_results.txt", "w")
         for fi in fis:
-            print fi[0]
+            print(fi[0])
             f.write("Model: ")
             f.write(fi[0] + "\n")
             f.write("Query: ")
@@ -102,14 +106,17 @@ if __name__ == '__main__':
             t.task = "mmg"
             t.timelimit = 1000000
             t.verbosity = 0
-            f.write("is the target location reachable?" + str(t.is_sufficient([])[0]) + "\n")
+            f.write("is the target location reachable?" +
+                    str(t.is_sufficient([])[0]) + "\n")
             start_time = time.clock()
             try:
                 t.minimumMG(allMGs=False)
             except:
                 f.write("excexption" + "\n")
-            f.write("MG computation time: " + str(time.clock() - start_time) + "\n")
-            f.write("Constraint count: " + str(len(t.TA.constraint_registry)) + "\n")
+            f.write("MG computation time: " +
+                    str(time.clock() - start_time) + "\n")
+            f.write("Constraint count: " +
+                    str(len(t.TA.constraint_registry)) + "\n")
             f.write('Number of checks ' + str(t.stats['checks']) + "\n")
 
             mgs, constraints = t.get_MGs()
@@ -117,7 +124,8 @@ if __name__ == '__main__':
             # Minimal mgs:
             mgs_size = [len(m) for m in mgs]
             min_size = min(mgs_size)
-            min_mgs_indexes = [i for i in range(len(mgs_size)) if mgs_size[i] == min_size]
+            min_mgs_indexes = [i for i in range(
+                len(mgs_size)) if mgs_size[i] == min_size]
             mg = mgs[min_mgs_indexes[0]]
             f.write("Min MG size: " + str(len(mg)) + "\n")
             relax_list = [c for c in t.clist]
@@ -126,7 +134,8 @@ if __name__ == '__main__':
                 for c in mg:  # create the list that will be removed from the model
                     relax_list.remove(c)
 
-                new_templates, parameter_count = t.TA.generate_relaxed_and_parametrized_templates(relax_list, mg)
+                new_templates, parameter_count = t.TA.generate_relaxed_and_parametrized_templates(
+                    relax_list, mg)
                 declaraion_of_the_system = t.model.declaration
                 process_template_pair_of_the_system = t.model.system
                 # print set(constraints[0])
@@ -134,10 +143,12 @@ if __name__ == '__main__':
                                                                           declaraion_of_the_system,
                                                                           process_template_pair_of_the_system,
                                                                           t.model_file,
-                                                                          t.query_file,  # 1)
+                                                                          # 1)
+                                                                          t.query_file,
                                                                           parameter_count)
                 output_file = imi_name.split(".imi")[0]
-                command = "imitator " + imi_name + " " + imiporp_name + " -output-prefix " + output_file + " -verbose mute"
+                command = "imitator " + imi_name + " " + imiporp_name + \
+                    " -output-prefix " + output_file + " -verbose mute"
                 f.write("running " + command + "\n")
                 start_time = time.clock()
                 with Popen(command, shell=True, stdout=PIPE, preexec_fn=os.setsid) as process:
@@ -146,14 +157,14 @@ if __name__ == '__main__':
                         parameter_vals, total_sum, total_time = xml_to_imi.find_maximum_parameter_values(
                             output_file + ".res", parameter_count)
 
-                        f.write("Total sum for maximum parameter valuations: "+str(total_sum)+"\n")
+                        f.write(
+                            "Total sum for maximum parameter valuations: "+str(total_sum)+"\n")
                         f.write("Imitator Time: " + total_time + "\n")
 
                     except TimeoutExpired:
-                        os.killpg(process.pid, signal.SIGINT)  # send signal to the process group
+                        # send signal to the process group
+                        os.killpg(process.pid, signal.SIGINT)
                         output = process.communicate()[0]
                         f.write("Timeout at 20 minutes\n")
-
-
 
             f.write("\n")

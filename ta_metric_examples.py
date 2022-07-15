@@ -1,7 +1,7 @@
 import time
 import argparse
 import signal
-from subprocess32 import Popen, PIPE, TimeoutExpired
+from subprocess import Popen, PIPE, TimeoutExpired
 import os
 import pickle
 
@@ -22,23 +22,26 @@ def task_results(file_names, task, path_analysis, run_imitator=False, every_mmsr
         if partition:
             cmd += "--run_imitator_on_partition "
         cmd += filename + " " + query_name + " " + ta
-        print "\n\n\n"
-        print cmd
+        print("\n\n\n")
+        print(cmd)
         with Popen(cmd, shell=True, stdout=PIPE, preexec_fn=os.setsid) as process:
             try:
                 output = process.communicate(timeout=timelimit)[0]
-                print(type(output))
+                print((type(output)))
             except TimeoutExpired:
-                os.killpg(process.pid, signal.SIGTERM)  # send signal to the process group
+                # send signal to the process group
+                os.killpg(process.pid, signal.SIGTERM)
 
-        print output
-        print filename
+        print(output)
+        print(filename)
         time_passed = time.time() - start_time
-        print time_passed
+        print(time_passed)
         result["time_passed"] = time_passed
-        result["checks"] = find_from_output(output, "Performed reachability checks:")
+        result["checks"] = find_from_output(
+            output, "Performed reachability checks:")
         result["union of MSRs"] = find_from_output(output, "union of MSRs:")
-        result["intersection of MSRs"] = find_from_output(output, "intersection of MSRs")
+        result["intersection of MSRs"] = find_from_output(
+            output, "intersection of MSRs")
         results[filename] = result
     f = open("examples/" + task + "_path_analysis_results.pkl", "wb")
     pickle.dump(results, f)

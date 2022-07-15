@@ -19,25 +19,30 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>. """
 
-import cgi
-import xml.etree.cElementTree as ElementTree
-import subprocess
-import re
-import tempfile, os
+import html
 import math
+import os
+import re
+import subprocess
+import tempfile
+import xml.etree.cElementTree as ElementTree
+
 
 def require_keyword_args(num_unnamed):
     """Decorator s.t. a function's named arguments cannot be used unnamed"""
     def real_decorator(fn):
         def check_call(*args, **kwargs):
             if len(args) > num_unnamed:
-                raise TypeError("%s should be called with only %s unnamed arguments" 
-                    % (fn, num_unnamed))
+                raise TypeError("%s should be called with only %s unnamed arguments"
+                                % (fn, num_unnamed))
             return fn(*args, **kwargs)
         return check_call
     return real_decorator
 
+
 UPPAAL_LINEHEIGHT = 15
+
+
 class NTA:
     def __init__(self, declaration="", system="", templates=None):
         self.declaration = declaration
@@ -61,7 +66,8 @@ class NTA:
   <declaration>%s</declaration>
   %s
   <system>%s</system>
-</nta>""" % (cgi.escape(self.declaration), templatesxml, cgi.escape(self.system))
+</nta>""" % (html.escape(self.declaration, quote=False), templatesxml, html.escape(self.system, quote=False))
+
     @classmethod
     def from_xml(cls, xmlsock):
         nta = cls()
@@ -81,78 +87,87 @@ class NTA:
         self.declaration = ntaxml.findtext('declaration') or ""
         self.system = ntaxml.findtext('system') or ""
         self.templates = []
-        for templatexml in ntaxml.getiterator("template"):
+        for templatexml in ntaxml.iter("template"):
             locations = {}
-            for locationxml in templatexml.getiterator("location"):
+            for locationxml in templatexml.iter("location"):
                 name = locationxml.findtext("name")
                 location = Location(id=locationxml.get('id'),
-                    xpos=int(locationxml.get('x', 0)),
-                    ypos=int(locationxml.get('y', 0)), name=name)
+                                    xpos=int(locationxml.get('x', 0)),
+                                    ypos=int(locationxml.get('y', 0)), name=name)
                 namexml = locationxml.find('name')
                 if namexml != None:
                     (location.name.xpos, location.name.ypos) = \
                         (int_or_none(namexml.get('x', None)),
-                        int_or_none(namexml.get('y', None))
-                        )
+                         int_or_none(namexml.get('y', None))
+                         )
                 if locationxml.find("committed") != None:
                     location.committed = True
                 if locationxml.find("urgent") != None:
                     location.urgent = True
-                for labelxml in locationxml.getiterator("label"):
+                for labelxml in locationxml.iter("label"):
                     if labelxml.get('kind') == 'invariant':
                         location.invariant = Label("invariant", labelxml.text)
-                        location.invariant.xpos = int_or_none(labelxml.get('x', None))
-                        location.invariant.ypos = int_or_none(labelxml.get('y', None))
+                        location.invariant.xpos = int_or_none(
+                            labelxml.get('x', None))
+                        location.invariant.ypos = int_or_none(
+                            labelxml.get('y', None))
                     elif labelxml.get('kind') == 'exponentialrate':
-                        location.exprate = Label("exponentialrate", labelxml.text)
-                        location.exprate.xpos = int_or_none(labelxml.get('x', None))
-                        location.exprate.ypos = int_or_none(labelxml.get('y', None))
-                    #TODO other labels
+                        location.exprate = Label(
+                            "exponentialrate", labelxml.text)
+                        location.exprate.xpos = int_or_none(
+                            labelxml.get('x', None))
+                        location.exprate.ypos = int_or_none(
+                            labelxml.get('y', None))
+                    # TODO other labels
                 locations[location.id] = location
-            for branchpointxml in templatexml.getiterator("branchpoint"):
+            for branchpointxml in templatexml.iter("branchpoint"):
                 branchpoint = Branchpoint(id=branchpointxml.get('id'),
-                    xpos=int_or_none(branchpointxml.get('x', None)),
-                    ypos=int_or_none(branchpointxml.get('y', None)))
+                                          xpos=int_or_none(
+                                              branchpointxml.get('x', None)),
+                                          ypos=int_or_none(branchpointxml.get('y', None)))
                 locations[branchpoint.id] = branchpoint
             transitions = []
-            for transitionxml in templatexml.getiterator("transition"):
+            for transitionxml in templatexml.iter("transition"):
                 transition = Transition(
                     locations[transitionxml.find('source').get('ref')],
                     locations[transitionxml.find('target').get('ref')],
-                    )            
-                transition.controllable = ('controllable', 'false') not in transitionxml.items()
-                if 'action' in transitionxml.keys():
-                    l = [s[1] for s in transitionxml.items() if s[0] == 'action']
+                )
+                transition.controllable = (
+                    'controllable', 'false') not in list(transitionxml.items())
+                if 'action' in list(transitionxml.keys()):
+                    l = [s[1]
+                         for s in transitionxml.items() if s[0] == 'action']
                     transition.action = l[0]
                 else:
                     transition.action = None
-                for labelxml in transitionxml.getiterator("label"):
-                    if labelxml.get('kind') in ['select', 'guard', 'assignment', 
+                for labelxml in transitionxml.iter("label"):
+                    if labelxml.get('kind') in ['select', 'guard', 'assignment',
                                                 'synchronisation']:
                         label = getattr(transition, labelxml.get('kind'))
                         label.value = labelxml.text
                         label.xpos = int_or_none(labelxml.get('x', None))
                         label.ypos = int_or_none(labelxml.get('y', None))
-                for nailxml in transitionxml.getiterator("nail"):
+                for nailxml in transitionxml.iter("nail"):
                     transition.nails += [
-                        Nail(int_or_none(nailxml.get('x', None)), 
-                            int_or_none(nailxml.get('y', None)))]
+                        Nail(int_or_none(nailxml.get('x', None)),
+                             int_or_none(nailxml.get('y', None)))]
                 transitions += [transition]
 
             declaration = templatexml.findtext("declaration") or ""
             parameter = templatexml.findtext("parameter") or ""
 
             if templatexml.find("init") != None:
-                initlocation=locations[templatexml.find("init").get('ref')]
+                initlocation = locations[templatexml.find("init").get('ref')]
             else:
                 initlocation = None
             template = Template(templatexml.find("name").text,
-                declaration,
-                locations.values(),
-                initlocation=initlocation,
-                transitions=transitions,
-                parameter=parameter)
-            self.templates += [template]    
+                                declaration,
+                                list(locations.values()),
+                                initlocation=initlocation,
+                                transitions=transitions,
+                                parameter=parameter)
+            self.templates += [template]
+
 
 class Template:
     def __init__(self, name, declaration="", locations=None, initlocation=None, transitions=None, parameter=None):
@@ -177,7 +192,7 @@ class Template:
         locs = [l for l in self.locations if l.name.value == name]
         assert len(locs) == 1
         return locs[0]
-    
+
     def sharpenTransitions(self, nailAngleThreshold, nailInterDistanceThreshold):
         for transition in self.transitions:
             transition.sharpen(nailAngleThreshold, nailInterDistanceThreshold)
@@ -187,7 +202,7 @@ class Template:
         self.assign_ids()
 
         G = pygraphviz.AGraph(strict=False)
-        #initial node should be the first (dot will place it at the top then)
+        # initial node should be the first (dot will place it at the top then)
         for l in [self.initlocation] + self.locations:
             G.add_node(l.id)
             node = G.get_node(l.id)
@@ -198,10 +213,10 @@ class Template:
             curnode = t.source
             for nextnode in t.nails + [t.target]:
                 G.add_edge(curnode.id, nextnode.id, key=t.id)
-                #add label to first segment
+                # add label to first segment
                 if curnode == t.source:
                     edge = G.get_edge(curnode.id, nextnode.id)
-                    label = '';
+                    label = ''
                     for a in [t.select, t.guard, t.synchronisation, t.assignment]:
                         if a.get_value() != None:
                             label += a.get_value().replace('\n', '\\n')+'\\n'
@@ -212,36 +227,40 @@ class Template:
         G.layout(prog='dot')
 
         for l in self.locations:
-            (l.xpos, l.ypos) = map(self.dot2uppaalcoord, G.get_node(l.id).attr['pos'].split(','))
+            (l.xpos, l.ypos) = list(
+                map(self.dot2uppaalcoord, G.get_node(l.id).attr['pos'].split(',')))
             (l.name.xpos, l.name.ypos) = (l.xpos, l.ypos + UPPAAL_LINEHEIGHT)
-            (l.invariant.xpos, l.invariant.ypos) = (l.xpos, l.ypos + 2 * UPPAAL_LINEHEIGHT)
+            (l.invariant.xpos, l.invariant.ypos) = (
+                l.xpos, l.ypos + 2 * UPPAAL_LINEHEIGHT)
         for t in self.transitions:
-            #for nail in t.nails:
+            # for nail in t.nails:
             #    nailnode = G.get_node(nail.id)
             #    (nail.xpos, nail.ypos) = map(self.dot2uppaalcoord, nailnode.attr['pos'].split(','))
             #    curnode = nail
 
-            #first segment
-            edge = G.get_edge(t.source.id, (t.nails + [t.target])[0].id, key=t.id)
+            # first segment
+            edge = G.get_edge(
+                t.source.id, (t.nails + [t.target])[0].id, key=t.id)
             if auto_nails:
                 t.nails = []
                 for nailpos in edge.attr['pos'].split(" "):
-                    xpos, ypos = map(self.dot2uppaalcoord, nailpos.split(","))
+                    xpos, ypos = list(
+                        map(self.dot2uppaalcoord, nailpos.split(",")))
                     t.nails += [Nail(xpos, ypos)]
             ydelta = 0
             for a in ['select', 'guard', 'synchronisation', 'assignment']:
                 label = getattr(t, a)
                 if label.get_value() != None:
-                    (x, y) = map(self.dot2uppaalcoord, edge.attr['lp'].split(','))
+                    (x, y) = list(
+                        map(self.dot2uppaalcoord, edge.attr['lp'].split(',')))
                     label.xpos = x
                     label.ypos = y+ydelta
                     ydelta += UPPAAL_LINEHEIGHT
         self.sharpenTransitions(nailAngleThreshold, nailInterDistanceThreshold)
- 
 
     def _parameter_to_xml(self):
         if self.parameter:
-            return '<parameter>%s</parameter>' % (cgi.escape(self.parameter))
+            return '<parameter>%s</parameter>' % (html.escape(self.parameter, quote=False))
         return ""
 
     def to_xml(self):
@@ -253,13 +272,16 @@ class Template:
     %s
     <init ref="%s" />
     %s
-  </template>""" % (self.name, 
-    self._parameter_to_xml(),
-    cgi.escape(self.declaration),
-    "\n".join([l.to_xml() for l in self.locations if isinstance(l, Location)]),
-    "\n".join([l.to_xml() for l in self.locations if isinstance(l, Branchpoint)]),
-    self.initlocation.id,
-    "\n".join([l.to_xml() for l in self.transitions]))
+  </template>""" % (self.name,
+                    self._parameter_to_xml(),
+                    html.escape(self.declaration, quote=False),
+                    "\n".join([l.to_xml()
+                              for l in self.locations if isinstance(l, Location)]),
+                    "\n".join(
+                        [l.to_xml() for l in self.locations if isinstance(l, Branchpoint)]),
+                    self.initlocation.id,
+                    "\n".join([l.to_xml() for l in self.transitions]))
+
 
 class Label:
     def __init__(self, kind, value=None, xpos=None, ypos=None):
@@ -279,10 +301,9 @@ class Label:
             self.value = self.get_value() + sep + nl + expr
         else:
             self.value = expr
-            
+
     def append_and(self, expr, auto_newline=True):
         self.append(expr, auto_newline, sep=' && ')
-
 
     def append_or(self, expr, auto_newline=True):
         self.append(expr, auto_newline, sep=' || ')
@@ -299,22 +320,23 @@ class Label:
             if self.ypos:
                 attrs += ['y="%s"' % self.ypos]
 
-            #special case for location names
+            # special case for location names
             if self.kind == 'name':
                 return '<name %s>%s</name>' % \
-                    (" ".join(attrs[1:]), cgi.escape(self.value))
+                    (" ".join(attrs[1:]), html.escape(self.value, quote=False))
             else:
                 return '<label %s>%s</label>' % \
-                    (" ".join(attrs), cgi.escape(self.value))
+                    (" ".join(attrs), html.escape(self.value, quote=False))
         return ''
 
     def __str__(self):
         return self.get_value()
 
+
 class Location:
     @require_keyword_args(1)
-    def __init__(self, invariant=None, urgent=False, committed=False, name=None, id = None,
-        xpos=0, ypos=0):
+    def __init__(self, invariant=None, urgent=False, committed=False, name=None, id=None,
+                 xpos=0, ypos=0):
         self.invariant = Label("invariant", invariant)
         self.exprate = None
         self.committed = committed
@@ -345,13 +367,14 @@ class Location:
       %s
       %s
     </location>""" % (self.id, self.xpos, self.ypos, namexml, invariantxml, expratexml,
-        self.committed and '<committed />' or '', self.urgent and '<urgent />' or '')
+                      self.committed and '<committed />' or '', self.urgent and '<urgent />' or '')
 
     def __str__(self):
         if self.name.value:
             return "Location '%s'/%s" % (self.name.value, self.id,)
         else:
             return "Location %s" % (self.id,)
+
 
 class Branchpoint:
     @require_keyword_args(1)
@@ -366,10 +389,12 @@ class Branchpoint:
 
 
 last_transition_id = 0
+
+
 class Transition:
     @require_keyword_args(3)
     def __init__(self, source, target, select='', guard='', synchronisation='',
-                    assignment='', action = None, controllable=True):
+                 assignment='', action=None, controllable=True):
         self.source = source
         self.target = target
         self.select = Label("select", select)
@@ -385,46 +410,49 @@ class Transition:
         last_transition_id = last_transition_id + 1
 
     def __copy__(self):
-        newone = Transition(self.source, self.target, 
-            select=self.select.value, 
-            guard=self.guard.value,
-            synchronisation=self.synchronisation.value,
-            assignment=self.assignment.value)
+        newone = Transition(self.source, self.target,
+                            select=self.select.value,
+                            guard=self.guard.value,
+                            synchronisation=self.synchronisation.value,
+                            assignment=self.assignment.value)
         return newone
 
     def sharpen(self, angleThreshold, lengthThreshold):
         count = 0
-        while True: # do while? 
+        while True:  # do while?
             removed = False
-            nail_to_pos = lambda nail: (nail.xpos, nail.ypos)
+            def nail_to_pos(nail): return (nail.xpos, nail.ypos)
 
             for (prev, curnail, next) in zip(
-                    [(self.source.xpos, self.source.ypos)] + map(nail_to_pos, self.nails[:-1]), 
-                    self.nails, 
-                    map(nail_to_pos, self.nails[1:]) + [(self.target.xpos, self.target.ypos)]
-                    ):
+                    [(self.source.xpos, self.source.ypos)] +
+                list(map(nail_to_pos, self.nails[:-1])),
+                    self.nails,
+                    list(map(nail_to_pos, self.nails[1:])) +
+                [(self.target.xpos, self.target.ypos)]
+            ):
                 cur = nail_to_pos(curnail)
                 v1 = (prev[0]-cur[0], prev[1]-cur[1])
                 v2 = (next[0]-cur[0], next[1]-cur[1])
                 v1len = (math.sqrt((v1[0]*v1[0])+(v1[1]*v1[1])))
                 v2len = (math.sqrt((v2[0]*v2[0])+(v2[1]*v2[1])))
-                if v1len<lengthThreshold or v2len<lengthThreshold:
+                if v1len < lengthThreshold or v2len < lengthThreshold:
                     self.nails.remove(curnail)
                     count += 1
-                    removed=True
+                    removed = True
                     break
                 dot = (v1[0] * v2[0] + v1[1] * v2[1])/(v1len*v2len)
-                #clamp input to between 1...-1
+                # clamp input to between 1...-1
                 dot = max(-1.0, min(dot, 1.0))
                 angle = math.degrees(math.acos(dot))
                 if angle > angleThreshold:
                     self.nails.remove(curnail)
                     count += 1
-                    removed=True
+                    removed = True
                     break
             if not removed:
                 break
         return count
+
     def to_xml(self):
         if self.action is None:
             action_str = ''
@@ -443,18 +471,21 @@ class Transition:
       %s
       %s
       %s
-    </transition>""" % (action_str,controllable_str,self.source.id, self.target.id,
-        self.select.to_xml(), self.guard.to_xml(),
-        self.synchronisation.to_xml(), self.assignment.to_xml(),
-        "\n".join(map(lambda x: x.to_xml(), self.nails))
-        )
+    </transition>""" % (action_str, controllable_str, self.source.id, self.target.id,
+                        self.select.to_xml(), self.guard.to_xml(),
+                        self.synchronisation.to_xml(), self.assignment.to_xml(),
+                        "\n".join([x.to_xml() for x in self.nails])
+                        )
 
     def set_num_nails(self, num):
         self.nails = []
         for i in range(num):
             self.nails += [Nail()]
 
+
 last_nail_id = 0
+
+
 class Nail:
     def __init__(self, xpos=0, ypos=0):
         global last_nail_id
@@ -468,8 +499,9 @@ class Nail:
     <nail x="%s" y="%s" />""" % \
             (self.xpos, self.ypos)
 
+
 class QueryFile:
-    def __init__(self, q = '', comment = ''):
+    def __init__(self, q='', comment=''):
         self.queries = []
 
         if q != '':
@@ -480,16 +512,17 @@ class QueryFile:
 
     def saveFile(self, fh):
         out = ['//This file was generated from pyUppaal'] + \
-            ['/*\n' + comment + '*/\n' + (q == '' and '//NO_QUERY' or q) for (q, comment) in self.queries]
+            ['/*\n' + comment + '*/\n' +
+                (q == '' and '//NO_QUERY' or q) for (q, comment) in self.queries]
         fh.write("\n\n".join(out))
 
-    #XXX tempfile handling is fugly
-    #Call deleteTempFile to close and delete the tempfile
+    # XXX tempfile handling is fugly
+    # Call deleteTempFile to close and delete the tempfile
     def getTempFile(self):
         (fileh, path) = tempfile.mkstemp(suffix='.q')
         file = os.fdopen(fileh)
         file.close()
-        file = open(path, 'r+w') #JB: this was original
+        file = open(path, 'r+w')  # JB: this was original
         #file = open(path, 'r+')
         self.saveFile(file)
         file.close()
@@ -501,25 +534,29 @@ class QueryFile:
         file.close()
         os.unlink(path)
 
+
 def verify(modelfilename, queryfilename, verifyta='verifyta',
-            searchorder='bfs', statespacereduction='1', approximation='', getoutput=False,
-            remotehost=None, remotedir='/tmp/'):
-    searchorder = { 'bfs': '0', #Breadth first
-                    'dfs': '1', #Depth first
-                    'rdfs': '2', #Random depth first
-                    'ofs': '3', #Optimal first
-                    'rodfs': '4', #Random optimal depth first
-                    'tfs': '6', #Target first
-                    }[searchorder]
+           searchorder='bfs', statespacereduction='1', approximation='', getoutput=False,
+           remotehost=None, remotedir='/tmp/'):
+    searchorder = {'bfs': '0',  # Breadth first
+                   'dfs': '1',  # Depth first
+                   'rdfs': '2',  # Random depth first
+                   'ofs': '3',  # Optimal first
+                   'rodfs': '4',  # Random optimal depth first
+                   'tfs': '6',  # Target first
+                   }[searchorder]
 
     cmdline = ''
-    #If we're using a remote host, copy stuff first
+    # If we're using a remote host, copy stuff first
     if remotehost:
-        scpstuff = 'scp -q ' + modelfilename + ' ' + queryfilename + ' ' + remotehost + ':' + remotedir
+        scpstuff = 'scp -q ' + modelfilename + ' ' + \
+            queryfilename + ' ' + remotehost + ':' + remotedir
         subprocess.check_call(scpstuff, shell=True)
 
-        modelfilename = os.path.join(remotedir, os.path.basename(modelfilename))
-        queryfilename = os.path.join(remotedir, os.path.basename(queryfilename))
+        modelfilename = os.path.join(
+            remotedir, os.path.basename(modelfilename))
+        queryfilename = os.path.join(
+            remotedir, os.path.basename(queryfilename))
 
         cmdline = 'ssh ' + remotehost + ' '
     if approximation == 'over':
@@ -529,17 +566,17 @@ def verify(modelfilename, queryfilename, verifyta='verifyta',
         approximation + \
         ' -q ' + modelfilename + ' ' + queryfilename
 
-    #print 'Executing', cmdline
+    # print 'Executing', cmdline
     proc = subprocess.Popen(
-        cmdline, 
+        cmdline,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-    #TODO - report progress
+    # TODO - report progress
     (stdoutdata, stderrdata) = proc.communicate()
 
     lines = stdoutdata.split('\n')
     errlines = stderrdata.split('\n')
 
-    #Look for tell-tale signs that something went wrong
+    # Look for tell-tale signs that something went wrong
     for line in errlines:
         if "Internet connection is required for activation." in line:
             raise Exception("UPPAAL verifyta error: " + line)
@@ -558,7 +595,7 @@ def verify(modelfilename, queryfilename, verifyta='verifyta',
             elif line.endswith(' -- Property MAY be satisfied.'):
                 res += ['maybe']
             else:
-                pass #Ignore garbage
+                pass  # Ignore garbage
             lastprop = None
         elif line.endswith('sup:'):
             sub = 1

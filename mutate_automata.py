@@ -14,7 +14,8 @@ def mutate_automata(file_path, template_name, amount_of_parameters_to_change=1, 
         if reading_template:
             template.append(line)
             if '</template>' in line:
-                write_template(template, w_file, template_name, amount_of_parameters_to_change, rate_of_changes)
+                write_template(template, w_file, template_name,
+                               amount_of_parameters_to_change, rate_of_changes)
                 template = []
                 reading_template = 0
 
@@ -31,7 +32,8 @@ def write_template(template, w_file, target_template_name, amount_of_parameters_
     template_name_line = template[1]
     template_name_start = template_name_line.find('>') + 1
     template_name_end = template_name_line.find('<', template_name_start)
-    template_name = template_name_line[template_name_start: template_name_end].strip()
+    template_name = template_name_line[template_name_start: template_name_end].strip(
+    )
 
     if target_template_name != template_name:
         for line in template:
@@ -46,7 +48,8 @@ def write_template(template, w_file, target_template_name, amount_of_parameters_
     if amount_of_parameters_to_change >= c_count:
         change_choice = [1] * c_count
     else:
-        change_choice = [1] * amount_of_parameters_to_change + [0] * (c_count - amount_of_parameters_to_change)
+        change_choice = [1] * amount_of_parameters_to_change + \
+            [0] * (c_count - amount_of_parameters_to_change)
         random.shuffle(change_choice)
 
     for line in template:
@@ -74,7 +77,9 @@ def write_template(template, w_file, target_template_name, amount_of_parameters_
                     threshold = c[t_start:].strip()
 
                     c = c[:t_start]
-                    c += ' ' + str(int(threshold)+int(math.ceil(rate_of_changes * int(threshold)))) + ' '
+                    c += ' ' + \
+                        str(int(threshold) +
+                            int(math.ceil(rate_of_changes * int(threshold)))) + ' '
                     result.append(c)
                     change_choice = change_choice[1:]
 
@@ -92,7 +97,8 @@ def write_template(template, w_file, target_template_name, amount_of_parameters_
                     threshold = c[t_start:].strip()
 
                     c = c[:t_start]
-                    threshold = int(math.ceil((1-rate_of_changes) * int(threshold)))
+                    threshold = int(
+                        math.ceil((1-rate_of_changes) * int(threshold)))
                     threshold *= (threshold > 0)
                     c += ' ' + str(threshold) + ' '
                     result.append(c)

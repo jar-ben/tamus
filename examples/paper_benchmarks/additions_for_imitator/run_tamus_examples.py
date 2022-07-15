@@ -1,8 +1,8 @@
-import time
 import os
 import signal
-from subprocess32 import Popen, PIPE, TimeoutExpired
 import sys
+import time
+from subprocess import PIPE, Popen, TimeoutExpired
 
 if __name__ == '__main__':
     timelimit = int(sys.argv[1])
@@ -21,17 +21,19 @@ if __name__ == '__main__':
     for fi in fis:
         last_part = fi[fi.find("/")+1:]
 
-        start_time = time.time()                                                    # base model
+        # base model
+        start_time = time.time()
         cmd = "imitator tamus_examples/" + fi + \
               ".imi tamus_examples/" + fi + ".imiprop"
         with Popen(cmd, shell=True, stdout=PIPE, preexec_fn=os.setsid) as process:
             try:
                 output = process.communicate(timeout=timelimit)[0]
             except TimeoutExpired:
-                os.killpg(process.pid, signal.SIGINT)  # send signal to the process group
+                # send signal to the process group
+                os.killpg(process.pid, signal.SIGINT)
                 output = process.communicate()[0]
         elapsed_time = time.time() - start_time
-        print time.time() - start_time
+        print(time.time() - start_time)
 
         mv_cmd = "mv " + last_part +\
                  ".res tamus_examples/results/imitator_output && " \
@@ -45,17 +47,19 @@ if __name__ == '__main__':
         f.write("Model: " + fi + "\n")
         f.write("Time: " + str(elapsed_time) + "\n\n")
 
-        start_time = time.time()                                                    # base model with counterexample
+        # base model with counterexample
+        start_time = time.time()
         cmd = "imitator tamus_examples/" + fi + \
               ".imi tamus_examples/" + fi + "_witness.imiprop"
         with Popen(cmd, shell=True, stdout=PIPE, preexec_fn=os.setsid) as process:
             try:
                 output = process.communicate(timeout=timelimit)[0]
             except TimeoutExpired:
-                os.killpg(process.pid, signal.SIGINT)  # send signal to the process group
+                # send signal to the process group
+                os.killpg(process.pid, signal.SIGINT)
                 output = process.communicate()[0]
         elapsed_time = time.time() - start_time
-        print time.time() - start_time
+        print(time.time() - start_time)
 
         mv_cmd = "mv " + last_part +\
                  ".res tamus_examples/results/imitator_output && " \
@@ -69,17 +73,19 @@ if __name__ == '__main__':
         f.write("Model: " + fi + "\n")
         f.write("Time: " + str(elapsed_time) + "\n\n")
 
-        start_time = time.time()                                                    # msr model
+        # msr model
+        start_time = time.time()
         cmd = "imitator tamus_examples/" + fi + \
               "_msr.imi tamus_examples/" + fi + ".imiprop"
         with Popen(cmd, shell=True, stdout=PIPE, preexec_fn=os.setsid) as process:
             try:
                 output = process.communicate(timeout=timelimit)[0]
             except TimeoutExpired:
-                os.killpg(process.pid, signal.SIGINT)  # send signal to the process group
+                # send signal to the process group
+                os.killpg(process.pid, signal.SIGINT)
                 output = process.communicate()[0]
         elapsed_time = time.time() - start_time
-        print time.time() - start_time
+        print(time.time() - start_time)
 
         mv_cmd = "mv " + last_part +\
                  "_msr.res tamus_examples/results/imitator_output && " \
@@ -93,17 +99,19 @@ if __name__ == '__main__':
         f.write("Model: " + fi + "\n")
         f.write("Time: " + str(elapsed_time) + "\n\n")
 
-        start_time = time.time()                                                    # msr model with counterexample
+        # msr model with counterexample
+        start_time = time.time()
         cmd = "imitator tamus_examples/" + fi + \
               "_msr.imi tamus_examples/" + fi + "_witness.imiprop"
         with Popen(cmd, shell=True, stdout=PIPE, preexec_fn=os.setsid) as process:
             try:
                 output = process.communicate(timeout=timelimit)[0]
             except TimeoutExpired:
-                os.killpg(process.pid, signal.SIGINT)  # send signal to the process group
+                # send signal to the process group
+                os.killpg(process.pid, signal.SIGINT)
                 output = process.communicate()[0]
         elapsed_time = time.time() - start_time
-        print time.time() - start_time
+        print(time.time() - start_time)
 
         mv_cmd = "mv " + last_part +\
                  "_msr.res tamus_examples/results/imitator_output && " \
@@ -135,17 +143,19 @@ if __name__ == '__main__':
 
     for fi in fis:
         last_part = fi[21:]
-        start_time = time.time()                                                    # base model
+        # base model
+        start_time = time.time()
         cmd = "imitator tamus_examples/" + fi + \
               ".imi tamus_examples/" + fi + ".imiprop"
         with Popen(cmd, shell=True, stdout=PIPE, preexec_fn=os.setsid) as process:
             try:
                 output = process.communicate(timeout=timelimit)[0]
             except TimeoutExpired:
-                os.killpg(process.pid, signal.SIGINT)  # send signal to the process group
+                # send signal to the process group
+                os.killpg(process.pid, signal.SIGINT)
                 output = process.communicate()[0]
         elapsed_time = time.time() - start_time
-        print time.time() - start_time
+        print(time.time() - start_time)
 
         mv_cmd = "mv " + last_part +\
                  ".res tamus_examples/results/imitator_output && " \
@@ -159,17 +169,19 @@ if __name__ == '__main__':
         f.write("Model: " + fi + "\n")
         f.write("Time: " + str(elapsed_time) + "\n\n")
 
-        start_time = time.time()                                                    # base model with counterexample
+        # base model with counterexample
+        start_time = time.time()
         cmd = "imitator tamus_examples/" + fi + \
               ".imi tamus_examples/" + fi + "_witness.imiprop"
         with Popen(cmd, shell=True, stdout=PIPE, preexec_fn=os.setsid) as process:
             try:
                 output = process.communicate(timeout=timelimit)[0]
             except TimeoutExpired:
-                os.killpg(process.pid, signal.SIGINT)  # send signal to the process group
+                # send signal to the process group
+                os.killpg(process.pid, signal.SIGINT)
                 output = process.communicate()[0]
         elapsed_time = time.time() - start_time
-        print time.time() - start_time
+        print(time.time() - start_time)
 
         mv_cmd = "mv " + last_part +\
                  ".res tamus_examples/results/imitator_output && " \

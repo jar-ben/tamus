@@ -1,12 +1,14 @@
 import subprocess
-import pyuppaal
 
-verification_result = {1: 'property is satisfied', 0: 'unknown', -1: 'property is not satisfied'}
+from . import pyuppaal
+
+verification_result = {1: 'property is satisfied',
+                       0: 'unknown', -1: 'property is not satisfied'}
 
 
 def get_template_name(ta_file_path, model_name):
     string_catch = model_name + " = "
-    template_name = "" 
+    template_name = ""
     with open(ta_file_path, 'r') as myfile:
         for line in myfile:
             if line.startswith(string_catch):
@@ -15,7 +17,7 @@ def get_template_name(ta_file_path, model_name):
                 template_name = template_name[:template_name.index('(')]
                 break
     return template_name
-          
+
 
 def get_template(ta_file_path, query_file_name, template_name):
     """Reads the ta file and returns template(s)."""
@@ -74,30 +76,32 @@ def verify_reachability(ta_file_path, query_file_path, TA, relaxation_set, templ
 
     global verification_result
     constraint_registry = TA.constraint_registry
-    
+
     trace = []
     res = 0
     used_constraints = {}
     try:
-        stdoutdata, traces = verifyWithTrace(ta_file_path, query_file_path, template_name)
+        stdoutdata, traces = verifyWithTrace(
+            ta_file_path, query_file_path, template_name)
         if 'is satisfied' in stdoutdata:
             res = 1
             used_constraints = {}
             for trace in traces:
-                used_constraints = find_used_constraints(trace, constraint_registry, relaxation_set, used_constraints)
+                used_constraints = find_used_constraints(
+                    trace, constraint_registry, relaxation_set, used_constraints)
             if used_constraints == {}:
-                print "Something wrong happened with verifyta"
+                print("Something wrong happened with verifyta")
                 #  used_constraints = relaxation_set
         if 'is NOT satisfied' in stdoutdata:
             res = -1
 
     except Exception as e:
-        print (e)
+        print(e)
         pass
     #  qf.deleteTempFile(qfh)
     if print_result:
-        print ("Checking " + ta_file_path + " against query " + query_file_path)
-        print ("\t" + verification_result[res])
+        print(("Checking " + ta_file_path + " against query " + query_file_path))
+        print(("\t" + verification_result[res]))
     return res, used_constraints, trace
 
 
@@ -105,7 +109,8 @@ def verifyWithTrace(modelfilename, queryfilename, template_name, verifyta='verif
     #  modified version of verify from pyuppaal, change parameter verifyta to where verifyta is
     cmdline = ''
 
-    cmdline += verifyta + ' -t1 ' + ' -o0' + ' -S1' + ' -q ' + modelfilename + ' ' + queryfilename
+    cmdline += verifyta + ' -t1 ' + ' -o0' + ' -S1' + \
+        ' -q ' + modelfilename + ' ' + queryfilename
 
     # print 'Executing', cmdline
     proc = subprocess.Popen(
@@ -113,6 +118,7 @@ def verifyWithTrace(modelfilename, queryfilename, template_name, verifyta='verif
         stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 
     (stdoutdata, stderrdata) = proc.communicate()
+    stdoutdata, stderrdata = stdoutdata.decode(), stderrdata.decode()
     errlines = stderrdata.split('\n')
 
     # Construct the trace
@@ -136,7 +142,8 @@ def verifyWithTrace(modelfilename, queryfilename, template_name, verifyta='verif
                 end_of_state_1 = transition_line.find('-')
                 state_1 = transition_line[start_of_state_1:end_of_state_1]
 
-                start_of_state_2 = 1 + transition_line.find('.', end_of_state_1)
+                start_of_state_2 = 1 + \
+                    transition_line.find('.', end_of_state_1)
                 end_of_state_2 = transition_line.find(' ', end_of_state_1)
                 state_2 = transition_line[start_of_state_2:end_of_state_2]
 
@@ -153,15 +160,19 @@ def verifyWithTrace(modelfilename, queryfilename, template_name, verifyta='verif
                 if template_names.get(t_instance_name) is not None:
                     instance_template_name = template_names[t_instance_name]
                 else:
-                    instance_template_name = get_template_name(modelfilename, t_instance_name)
+                    instance_template_name = get_template_name(
+                        modelfilename, t_instance_name)
                     template_names[t_instance_name] = instance_template_name
 
                 if t_instance_name in trace:
-                    trace[t_instance_name].append((instance_template_name, state_1, state_2, sync))
-                    trace[t_instance_name].append((instance_template_name, state_2))
+                    trace[t_instance_name].append(
+                        (instance_template_name, state_1, state_2, sync))
+                    trace[t_instance_name].append(
+                        (instance_template_name, state_2))
                 else:
                     trace[t_instance_name] = [(instance_template_name, state_1),
-                                              (instance_template_name, state_1, state_2, sync),
+                                              (instance_template_name,
+                                               state_1, state_2, sync),
                                               (instance_template_name, state_2)]
                 i += 1
                 transition_line = errlines[i]
